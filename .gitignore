@@ -1,0 +1,7 @@
+node_modules/
+*.vsix
+whisper.cpp/build/
+whisper.cpp/models/
+whisper.cpp/.vscode/
+.DS_Store
+*.log
