@@ -1,0 +1,11 @@
+{
+  "displayName": "Whisper Spracheingabe",
+  "description": "🎙️ Spracheingabe für VS Code mit der OpenAI Whisper API (mehrsprachige Transkription).",
+  "title": "Whisper Spracheingabe",
+  "config.maxRecordSeconds": "Maximale Aufnahmezeit (in Sekunden). Standard: 180 (3 Minuten).",
+  "config.language": "Sprache der Nachrichten in der Erweiterungsoberfläche.",
+  "command.toggle": "Whisper: Spracheingabe starten / stoppen",
+  "command.setApiKey": "Whisper: API-Schlüssel festlegen",
+  "command.setupWizard": "Whisper: Setup-Assistent ausführen",
+  "command.showHistory": "Whisper: Verlauf anzeigen"
+}

@@ -1,0 +1,137 @@
+{
+  "name": "voice-to-text-copilot",
+  "displayName": "Voice to Text + Copilot Chat",
+  "description": "Whisperを利用した音声入力拡張。APIモード(クラウド・高精度)とローカルモード(オフライン・無料)から選択可能。(Voice input extension with API mode [cloud, accurate] or Local mode [offline, free] using Whisper.)",
+  "publisher": "aleaf",
+  "version": "1.1.0",
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "categories": [
+    "AI"
+  ],
+  "keywords": [
+    "voice input",
+    "speech to text",
+    "voice to text",
+    "copilot",
+    "copilot chat",
+    "openai",
+    "whisper",
+    "whisper.cpp",
+    "transcription",
+    "audio input",
+    "speech recognition",
+    "vscode",
+    "ai",
+    "productivity",
+    "voice typing",
+    "offline",
+    "local mode",
+    "api mode",
+    "音声入力",
+    "音声認識",
+    "文字起こし",
+    "テキスト化",
+    "音声をテキストに変換",
+    "AI入力",
+    "Copilot チャット",
+    "VS Code 音声入力",
+    "オフライン",
+    "ローカルモード"
+  ],
+  "icon": "icon.png",
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./extension.js",
+  "contributes": {
+    "configuration": {
+      "title": "Voice to Text + Copilot Chat",
+      "properties": {
+        "whisperVoiceInput.maxRecordSeconds": {
+          "type": "number",
+          "default": 180,
+          "minimum": 10,
+          "maximum": 600,
+          "description": "Maximum recording time in seconds (default: 180)"
+        },
+        "whisperVoiceInput.language": {
+          "type": "string",
+          "enum": [
+            "ja",
+            "en",
+            "fr",
+            "es",
+            "zh",
+            "ko",
+            "de",
+            "it",
+            "ru"
+          ],
+          "enumDescriptions": [
+            "日本語",
+            "English",
+            "Français",
+            "Español",
+            "中文",
+            "한국어",
+            "Deutsch",
+            "Italiano",
+            "Русский"
+          ],
+          "default": "",
+          "description": "Interface language for messages"
+        },
+        "whisperVoiceInput.mode": {
+          "type": "string",
+          "enum": [
+            "api",
+            "local"
+          ],
+          "default": "api",
+          "description": "Select whether to use OpenAI API (requires key) or local whisper.cpp model"
+        },
+        "whisperVoiceInput.localModel": {
+          "type": "string",
+          "enum": [
+            "tiny",
+            "base",
+            "small",
+            "medium",
+            "large"
+          ],
+          "default": "base",
+          "description": "Whisper model for local mode (base recommended for daily use)"
+        }
+      }
+    },
+    "commands": [
+      {
+        "command": "whisperVoiceInput.toggle",
+        "title": "Start / Stop Whisper Voice Input"
+      },
+      {
+        "command": "whisperVoiceInput.setApiKey",
+        "title": "Set OpenAI API Key"
+      },
+      {
+        "command": "whisperVoiceInput.setupWizard",
+        "title": "Whisper: Run Setup Wizard"
+      },
+      {
+        "command": "whisperVoiceInput.showHistory",
+        "title": "Whisper: Show History"
+      }
+    ]
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/aleaf/whisper-voice-input"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "mic": "^2.1.2",
+    "openai": "^6.2.0"
+  }
+}

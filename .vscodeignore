@@ -1,0 +1,86 @@
+# Development and build files
+.env
+.vscode/
+package-lock.json
+*.log
+*.tmp
+
+# whisper.cpp - 除外するもの
+whisper.cpp/models/**                  # モデルファイル（ダウンロード機能で対応）
+whisper.cpp/build/**/CMakeFiles/**     # CMake一時ファイル
+whisper.cpp/build/**/Testing/**        # テストファイル
+whisper.cpp/build/**/*.obj             # オブジェクトファイル
+whisper.cpp/build/**/*.o               # オブジェクトファイル
+whisper.cpp/build/**/*.vcxproj         # Visual Studioプロジェクト
+whisper.cpp/build/**/*.vcxproj.filters
+whisper.cpp/build/**/*.sln
+whisper.cpp/build/CMakeCache.txt
+whisper.cpp/build/cmake_install.cmake
+whisper.cpp/build/*.cmake
+whisper.cpp/examples/**                # サンプルコード
+whisper.cpp/tests/**                   # テストコード
+whisper.cpp/.git/**                    # Gitフォルダ
+whisper.cpp/.github/**                 # GitHub Actions
+whisper.cpp/bindings/**                # 他言語バインディング
+whisper.cpp/ci/**                      # CI設定
+whisper.cpp/grammars/**                # 文法ファイル
+whisper.cpp/samples/**                 # サンプル音声
+whisper.cpp/scripts/**                 # スクリプト
+whisper.cpp/src/**                     # ソースコード
+whisper.cpp/ggml/**                    # GGMLソース
+
+# whisper.cpp - 含めるもの（!で明示的に含める）
+!whisper.cpp/build/bin/Release/whisper-cli.exe   # Windows実行ファイル
+!whisper.cpp/build/bin/macos/whisper-cli         # macOS実行ファイル
+!whisper.cpp/build/bin/linux/whisper-cli         # Linux実行ファイル
+!whisper.cpp/Makefile                            # macOS/Linux用ビルドファイル
+!whisper.cpp/CMakeLists.txt                      # 上級者向けビルドファイル
+!whisper.cpp/README.md                           # 説明ファイル
+!whisper.cpp/LICENSE                             # ライセンス
+
+# Runtime generated files
+voice.wav
+*.wav
+*.mp3
+*.m4a
+*.ogg
+
+# Build artifacts
+*.vsix
+out/
+dist/
+build/
+
+# Source control
+.git/
+.gitignore
+.gitattributes
+
+# Documentation (development only)
+CHANGELOG.md
+CONTRIBUTING.md
+.github/
+
+# Testing
+test/
+tests/
+*.test.js
+*.spec.js
+coverage/
+
+# IDE specific
+.idea/
+*.swp
+*.swo
+*~
+
+# OS specific
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Temporary files
+*.bak
+*.backup
+temp/
+tmp/

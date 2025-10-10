@@ -1,0 +1,11 @@
+{
+  "displayName": "Whisper音声入力",
+  "description": "🎙️ OpenAI Whisper APIを使った音声入力拡張（多言語対応の文字起こし）。",
+  "title": "Whisper音声入力",
+  "config.maxRecordSeconds": "録音の最大時間（秒単位）。デフォルトは180秒（3分）。",
+  "config.language": "拡張機能のメッセージ表示言語を選択します。",
+  "command.toggle": "Whisper: 音声入力の開始 / 停止",
+  "command.setApiKey": "Whisper: APIキーを登録",
+  "command.setupWizard": "Whisper: セットアップウィザードを実行",
+  "command.showHistory": "Whisper: 履歴を表示"
+}

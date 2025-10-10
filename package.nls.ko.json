@@ -1,0 +1,11 @@
+{
+  "displayName": "Whisper 음성 입력",
+  "description": "🎙️ OpenAI Whisper API를 사용하는 VS Code용 음성 입력 확장(다국어 음성 인식 지원).",
+  "title": "Whisper 음성 입력",
+  "config.maxRecordSeconds": "최대 녹음 시간(초). 기본값: 180(3분).",
+  "config.language": "확장 프로그램 인터페이스의 메시지 언어.",
+  "command.toggle": "Whisper: 음성 입력 시작 / 중지",
+  "command.setApiKey": "Whisper: API 키 설정",
+  "command.setupWizard": "Whisper: 설정 마법사 실행",
+  "command.showHistory": "Whisper: 기록 표시"
+}

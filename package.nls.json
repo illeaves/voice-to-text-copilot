@@ -1,0 +1,11 @@
+{
+  "displayName": "Whisper Voice Input",
+  "description": "🎙️ Voice input for VS Code using OpenAI Whisper API (multilingual speech-to-text).",
+  "title": "Whisper Voice Input",
+  "config.maxRecordSeconds": "Maximum recording duration (in seconds). Default is 180 (3 minutes).",
+  "config.language": "Language for messages in the extension UI.",
+  "command.toggle": "Whisper: Start / Stop Voice Input",
+  "command.setApiKey": "Whisper: Set API Key",
+  "command.setupWizard": "Whisper: Run Setup Wizard",
+  "command.showHistory": "Whisper: Show History"
+}
