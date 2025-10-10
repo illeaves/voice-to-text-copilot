@@ -1,9 +1,11 @@
 /**
  * Whisper Voice Input Extension for VS Code
  * Author: aleaf
- * Version: 1.0.0
+ * Version: 1.1.0
  */
+"use strict";
 
+// ====== Imports ======
 const vscode = require("vscode");
 const fs = require("fs");
 const path = require("path");
@@ -18,19 +20,21 @@ const { execFile } = require("child_process");
 const util = require("util");
 const execFilePromise = util.promisify(execFile);
 
-let isRecording = false;
-let isProcessing = false;
-let messages = {};
-let statusBarItem;
-let outputChannel;
+// ====== Global State ======
+let isRecording = false; // 録音中か
+let isProcessing = false; // 音声→テキスト処理中か
+let messages = {}; // ローカライズメッセージ
+let statusBarItem; // ステータスバー項目
+let outputChannel; // アウトプットチャンネル
+let recordingTimer = null; // 録音時間表示用タイマー
+let recordingStartTime = null; // 録音開始時刻
+let recordingMaxSeconds = 180; // 最大録音時間
 
-// 📚 Whisper履歴管理
-const WHISPER_HISTORY_KEY = "whisperHistory";
-const MAX_HISTORY_SIZE = 10;
+// ====== History Constants ======
+const WHISPER_HISTORY_KEY = "whisperHistory"; // 履歴保存キー
+const MAX_HISTORY_SIZE = 10; // 最大履歴件数
 
-/**
- * 🌐 言語ファイルをロード
- */
+// ====== Localization ======
 function loadLocale(lang) {
   try {
     const localeFile = path.join(__dirname, "locales", `${lang}.json`);
@@ -46,9 +50,6 @@ function loadLocale(lang) {
   }
 }
 
-/**
- * 🗣️ メッセージ取得（{{変数}}置換付き）
- */
 function msg(key, vars = {}) {
   let text = messages[key] || key;
   for (const [k, v] of Object.entries(vars)) {
@@ -57,26 +58,22 @@ function msg(key, vars = {}) {
   return text;
 }
 
-/**
- *  システムログ出力（アウトプットパネル + コンソール）
- */
+// ====== Logging ======
 function systemLog(message, level = "INFO") {
   const timestamp = new Date().toLocaleTimeString();
   const logMessage = `[${timestamp}] ${level}: ${message}`;
-
-  // コンソールログ
   console.log(logMessage);
-
-  // アウトプットパネル
-  if (outputChannel) {
-    outputChannel.appendLine(logMessage);
-  }
+  if (outputChannel) outputChannel.appendLine(logMessage);
 }
 
+// ====== Status Bar Helper ======
 /**
  * 📝 ステータスバー更新（状態に応じて）
+ * @param {string} state - idle, recording, processing, success
+ * @param {number} elapsed - 経過秒数（recording時のみ）
+ * @param {number} max - 最大秒数（recording時のみ）
  */
-function updateStatusBar(state = "idle") {
+function updateStatusBar(state = "idle", elapsed = 0, max = 0) {
   if (!statusBarItem) return;
 
   // 現在のモードを取得
@@ -90,7 +87,16 @@ function updateStatusBar(state = "idle") {
 
   switch (state) {
     case "recording":
-      statusBarItem.text = msg("statusRecording");
+      const remaining = max - elapsed;
+      const elapsedMin = Math.floor(elapsed / 60);
+      const elapsedSec = elapsed % 60;
+      const remainingMin = Math.floor(remaining / 60);
+      const remainingSec = remaining % 60;
+      statusBarItem.text = `🔴 ${elapsedMin}:${elapsedSec
+        .toString()
+        .padStart(2, "0")} / ${remainingMin}:${remainingSec
+        .toString()
+        .padStart(2, "0")}`;
       statusBarItem.tooltip =
         msg("statusRecording") + ` [${modeLabel}] - ` + msg("commandOnlyMode");
       statusBarItem.backgroundColor = new vscode.ThemeColor(
@@ -125,7 +131,32 @@ function updateStatusBar(state = "idle") {
 }
 
 /**
- * � Whisper履歴に追加
+ * ⏱️ 録音時間表示タイマーを開始
+ */
+function startRecordingTimer(maxSeconds) {
+  stopRecordingTimer(); // 既存のタイマーをクリア
+  recordingStartTime = Date.now();
+  recordingMaxSeconds = maxSeconds;
+
+  recordingTimer = setInterval(() => {
+    const elapsed = Math.floor((Date.now() - recordingStartTime) / 1000);
+    updateStatusBar("recording", elapsed, recordingMaxSeconds);
+  }, 1000); // 1秒ごとに更新
+}
+
+/**
+ * ⏹️ 録音時間表示タイマーを停止
+ */
+function stopRecordingTimer() {
+  if (recordingTimer) {
+    clearInterval(recordingTimer);
+    recordingTimer = null;
+  }
+  recordingStartTime = null;
+}
+
+/**
+ * 📥 Whisper履歴に追加
  */
 function addToHistory(context, text, mode) {
   const history = context.globalState.get(WHISPER_HISTORY_KEY, []);
@@ -154,7 +185,7 @@ function getHistory(context) {
 }
 
 /**
- * �📥 モデルダウンロード（リダイレクト対応）
+ * 📥 モデルダウンロード（リダイレクト対応）
  */
 async function downloadModel(modelName, msg) {
   const modelUrl = `https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-${modelName}.bin`;
@@ -397,13 +428,7 @@ async function executeLocalWhisper(outputFile, msg) {
     // macOS用パス
     possibleExePaths.push(
       // 推奨: プラットフォーム共通配置 (build/bin/whisper-cli)
-      path.join(
-        __dirname,
-        "whisper.cpp",
-        "build",
-        "bin",
-        "whisper-cli"
-      ),
+      path.join(__dirname, "whisper.cpp", "build", "bin", "whisper-cli"),
       path.join(
         __dirname,
         "whisper.cpp",
@@ -419,13 +444,7 @@ async function executeLocalWhisper(outputFile, msg) {
     // Linux用パス
     possibleExePaths.push(
       // 推奨: プラットフォーム共通配置 (build/bin/whisper-cli)
-      path.join(
-        __dirname,
-        "whisper.cpp",
-        "build",
-        "bin",
-        "whisper-cli"
-      ),
+      path.join(__dirname, "whisper.cpp", "build", "bin", "whisper-cli"),
       path.join(
         __dirname,
         "whisper.cpp",
@@ -449,10 +468,11 @@ async function executeLocalWhisper(outputFile, msg) {
   }
 
   if (!whisperPath) {
-    systemLog(
-      `Whisper executable not found. Tried: ${possibleExePaths.join(", ")}`,
-      "ERROR"
-    );
+    const errorMsg = `Whisper executable not found. Tried: ${possibleExePaths.join(
+      ", "
+    )}`;
+    systemLog(errorMsg, "ERROR");
+    vscode.window.showErrorMessage(msg("whisperNotFound"));
     throw new Error("whisperNotFound");
   }
 
@@ -465,9 +485,14 @@ async function executeLocalWhisper(outputFile, msg) {
 
   // モデル・音声ファイルの存在確認
   if (!fs.existsSync(modelPath)) {
+    systemLog(`Model file not found: ${modelPath}`, "ERROR");
+    vscode.window.showErrorMessage(
+      msg("modelNotFound", { model: selectedModel })
+    );
     throw new Error("modelNotFound");
   }
   if (!fs.existsSync(outputFile)) {
+    systemLog(`Voice file not found: ${outputFile}`, "ERROR");
     throw new Error("voiceFileNotFound");
   }
 
@@ -477,45 +502,15 @@ async function executeLocalWhisper(outputFile, msg) {
 
   if (fileStats.size === 0) {
     systemLog("Voice file is empty!", "ERROR");
+    vscode.window.showErrorMessage(msg("voiceFileEmpty"));
     throw new Error("voiceFileNotFound");
   }
 
   try {
-    // VS Codeの言語設定を取得
-    const config = vscode.workspace.getConfiguration("whisperVoiceInput");
-    const userLang =
-      config.get("language") || vscode.env.language.split("-")[0];
+    // 言語は自動検出（-l オプションなし）
+    const args = ["-m", modelPath, "-f", outputFile, "--output-txt"];
 
-    // whisper.cpp用の言語コードマッピング
-    const langMap = {
-      ja: "ja",
-      en: "en",
-      zh: "zh",
-      ko: "ko",
-      fr: "fr",
-      de: "de",
-      es: "es",
-      it: "it",
-      ru: "ru",
-    };
-
-    const whisperLang = langMap[userLang] || "ja"; // デフォルトは日本語
-
-    const args = [
-      "-m",
-      modelPath,
-      "-f",
-      outputFile,
-      "-l",
-      whisperLang,
-      "--output-txt",
-    ];
-
-    systemLog(
-      `Language: ${whisperLang} (from VS Code setting: ${userLang})`,
-      "INFO"
-    );
-
+    systemLog("Language: auto-detect", "INFO");
     systemLog(`Executing: ${whisperPath} ${args.join(" ")}`, "INFO");
     const { stdout, stderr } = await execFilePromise(whisperPath, args);
 
@@ -535,9 +530,9 @@ async function executeLocalWhisper(outputFile, msg) {
     if (fs.existsSync(txtOutputFile)) {
       result = fs.readFileSync(txtOutputFile, "utf8").trim();
       systemLog(`Read from txt file: "${result}"`, "INFO");
-      // 🎧 デバッグ用：.txtファイルを残す
-      // fs.unlinkSync(txtOutputFile);
-      systemLog(`TXT file saved for debugging: ${txtOutputFile}`, "INFO");
+      // .txtファイルを削除
+      fs.unlinkSync(txtOutputFile);
+      systemLog(`Deleted txt file: ${txtOutputFile}`, "INFO");
     } else {
       // .txtファイルがない場合はstdoutから抽出（フォールバック）
       const lines = stdout.split("\n");
@@ -557,16 +552,24 @@ async function executeLocalWhisper(outputFile, msg) {
       systemLog(`Extracted from stdout: "${result}"`, "INFO");
     }
 
-    // 🎧 デバッグ用：WAVファイルを残す
-    // fs.unlink(outputFile, (err) => {
-    //   if (err) console.error("⚠️ Failed to delete voice file:", err);
-    // });
-    systemLog(`WAV file saved for debugging: ${outputFile}`, "INFO");
+    // WAVファイルを削除
+    fs.unlink(outputFile, (err) => {
+      if (err) {
+        systemLog(`Failed to delete voice file: ${err.message}`, "WARNING");
+      } else {
+        systemLog(`Deleted voice file: ${outputFile}`, "INFO");
+      }
+    });
 
     return result;
   } catch (error) {
     console.error("❌ Local Whisper error:", error);
     systemLog(`Whisper execution failed: ${error.message}`, "ERROR");
+
+    // ユーザーに通知
+    vscode.window.showErrorMessage(
+      msg("whisperExecutionFailed", { error: error.message })
+    );
 
     // エラー詳細をログに記録
     if (error.stderr) {
@@ -575,11 +578,20 @@ async function executeLocalWhisper(outputFile, msg) {
     if (error.stdout) {
       systemLog(`Stdout: ${error.stdout}`, "ERROR");
     }
+    if (error.code) {
+      systemLog(`Error code: ${error.code}`, "ERROR");
+    }
 
-    // 🎧 デバッグ用：エラー時もファイルを残す
-    // if (fs.existsSync(outputFile)) {
-    //   fs.unlink(outputFile, () => {});
-    // }
+    // エラー時もWAVファイルを削除
+    if (fs.existsSync(outputFile)) {
+      fs.unlink(outputFile, (err) => {
+        if (err) {
+          systemLog(`Failed to delete voice file: ${err.message}`, "WARNING");
+        } else {
+          systemLog(`Deleted voice file after error: ${outputFile}`, "INFO");
+        }
+      });
+    }
 
     throw new Error("localWhisperError");
   }
@@ -662,222 +674,9 @@ async function activate(context) {
       })
     );
 
-    // --- トグルコマンド登録 ---
-    const toggleCmd = vscode.commands.registerCommand(
-      "whisperVoiceInput.toggle",
-      async () => {
-        console.log("🎙️ Command executed: whisperVoiceInput.toggle");
-
-        // 処理中の場合は無視
-        if (isProcessing) {
-          vscode.window.showWarningMessage(msg("processingWait"));
-          return;
-        }
-
-        // 最新の設定を取得（設定変更を反映）
-        const currentConfig =
-          vscode.workspace.getConfiguration("whisperVoiceInput");
-        const maxSec = currentConfig.get("maxRecordSeconds") || 180;
-
-        if (!isRecording || !isCurrentlyRecording()) {
-          // === 録音開始 ===
-          try {
-            const mode = currentConfig.get("mode") || "api";
-            isRecording = true;
-            updateStatusBar("recording");
-            systemLog(msg("recordingStart", { seconds: maxSec }), "INFO");
-            systemLog(`Recording mode: ${mode}`, "INFO");
-            await startRecording(
-              context,
-              maxSec,
-              msg,
-              () => {
-                // タイムアウト時の処理
-                isRecording = false;
-                updateStatusBar("idle");
-              },
-              mode
-            ); // モードを渡す
-          } catch (error) {
-            isRecording = false;
-            updateStatusBar("idle");
-            systemLog(`Failed to start recording: ${error.message}`, "ERROR");
-
-            // SOXエラーの場合は専用メッセージを表示
-            const errorMessage =
-              error.message === "soxNotInstalled"
-                ? msg("soxNotInstalled")
-                : msg("recordingStartFailed", { error: error.message });
-
-            vscode.window.showErrorMessage(errorMessage);
-          }
-        } else {
-          // === 録音停止 ===
-          try {
-            isProcessing = true;
-            isRecording = false;
-            updateStatusBar("processing");
-            systemLog(msg("sendingToWhisper"), "INFO");
-
-            // 最新の設定を取得（設定変更を反映）
-            const currentConfig =
-              vscode.workspace.getConfiguration("whisperVoiceInput");
-            const mode = currentConfig.get("mode") || "api";
-            systemLog(`Current mode: ${mode}`, "INFO");
-            let text;
-
-            if (mode === "local") {
-              // ローカルwhisper.cpp実行（言語自動検出）
-              const localModel = currentConfig.get("localModel", "base");
-              systemLog(
-                `Using local whisper.cpp (model: ${localModel})`,
-                "INFO"
-              );
-              // 録音を停止してWAVファイルを取得
-              const outputFile = await stopRecordingLocal();
-              if (!outputFile) {
-                throw new Error("Failed to convert audio file");
-              }
-              text = await executeLocalWhisper(outputFile, msg);
-            } else {
-              // OpenAI API経由
-              systemLog("Using OpenAI API", "INFO");
-              const apiKey = await context.secrets.get("openaiApiKey");
-              if (!apiKey) {
-                vscode.window.showWarningMessage(msg("apiKeyMissing"));
-                systemLog("Missing API key", "WARNING");
-                isProcessing = false;
-                updateStatusBar("idle");
-                return;
-              }
-              text = await stopRecording(apiKey, msg);
-            }
-
-            if (text && text.trim()) {
-              // 📚 履歴に保存
-              addToHistory(context, text, currentConfig.get("mode", "api"));
-
-              // 📋 元のクリップボード内容を保存
-              const originalClipboard = await vscode.env.clipboard.readText();
-
-              // ✍️ Whisperテキストをクリップボードに書き込み
-              await vscode.env.clipboard.writeText(text);
-
-              // 📌 貼り付けコマンド実行（フォーカス位置に貼り付け）
-              await vscode.commands.executeCommand(
-                "editor.action.clipboardPasteAction"
-              );
-
-              // 🔄 100ms後に元のクリップボード内容を復元
-              setTimeout(async () => {
-                await vscode.env.clipboard.writeText(originalClipboard);
-                systemLog("Clipboard restored", "INFO");
-              }, 100);
-
-              updateStatusBar("success");
-              setTimeout(() => {
-                updateStatusBar("idle");
-              }, 3000);
-
-              systemLog(msg("pasteDone"), "SUCCESS");
-            } else {
-              systemLog(msg("noAudioOrFail"), "WARNING");
-              vscode.window.showWarningMessage(msg("noAudioOrFail"));
-            }
-          } catch (error) {
-            systemLog(`Failed to process recording: ${error.message}`, "ERROR");
-            vscode.window.showErrorMessage(
-              msg("processingFailed", { error: error.message })
-            );
-          } finally {
-            isProcessing = false;
-            updateStatusBar("idle");
-          }
-        }
-      }
-    );
-
-    // --- APIキー設定コマンド登録 ---
-    const setApiKeyCmd = vscode.commands.registerCommand(
-      "whisperVoiceInput.setApiKey",
-      async () => {
-        const key = await vscode.window.showInputBox({
-          prompt: msg("promptApiKey"),
-          ignoreFocusOut: true,
-          password: true,
-        });
-        if (key) {
-          await context.secrets.store("openaiApiKey", key);
-          systemLog(msg("apiKeySaved"), "SUCCESS");
-        }
-      }
-    );
-
-    // --- セットアップウィザードコマンド登録 ---
-    const setupWizardCmd = vscode.commands.registerCommand(
-      "whisperVoiceInput.setupWizard",
-      async () => {
-        systemLog("Running setup wizard manually", "INFO");
-        await runInitialSetup(context, config, msg);
-      }
-    );
-
-    // --- 履歴表示コマンド登録 ---
-    const historyCmd = vscode.commands.registerCommand(
-      "whisperVoiceInput.showHistory",
-      async () => {
-        const history = getHistory(context);
-
-        if (history.length === 0) {
-          vscode.window.showInformationMessage(
-            msg("historyEmpty") || "履歴がありません"
-          );
-          return;
-        }
-
-        // QuickPickで履歴を表示
-        const items = history.map((entry, index) => {
-          const preview =
-            entry.text.length > 60
-              ? entry.text.substring(0, 60) + "..."
-              : entry.text;
-          const date = new Date(entry.timestamp);
-          const timeStr = date.toLocaleString();
-
-          return {
-            label: `$(history) ${index + 1}. ${preview}`,
-            description: `${entry.mode.toUpperCase()} - ${timeStr}`,
-            detail: entry.text,
-            entry: entry,
-          };
-        });
-
-        const selected = await vscode.window.showQuickPick(items, {
-          placeHolder:
-            msg("historySelectPlaceholder") ||
-            "Whisper履歴から選択してクリップボードにコピー",
-          matchOnDescription: true,
-          matchOnDetail: true,
-        });
-
-        if (selected) {
-          await vscode.env.clipboard.writeText(selected.entry.text);
-          vscode.window.showInformationMessage(
-            msg("copiedToClipboard") || "クリップボードにコピーしました"
-          );
-          systemLog(
-            `Copied from history: "${selected.entry.text.substring(0, 50)}..."`,
-            "INFO"
-          );
-        }
-      }
-    );
-
-    context.subscriptions.push(toggleCmd);
-    context.subscriptions.push(setApiKeyCmd);
-    context.subscriptions.push(setupWizardCmd);
-    context.subscriptions.push(historyCmd);
-    console.log("✅ Commands registered successfully");
+    // コマンド登録
+    registerCommands(context);
+    console.log("✅ Commands registered successfully (refactored)");
   } catch (err) {
     console.error("💥 Activation failed:", err);
     vscode.window.showErrorMessage(
@@ -890,6 +689,7 @@ async function activate(context) {
  * 🧹 終了処理
  */
 function deactivate() {
+  stopRecordingTimer(); // タイマー停止
   if (statusBarItem) {
     statusBarItem.dispose();
   }
@@ -900,3 +700,212 @@ function deactivate() {
 }
 
 module.exports = { activate, deactivate };
+
+// ================== 追加: コマンド登録関連ユーティリティ ==================
+
+/**
+ * トグル処理（録音開始/停止と結果貼り付け）
+ * 以前のインライン実装を関数化
+ * @param {vscode.ExtensionContext} context
+ */
+async function handleToggleCommand(context) {
+  console.log("🎙️ Command executed: whisperVoiceInput.toggle");
+
+  if (isProcessing) {
+    vscode.window.showWarningMessage(msg("processingWait"));
+    return;
+  }
+
+  const currentConfig = vscode.workspace.getConfiguration("whisperVoiceInput");
+  const maxSec = currentConfig.get("maxRecordSeconds") || 180;
+
+  if (!isRecording || !isCurrentlyRecording()) {
+    // 録音開始
+    try {
+      const mode = currentConfig.get("mode") || "api";
+      isRecording = true;
+      startRecordingTimer(maxSec); // タイマー開始
+      updateStatusBar("recording", 0, maxSec);
+      systemLog(msg("recordingStart", { seconds: maxSec }), "INFO");
+      systemLog(`Recording mode: ${mode}`, "INFO");
+      await startRecording(
+        context,
+        maxSec,
+        msg,
+        () => {
+          isRecording = false;
+          stopRecordingTimer(); // タイマー停止
+          updateStatusBar("idle");
+        },
+        mode
+      );
+    } catch (error) {
+      isRecording = false;
+      stopRecordingTimer(); // タイマー停止
+      updateStatusBar("idle");
+      systemLog(`Failed to start recording: ${error.message}`, "ERROR");
+
+      // ユーザーに通知
+      const errorMessage =
+        error.message === "soxNotInstalled"
+          ? msg("soxNotInstalled")
+          : msg("recordingStartFailed", { error: error.message });
+      vscode.window.showErrorMessage(errorMessage);
+    }
+  } else {
+    // 録音停止～処理
+    try {
+      isProcessing = true;
+      isRecording = false;
+      stopRecordingTimer(); // タイマー停止
+      updateStatusBar("processing");
+      systemLog(msg("sendingToWhisper"), "INFO");
+
+      const mode = currentConfig.get("mode") || "api";
+      systemLog(`Current mode: ${mode}`, "INFO");
+      let text;
+      if (mode === "local") {
+        const localModel = currentConfig.get("localModel", "base");
+        systemLog(`Using local whisper.cpp (model: ${localModel})`, "INFO");
+        const outputFile = await stopRecordingLocal();
+        if (!outputFile) throw new Error("Failed to convert audio file");
+        text = await executeLocalWhisper(outputFile, msg);
+      } else {
+        systemLog("Using OpenAI API", "INFO");
+        const apiKey = await context.secrets.get("openaiApiKey");
+        if (!apiKey) {
+          vscode.window.showWarningMessage(msg("apiKeyMissing"));
+          systemLog("Missing API key", "WARNING");
+          isProcessing = false;
+          updateStatusBar("idle");
+          return;
+        }
+        text = await stopRecording(apiKey, msg);
+      }
+
+      if (text && text.trim()) {
+        addToHistory(context, text, currentConfig.get("mode", "api"));
+
+        // クリップボード保護付きペースト
+        const originalClipboard = await vscode.env.clipboard.readText();
+        systemLog("Original clipboard saved", "INFO");
+
+        await vscode.env.clipboard.writeText(text);
+        await vscode.commands.executeCommand(
+          "editor.action.clipboardPasteAction"
+        );
+
+        setTimeout(async () => {
+          await vscode.env.clipboard.writeText(originalClipboard);
+          systemLog("Clipboard restored", "INFO");
+        }, 100);
+
+        updateStatusBar("success");
+        setTimeout(() => {
+          updateStatusBar("idle");
+          systemLog("Status bar reset to idle", "INFO");
+        }, 3000);
+
+        systemLog(msg("pasteDone"), "SUCCESS");
+      } else {
+        systemLog(msg("noAudioOrFail"), "WARNING");
+        vscode.window.showWarningMessage(msg("noAudioOrFail"));
+      }
+    } catch (error) {
+      systemLog(`Failed to process recording: ${error.message}`, "ERROR");
+      vscode.window.showErrorMessage(
+        msg("processingFailed", { error: error.message })
+      );
+    } finally {
+      isProcessing = false;
+      updateStatusBar("idle");
+    }
+  }
+}
+
+/**
+ * コマンド登録を一括実行
+ * @param {vscode.ExtensionContext} context
+ */
+function registerCommands(context) {
+  const disposables = [];
+
+  disposables.push(
+    vscode.commands.registerCommand("whisperVoiceInput.toggle", () =>
+      handleToggleCommand(context)
+    )
+  );
+
+  disposables.push(
+    vscode.commands.registerCommand("whisperVoiceInput.setApiKey", async () => {
+      const key = await vscode.window.showInputBox({
+        prompt: msg("promptApiKey"),
+        ignoreFocusOut: true,
+        password: true,
+      });
+      if (key) {
+        await context.secrets.store("openaiApiKey", key);
+        systemLog(msg("apiKeySaved"), "SUCCESS");
+      }
+    })
+  );
+
+  disposables.push(
+    vscode.commands.registerCommand(
+      "whisperVoiceInput.setupWizard",
+      async () => {
+        systemLog("Running setup wizard manually", "INFO");
+        const config = vscode.workspace.getConfiguration("whisperVoiceInput");
+        await runInitialSetup(context, config, msg);
+      }
+    )
+  );
+
+  disposables.push(
+    vscode.commands.registerCommand(
+      "whisperVoiceInput.showHistory",
+      async () => {
+        const history = getHistory(context);
+        if (history.length === 0) {
+          vscode.window.showInformationMessage(
+            msg("historyEmpty") || "履歴がありません"
+          );
+          return;
+        }
+        const items = history.map((entry, index) => {
+          const preview =
+            entry.text.length > 60
+              ? entry.text.substring(0, 60) + "..."
+              : entry.text;
+          const date = new Date(entry.timestamp);
+          const timeStr = date.toLocaleString();
+          return {
+            label: `$(history) ${index + 1}. ${preview}`,
+            description: `${entry.mode.toUpperCase()} - ${timeStr}`,
+            detail: entry.text,
+            entry: entry,
+          };
+        });
+        const selected = await vscode.window.showQuickPick(items, {
+          placeHolder:
+            msg("historySelectPlaceholder") ||
+            "Whisper履歴から選択してクリップボードにコピー",
+          matchOnDescription: true,
+          matchOnDetail: true,
+        });
+        if (selected) {
+          await vscode.env.clipboard.writeText(selected.entry.text);
+          vscode.window.showInformationMessage(
+            msg("copiedToClipboard") || "クリップボードにコピーしました"
+          );
+          systemLog(
+            `Copied from history: "${selected.entry.text.substring(0, 50)}..."`,
+            "INFO"
+          );
+        }
+      }
+    )
+  );
+
+  disposables.forEach((d) => context.subscriptions.push(d));
+}

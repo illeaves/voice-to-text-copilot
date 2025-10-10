@@ -2,7 +2,38 @@
 
 All notable changes to the "Voice to Text + Copilot Chat" extension will be documented in this file.
 
-## [1.1.0] - 2025-10-10
+## [1.2.0] - 2025-10-11
+
+### ✨ Improvements
+
+- **録音時間表示** / **Recording Timer Display**
+
+  - 録音中の経過時間と残り時間をステータスバーにリアルタイム表示
+  - Real-time display of elapsed time and remaining time in status bar during recording
+  - 例: 🔴 0:45 / 3:00
+  - Example: 🔴 0:45 / 3:00
+
+- **エラー通知改善** / **Enhanced Error Notifications**
+
+  - 重要なエラーを通知ポップアップで表示するように改善
+  - Critical errors now show notification popups for better visibility
+  - 対象: API キー未設定、モデルダウンロード失敗、Whisper 実行ファイル未検出、モデルファイル未検出、音声ファイル空、録音開始失敗
+  - Includes: API key missing, model download failed, whisper executable not found, model file not found, empty voice file, recording start failed
+
+- **多言語対応の完全性向上** / **Complete Multi-language Support**
+
+  - 全 9 言語で新しいエラーメッセージを追加
+  - Added new error messages across all 9 supported languages
+  - ドイツ語と韓国語のモデル説明の不一致を修正
+  - Fixed inconsistencies in German and Korean model descriptions
+
+### 🔧 Bug Fixes
+
+- **リポジトリ URL 修正** / **Repository URL Fix**
+  - GitHub リポジトリ URL を正しい名前に更新
+  - Updated GitHub repository URL to correct name
+
+## [1.1.0] - 2025-10-11
 
 ### 🎉 Major Features
 

@@ -1,5 +1,5 @@
 {
-  "activated": "🟢 Whisper音声入力拡張が有効になりました！",
+  "activated": "🟢 Voice to Text + Copilot Chat 拡張が有効になりました！",
   "recordingStart": "🎙️ 録音を開始しました（最大{{seconds}}秒）",
   "recordingStopAuto": "⏰ {{seconds}}秒を超えたため自動で録音を停止しました。",
   "sendingToWhisper": "📦 Whisperに送信中…",
@@ -10,10 +10,10 @@
   "noAudioOrFail": "⚠️ 音声データが検出されないか、変換に失敗しました。",
   "statusRecording": "🔴 録音中...",
   "statusProcessing": "⏳ 処理中...",
-  "statusIdle": "🎙️ Whisper",
+  "statusIdle": "🎙️ 待機中",
   "tooltipRecording": "録音中（コマンドで停止）",
   "tooltipProcessing": "Whisper API処理中",
-  "tooltipIdle": "Whisper音声入力（コマンドで操作）",
+  "tooltipIdle": "音声入力（コマンドで操作）",
   "processingWait": "前の処理が完了するまでお待ちください。",
   "recordingStartFailed": "録音を開始できませんでした: {{error}}",
   "processingFailed": "音声処理中にエラーが発生しました: {{error}}",
@@ -55,5 +55,8 @@
   "activationFailed": "Whisper音声入力の起動に失敗しました: {{error}}",
   "recordingError": "録音エラーが発生しました: {{error}}",
   "historyEmpty": "履歴がありません",
-  "historySelectPlaceholder": "Whisper履歴から選択してクリップボードにコピー"
+  "historySelectPlaceholder": "Whisper履歴から選択してクリップボードにコピー",
+  "voiceFileEmpty": "音声ファイルが空です。マイクが正しく動作しているか確認してください。",
+  "whisperExecutionFailed": "Whisperの実行に失敗しました: {{error}}",
+  "modelDownloadFailed": "モデルのダウンロードに失敗しました: {{error}}"
 }

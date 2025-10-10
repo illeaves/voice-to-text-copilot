@@ -1,5 +1,5 @@
 {
-  "activated": "🟢 Whisper Spracherweiterung aktiviert!",
+  "activated": "🟢 Voice to Text + Copilot Chat Erweiterung aktiviert!",
   "recordingStart": "🎙️ Aufnahme gestartet (max {{seconds}} Sek.)",
   "recordingStopAuto": "⏰ Aufnahme nach {{seconds}} Sekunden automatisch gestoppt.",
   "sendingToWhisper": "📦 Sende an Whisper…",
@@ -10,10 +10,10 @@
   "noAudioOrFail": "⚠️ Keine Audiodaten erkannt oder Transkription fehlgeschlagen.",
   "statusRecording": "🔴 Aufnahme läuft...",
   "statusProcessing": "⏳ Verarbeitung...",
-  "statusIdle": "🎙️ Whisper",
+  "statusIdle": "🎙️ Leerlauf",
   "tooltipRecording": "Aufnahme läuft (Befehl zum Stoppen)",
   "tooltipProcessing": "Verarbeitung über Whisper API",
-  "tooltipIdle": "Whisper Spracheingabe (Befehlsmodus)",
+  "tooltipIdle": "Spracheingabe (Befehlsmodus)",
   "processingWait": "Bitte warten Sie, bis die vorherige Verarbeitung abgeschlossen ist.",
   "recordingStartFailed": "Aufnahme konnte nicht gestartet werden: {{error}}",
   "processingFailed": "Fehler bei der Sprachverarbeitung: {{error}}",
@@ -43,7 +43,7 @@
   "modelBaseLabel": "Base (~142MB)",
   "modelBaseDescription": "Schnell, ausgewogen",
   "modelSmallLabel": "Small (~466MB) ★Empfohlen",
-  "modelSmallDescription": "Langsamer, hohe Genauigkeit",
+  "modelSmallDescription": "Gutes Gleichgewicht von Genauigkeit und Geschwindigkeit - am besten für den täglichen Gebrauch",
   "modelMediumLabel": "Medium (~1.5GB)",
   "modelMediumDescription": "Langsam, höchste Genauigkeit",
   "modelLargeLabel": "Large (~2.9GB)",
@@ -55,5 +55,8 @@
   "activationFailed": "Whisper-Spracheingabe konnte nicht aktiviert werden: {{error}}",
   "recordingError": "Aufnahmefehler aufgetreten: {{error}}",
   "historyEmpty": "Keine Verlauf verfügbar",
-  "historySelectPlaceholder": "Aus Whisper-Verlauf auswählen und in Zwischenablage kopieren"
+  "historySelectPlaceholder": "Aus Whisper-Verlauf auswählen und in Zwischenablage kopieren",
+  "voiceFileEmpty": "Die Sprachdatei ist leer. Bitte überprüfen Sie, ob Ihr Mikrofon ordnungsgemäß funktioniert.",
+  "whisperExecutionFailed": "Whisper-Ausführung fehlgeschlagen: {{error}}",
+  "modelDownloadFailed": "Modell-Download fehlgeschlagen: {{error}}"
 }

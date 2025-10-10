@@ -1,5 +1,5 @@
 {
-  "activated": "🟢 Extension Whisper activée !",
+  "activated": "🟢 Extension Voice to Text + Copilot Chat activée !",
   "recordingStart": "🎙️ Enregistrement démarré (max {{seconds}} s)",
   "recordingStopAuto": "⏰ Arrêt automatique après {{seconds}} s.",
   "sendingToWhisper": "📦 Envoi à Whisper…",
@@ -10,10 +10,10 @@
   "noAudioOrFail": "⚠️ Aucune donnée audio détectée ou échec de la transcription.",
   "statusRecording": "🔴 Enregistrement...",
   "statusProcessing": "⏳ Traitement...",
-  "statusIdle": "🎙️ Whisper",
+  "statusIdle": "🎙️ En attente",
   "tooltipRecording": "Enregistrement (commande pour arrêter)",
   "tooltipProcessing": "Traitement via l'API Whisper",
-  "tooltipIdle": "Whisper Entrée Vocale (mode commande)",
+  "tooltipIdle": "Saisie vocale (mode commande)",
   "processingWait": "Veuillez attendre que le traitement précédent soit terminé.",
   "recordingStartFailed": "Échec du démarrage de l'enregistrement : {{error}}",
   "processingFailed": "Erreur lors du traitement vocal : {{error}}",
@@ -55,5 +55,8 @@
   "activationFailed": "Échec de l'activation de Whisper Voice Input: {{error}}",
   "recordingError": "Erreur d'enregistrement survenue: {{error}}",
   "historyEmpty": "Aucun historique disponible",
-  "historySelectPlaceholder": "Sélectionner dans l'historique Whisper pour copier dans le presse-papiers"
+  "historySelectPlaceholder": "Sélectionner dans l'historique Whisper pour copier dans le presse-papiers",
+  "voiceFileEmpty": "Le fichier vocal est vide. Veuillez vérifier si votre microphone fonctionne correctement.",
+  "whisperExecutionFailed": "Échec de l'exécution de Whisper: {{error}}",
+  "modelDownloadFailed": "Échec du téléchargement du modèle: {{error}}"
 }

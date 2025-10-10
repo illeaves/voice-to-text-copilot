@@ -3,7 +3,7 @@
   "displayName": "Voice to Text + Copilot Chat",
   "description": "Whisperを利用した音声入力拡張。APIモード(クラウド・高精度)とローカルモード(オフライン・無料)から選択可能。(Voice input extension with API mode [cloud, accurate] or Local mode [offline, free] using Whisper.)",
   "publisher": "aleaf",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "engines": {
     "vscode": "^1.80.0"
   },
@@ -109,25 +109,25 @@
     "commands": [
       {
         "command": "whisperVoiceInput.toggle",
-        "title": "Start / Stop Whisper Voice Input"
+        "title": "Voice to Text: Start / Stop Recording"
       },
       {
         "command": "whisperVoiceInput.setApiKey",
-        "title": "Set OpenAI API Key"
+        "title": "Voice to Text: Set OpenAI API Key"
       },
       {
         "command": "whisperVoiceInput.setupWizard",
-        "title": "Whisper: Run Setup Wizard"
+        "title": "Voice to Text: Run Setup Wizard"
       },
       {
         "command": "whisperVoiceInput.showHistory",
-        "title": "Whisper: Show History"
+        "title": "Voice to Text: Show History"
       }
     ]
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/aleaf/whisper-voice-input"
+    "url": "https://github.com/aleaf/voice-to-text-copilot"
   },
   "license": "MIT",
   "dependencies": {

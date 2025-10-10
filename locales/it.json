@@ -1,5 +1,5 @@
 {
-  "activated": "🟢 Estensione Whisper attivata!",
+  "activated": "🟢 Estensione Voice to Text + Copilot Chat attivata!",
   "recordingStart": "🎙️ Registrazione avviata (max {{seconds}} sec)",
   "recordingStopAuto": "⏰ Registrazione interrotta automaticamente dopo {{seconds}} secondi.",
   "sendingToWhisper": "📦 Invio a Whisper…",
@@ -10,10 +10,10 @@
   "noAudioOrFail": "⚠️ Nessun audio rilevato o trascrizione non riuscita.",
   "statusRecording": "🔴 Registrazione...",
   "statusProcessing": "⏳ Elaborazione...",
-  "statusIdle": "🎙️ Whisper",
+  "statusIdle": "🎙️ Inattivo",
   "tooltipRecording": "Registrazione (comando per fermare)",
   "tooltipProcessing": "Elaborazione tramite API Whisper",
-  "tooltipIdle": "Whisper Ingresso Vocale (modalità comando)",
+  "tooltipIdle": "Ingresso vocale (modalità comando)",
   "processingWait": "Attendere il completamento del processo precedente.",
   "recordingStartFailed": "Impossibile avviare la registrazione: {{error}}",
   "processingFailed": "Errore durante l'elaborazione vocale: {{error}}",
@@ -55,5 +55,8 @@
   "activationFailed": "Attivazione di Whisper Voice Input fallita: {{error}}",
   "recordingError": "Si è verificato un errore di registrazione: {{error}}",
   "historyEmpty": "Nessuna cronologia disponibile",
-  "historySelectPlaceholder": "Seleziona dalla cronologia Whisper per copiare negli appunti"
+  "historySelectPlaceholder": "Seleziona dalla cronologia Whisper per copiare negli appunti",
+  "voiceFileEmpty": "Il file vocale è vuoto. Verificare che il microfono funzioni correttamente.",
+  "whisperExecutionFailed": "Esecuzione di Whisper fallita: {{error}}",
+  "modelDownloadFailed": "Download del modello fallito: {{error}}"
 }

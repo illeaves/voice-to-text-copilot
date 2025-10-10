@@ -1,5 +1,5 @@
 {
-  "activated": "🟢 Whisper Voice Input extension activated!",
+  "activated": "🟢 Voice to Text + Copilot Chat extension activated!",
   "recordingStart": "🎙️ Recording started (max {{seconds}} sec)",
   "recordingStopAuto": "⏰ Recording automatically stopped after {{seconds}} seconds.",
   "sendingToWhisper": "📦 Sending to Whisper...",
@@ -10,10 +10,10 @@
   "noAudioOrFail": "⚠️ No audio data detected or conversion failed.",
   "statusRecording": "🔴 Recording...",
   "statusProcessing": "⏳ Processing...",
-  "statusIdle": "🎙️ Whisper",
+  "statusIdle": "🎙️ Idle",
   "tooltipRecording": "Recording (command to stop)",
   "tooltipProcessing": "Processing with Whisper API",
-  "tooltipIdle": "Whisper Voice Input (command mode)",
+  "tooltipIdle": "Voice Input (command mode)",
   "processingWait": "Please wait for the previous process to complete.",
   "recordingStartFailed": "Failed to start recording: {{error}}",
   "processingFailed": "Error occurred during voice processing: {{error}}",
@@ -55,5 +55,8 @@
   "activationFailed": "Whisper Voice Input failed to activate: {{error}}",
   "recordingError": "Recording error occurred: {{error}}",
   "historyEmpty": "No history available",
-  "historySelectPlaceholder": "Select from Whisper history to copy to clipboard"
+  "historySelectPlaceholder": "Select from Whisper history to copy to clipboard",
+  "voiceFileEmpty": "Voice file is empty. Please check if your microphone is working properly.",
+  "whisperExecutionFailed": "Whisper execution failed: {{error}}",
+  "modelDownloadFailed": "Model download failed: {{error}}"
 }

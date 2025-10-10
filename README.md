@@ -1,8 +1,8 @@
-# 🎙 Whisper Voice Input
+# 🎙 Voice to Text + Copilot Chat
 
 _(日本語 / English)_
 
-![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)\
+![Version](https://img.shields.io/badge/version-1.2.0-blue.svg)\
 ![VSCode](https://img.shields.io/badge/VS_Code-Extension-007ACC.svg)\
 ![License](https://img.shields.io/badge/license-MIT-green.svg)\
 ![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Mac%20%7C%20Linux-lightgrey.svg)
@@ -51,9 +51,10 @@ UI の言語は**9 言語対応**（日本語、英語、フランス語、ス�
 - 🎤 マイクから音声を録音し、自動でテキスト化（多言語自動判別）
 - 🧠 Whisper API を使用（日本語・英語・中国語など 100 言語対応）
 - 📋 結果を現在フォーカス位置にペースト（エディタ、Copilot チャット、ターミナルなど）
-- � **クリップボード保護機能** - 貼り付け後、元のクリップボード内容を自動復元
+- 🔒 **クリップボード保護機能** - 貼り付け後、元のクリップボード内容を自動復元
 - 📚 **履歴機能** - 過去 10 件のテキスト化結果を保存・再利用可能
-- �📊 ステータスバーで録音状態をリアルタイム表示
+- ⏱️ **録音時間表示** - 録音中の経過時間と残り時間をリアルタイム表示
+- � ステータスバーで録音状態をリアルタイム表示
 - 📝 アウトプットパネルでシステムログを確認可能
 - ⏱ 録音時間の上限をユーザー設定で変更可能（デフォルト 3 分）
 - 🔒 API キーは SecretStorage に暗号化保存
@@ -109,11 +110,11 @@ Whisper は**100 以上の言語**を自動認識できます。
 
 #### 🎙️ 音声入力の使い方
 
-1.  コマンドパレット（`Ctrl + Shift + P`）で **「Whisper: 音声入力の開始 / 停止」** を選択
+1.  コマンドパレット（`Ctrl + Shift + P`）で **「Voice to Text: Start / Stop Recording」** を選択
 2.  **ステータスバー**（右下）で録音状態を確認
-    - 🔴 **録音中...** - マイクに向かって話してください
+    - 🔴 **0:45 / 3:00** - 録音中（経過時間 / 残り時間）
     - $(sync~spin) ⏳ **処理中...** `[API]` または `[Local:Small]` - 文字起こし中
-    - 🎙️ **Whisper** - 待機中
+    - 🎙️ **待機中** - 待機中
 3.  もう一度コマンドを実行すると録音停止 → 自動的にテキスト化
 4.  現在フォーカス位置に自動でテキストが貼り付けられます 🎉
 
@@ -133,7 +134,7 @@ Whisper は**100 以上の言語**を自動認識できます。
 
 音声入力の結果は自動的に履歴に保存されます（最大 10 件）。
 
-1.  コマンドパレット（`Ctrl + Shift + P`）で **「Whisper: 履歴を表示」** を選択
+1.  コマンドパレット（`Ctrl + Shift + P`）で **「Voice to Text: Show History」** を選択
 2.  過去の音声入力結果が一覧表示されます
     - 各エントリには日時とモード（API/Local）が表示されます
 3.  使いたい履歴を選択すると、クリップボードにコピーされます
@@ -153,7 +154,7 @@ Whisper は**100 以上の言語**を自動認識できます。
 ### 📊 ステータス確認
 
 - **ステータスバー**: 右下に録音状態をリアルタイム表示
-- **アウトプットパネル**: 詳細ログを確認（`Ctrl+Shift+U` → 「Whisper Voice Input」選択）
+- **アウトプットパネル**: 詳細ログを確認（`Ctrl+Shift+U` → 「Voice to Text + Copilot Chat」選択）
 
 ---
 
@@ -165,7 +166,7 @@ Whisper は**100 以上の言語**を自動認識できます。
 
   1. API キーが正しいか確認: [OpenAI API Keys](https://platform.openai.com/account/api-keys)
   2. クレジット残高があるか確認: [Billing](https://platform.openai.com/account/billing/overview)
-  3. コマンドパレット → **「Whisper: API キーを登録」** で再設定
+  3. コマンドパレット → **「Voice to Text: Set OpenAI API Key」** で再設定
 
 - **「API レート制限」エラー**
   - しばらく待ってから再試行してください
@@ -191,7 +192,7 @@ Whisper は**100 以上の言語**を自動認識できます。
 
 - **「モデルファイルが見つかりません」**
 
-  - コマンドパレット → **「Whisper: セットアップウィザードを実行」** でモデルを再ダウンロード
+  - コマンドパレット → **「Voice to Text: Run Setup Wizard」** でモデルを再ダウンロード
 
 - **「SOX がインストールされていません」**（ローカルモードのみ）
   1. SOX をインストール:
@@ -206,7 +207,7 @@ Whisper は**100 以上の言語**を自動認識できます。
 
   1. VS Code にマイクアクセス権限が与えられているか確認
   2. システム設定でマイクデバイスが有効か確認
-  3. アウトプットパネル（`Ctrl+Shift+U` → 「Whisper Voice Input」）でエラー詳細を確認
+  3. アウトプットパネル（`Ctrl+Shift+U` → 「Voice to Text + Copilot Chat」）でエラー詳細を確認
 
 - **音声が認識されない**
   - 周囲の騒音を減らし、マイクに近づいて話す
@@ -269,9 +270,10 @@ The extension UI supports **9 languages** (Japanese, English, French, Spanish, C
 - 🎙️ Record and transcribe your voice (auto language detection)
 - 🧠 Supports 100+ languages via Whisper
 - 📋 Automatically pastes transcribed text to current focus (editor, Copilot chat, terminal, etc.)
-- � **Clipboard protection** - Automatically restores original clipboard content after pasting
+- 🔒 **Clipboard protection** - Automatically restores original clipboard content after pasting
 - 📚 **History feature** - Saves last 10 transcription results for reuse
-- �📊 Real-time recording status display in status bar with mode indicator `[API]` / `[Local:Small]`
+- ⏱️ **Recording timer** - Real-time display of elapsed time and remaining time during recording
+- � Real-time recording status display in status bar with mode indicator `[API]` / `[Local:Small]`
 - 🎨 Visual feedback: spinning icon during processing, color-coded status
 - 📝 System logs available in Output panel
 - ⏱ Adjustable recording limit (default: 3 minutes, configurable 10-600 sec)
@@ -337,11 +339,11 @@ Now you can start/stop recording with just your assigned key combination!
 
 #### 🎙️ Using Voice Input
 
-1.  Open Command Palette (`Ctrl + Shift + P`) → **"Whisper: Start / Stop Voice Input"**
+1.  Open Command Palette (`Ctrl + Shift + P`) → **"Voice to Text: Start / Stop Recording"**
 2.  Check the **status bar** (bottom right) for recording state
-    - 🔴 **Recording...** - Speak into your microphone
+    - 🔴 **0:45 / 3:00** - Recording (elapsed time / remaining time)
     - $(sync~spin) ⏳ **Processing...** `[API]` or `[Local:Small]` - Transcribing
-    - 🎙️ **Whisper** - Idle
+    - 🎙️ **Idle** - Idle
 3.  Execute the command again to stop recording → automatic transcription
 4.  Transcribed text is automatically pasted at your current focus position 🎉
 
@@ -361,7 +363,7 @@ Now you can start/stop recording with just your assigned key combination!
 
 Voice input results are automatically saved to history (up to 10 items).
 
-1.  Open Command Palette (`Ctrl + Shift + P`) → **"Whisper: Show History"**
+1.  Open Command Palette (`Ctrl + Shift + P`) → **"Voice to Text: Show History"**
 2.  Past transcription results are displayed as a list
     - Each entry shows timestamp and mode (API/Local)
 3.  Select the desired history item to copy to clipboard
@@ -381,7 +383,7 @@ Voice input results are automatically saved to history (up to 10 items).
 ### 📊 Status Monitoring
 
 - **Status Bar**: Real-time recording status display in bottom bar
-- **Output Panel**: Detailed logs available (`Ctrl+Shift+U` → Select "Whisper Voice Input")
+- **Output Panel**: Detailed logs available (`Ctrl+Shift+U` → Select "Voice to Text + Copilot Chat")
 
 ---
 
@@ -393,7 +395,7 @@ Voice input results are automatically saved to history (up to 10 items).
 
   1. Verify your API key: [OpenAI API Keys](https://platform.openai.com/account/api-keys)
   2. Check credit balance: [Billing](https://platform.openai.com/account/billing/overview)
-  3. Command Palette → **"Whisper: Set API Key"** to reconfigure
+  3. Command Palette → **"Voice to Text: Set OpenAI API Key"** to reconfigure
 
 - **"API Rate Limit" Error**
   - Wait a moment and try again
@@ -419,7 +421,7 @@ Voice input results are automatically saved to history (up to 10 items).
 
 - **"Model file not found"**
 
-  - Command Palette → **"Whisper: Run Setup Wizard"** to re-download the model
+  - Command Palette → **"Voice to Text: Run Setup Wizard"** to re-download the model
 
 - **"SOX not installed"** (Local mode only)
   1. Install SOX:
@@ -434,7 +436,7 @@ Voice input results are automatically saved to history (up to 10 items).
 
   1. Verify VS Code has microphone access permissions
   2. Check microphone device is enabled in system settings
-  3. Check Output Panel (`Ctrl+Shift+U` → "Whisper Voice Input") for detailed errors
+  3. Check Output Panel (`Ctrl+Shift+U` → "Voice to Text + Copilot Chat") for detailed errors
 
 - **Speech not recognized**
   - Reduce background noise and speak closer to the microphone

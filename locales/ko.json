@@ -1,5 +1,5 @@
 {
-  "activated": "🟢 Whisper 음성 입력 확장 기능이 활성화되었습니다!",
+  "activated": "🟢 Voice to Text + Copilot Chat 확장 기능이 활성화되었습니다!",
   "recordingStart": "🎙️ 녹음을 시작했습니다 (최대 {{seconds}}초)",
   "recordingStopAuto": "⏰ {{seconds}}초를 초과하여 자동으로 녹음을 중지했습니다.",
   "sendingToWhisper": "📦 Whisper로 전송 중…",
@@ -10,10 +10,10 @@
   "noAudioOrFail": "⚠️ 오디오 데이터가 감지되지 않았거나 변환에 실패했습니다.",
   "statusRecording": "🔴 녹음 중...",
   "statusProcessing": "⏳ 처리 중...",
-  "statusIdle": "🎙️ Whisper",
+  "statusIdle": "🎙️ 대기 중",
   "tooltipRecording": "녹음 중（명령으로 중지）",
   "tooltipProcessing": "Whisper API로 처리 중",
-  "tooltipIdle": "Whisper 음성 입력（명령 모드）",
+  "tooltipIdle": "음성 입력（명령 모드）",
   "processingWait": "이전 처리가 완료될 때까지 기다려 주세요.",
   "recordingStartFailed": "녹음 시작에 실패했습니다: {{error}}",
   "processingFailed": "음성 처리 중 오류가 발생했습니다: {{error}}",
@@ -45,7 +45,7 @@
   "modelSmallLabel": "Small (~466MB) ★권장",
   "modelSmallDescription": "좋은 정확도와 속도 균형 - 일상 사용에 최적",
   "modelMediumLabel": "Medium (~1.5GB)",
-  "modelMediumDescription": "매우 느림, 최고 정확도",
+  "modelMediumDescription": "느림, 최고 정확도",
   "modelLargeLabel": "Large (~2.9GB)",
   "modelLargeDescription": "아주 느림, 전문가용",
   "downloadingModel": "모델 다운로드 중: {{model}}...",
@@ -55,5 +55,8 @@
   "activationFailed": "Whisper 음성 입력 활성화 실패: {{error}}",
   "recordingError": "녹음 오류 발생: {{error}}",
   "historyEmpty": "사용 가능한 기록이 없습니다",
-  "historySelectPlaceholder": "Whisper 기록에서 선택하여 클립보드에 복사"
+  "historySelectPlaceholder": "Whisper 기록에서 선택하여 클립보드에 복사",
+  "voiceFileEmpty": "음성 파일이 비어 있습니다. 마이크가 제대로 작동하는지 확인해 주세요.",
+  "whisperExecutionFailed": "Whisper 실행 실패: {{error}}",
+  "modelDownloadFailed": "모델 다운로드 실패: {{error}}"
 }

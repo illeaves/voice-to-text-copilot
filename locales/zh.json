@@ -1,5 +1,5 @@
 {
-  "activated": "🟢 Whisper语音输入扩展已启用！",
+  "activated": "🟢 Voice to Text + Copilot Chat 扩展已启用！",
   "recordingStart": "🎙️ 开始录音（最长{{seconds}}秒）",
   "recordingStopAuto": "⏰ 超过{{seconds}}秒，录音已自动停止。",
   "sendingToWhisper": "📦 正在发送到Whisper…",
@@ -10,10 +10,10 @@
   "noAudioOrFail": "⚠️ 未检测到音频或转录失败。",
   "statusRecording": "🔴 录音中...",
   "statusProcessing": "⏳ 处理中...",
-  "statusIdle": "🎙️ Whisper",
+  "statusIdle": "🎙️ 待机中",
   "tooltipRecording": "录音中（命令停止）",
   "tooltipProcessing": "正在通过Whisper API处理",
-  "tooltipIdle": "Whisper语音输入（命令模式）",
+  "tooltipIdle": "语音输入（命令模式）",
   "processingWait": "请等待前一个处理完成。",
   "recordingStartFailed": "启动录音失败：{{error}}",
   "processingFailed": "语音处理过程中发生错误：{{error}}",
@@ -55,5 +55,8 @@
   "activationFailed": "Whisper语音输入激活失败: {{error}}",
   "recordingError": "录音错误发生: {{error}}",
   "historyEmpty": "没有可用的历史记录",
-  "historySelectPlaceholder": "从Whisper历史记录中选择以复制到剪贴板"
+  "historySelectPlaceholder": "从Whisper历史记录中选择以复制到剪贴板",
+  "voiceFileEmpty": "语音文件为空。请检查您的麦克风是否正常工作。",
+  "whisperExecutionFailed": "Whisper执行失败: {{error}}",
+  "modelDownloadFailed": "模型下载失败: {{error}}"
 }

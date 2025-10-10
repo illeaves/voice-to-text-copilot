@@ -193,7 +193,7 @@ async function stopRecording(apiKey, msg) {
     const stats = fs.statSync(outputFile);
     if (stats.size === 0) {
       console.warn("⚠️ Empty voice file");
-      // fs.unlink(outputFile, () => {}); // デバッグのため削除しない
+      fs.unlink(outputFile, () => {}); // 空ファイルを削除
       return null;
     }
 
@@ -206,20 +206,23 @@ async function stopRecording(apiKey, msg) {
       model: "whisper-1",
     });
 
-    // 🎧 デバッグ用：録音ファイルを残す（削除しない）
-    // fs.unlink(outputFile, (err) => {
-    //   if (err) console.error("⚠️ Failed to delete voice file:", err);
-    // });
-    console.log(`🎧 Recorded file saved for debugging: ${outputFile}`);
+    // 録音ファイルを削除
+    fs.unlink(outputFile, (err) => {
+      if (err) console.error("⚠️ Failed to delete voice file:", err);
+      else console.log(`🗑️ Deleted voice file: ${outputFile}`);
+    });
 
     return res.text;
   } catch (e) {
     console.error("❌ Whisper API error:", e);
 
-    // 🎧 デバッグ用：エラー時もファイルを残す
-    // if (fs.existsSync(outputFile)) {
-    //   fs.unlink(outputFile, () => {});
-    // }
+    // エラー時もファイルを削除
+    if (fs.existsSync(outputFile)) {
+      fs.unlink(outputFile, (err) => {
+        if (err) console.error("⚠️ Failed to delete voice file:", err);
+        else console.log(`🗑️ Deleted voice file after error: ${outputFile}`);
+      });
+    }
 
     // より詳細なエラーメッセージ
     if (e.code === "ENOENT") {
@@ -259,6 +262,7 @@ async function stopRecordingLocal() {
     const stats = fs.statSync(soxOutputFile);
     if (stats.size === 0) {
       console.warn("⚠️ Empty SOX WAV file");
+      fs.unlinkSync(soxOutputFile); // 空ファイルを削除
       return null;
     }
 
@@ -279,12 +283,25 @@ async function stopRecordingLocal() {
       console.log(`✅ Converted to raw PCM with gain boost: ${rawOutputFile}`);
     } catch (soxError) {
       console.error(`❌ SOX conversion failed: ${soxError.message}`);
+
+      // 失敗時はPCMファイルを削除
+      if (fs.existsSync(rawOutputFile)) {
+        fs.unlinkSync(rawOutputFile);
+      }
+
       throw new Error("SOX conversion failed");
     }
 
     // PCMファイルサイズをチェック
     const pcmStats = fs.statSync(rawOutputFile);
     console.log(`📊 Raw PCM size: ${pcmStats.size} bytes`);
+
+    if (pcmStats.size === 0) {
+      console.warn("⚠️ Empty PCM file");
+      fs.unlinkSync(rawOutputFile);
+      fs.unlinkSync(soxOutputFile);
+      return null;
+    }
 
     // 古いWAVファイルを削除
     if (fs.existsSync(outputFile)) {
@@ -295,20 +312,32 @@ async function stopRecordingLocal() {
     // PCMをWAVに変換（標準的なWAVヘッダーを追加）
     convertPcmToWav(rawOutputFile, outputFile);
 
-    // デバッグ用:WAVファイルの最初の50バイトを確認
+    // WAVファイルの検証（最初の50バイトを確認）
     const buffer = fs.readFileSync(outputFile);
     console.log(
       `✅ WAV first 50 bytes (hex): ${buffer.slice(0, 50).toString("hex")}`
     );
 
-    // 🎧 デバッグ用：録音ファイルを残す
-    console.log(`🎧 Recorded files saved for debugging:`);
-    console.log(`   - SOX WAV: ${soxOutputFile}`);
-    console.log(`   - Final WAV: ${outputFile}`);
+    // SOXファイルを削除（もう不要）
+    if (fs.existsSync(soxOutputFile)) {
+      fs.unlinkSync(soxOutputFile);
+      console.log(`🗑️ Deleted SOX file: ${soxOutputFile}`);
+    }
+
+    console.log(`✅ Converted to WAV: ${outputFile}`);
 
     return outputFile;
   } catch (e) {
     console.error("❌ Error stopping recording:", e);
+
+    // エラー時もクリーンアップ
+    if (fs.existsSync(soxOutputFile)) {
+      fs.unlinkSync(soxOutputFile);
+    }
+    if (fs.existsSync(rawOutputFile)) {
+      fs.unlinkSync(rawOutputFile);
+    }
+
     return null;
   }
 }
