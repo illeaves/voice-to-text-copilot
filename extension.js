@@ -396,6 +396,14 @@ async function executeLocalWhisper(outputFile, msg) {
   } else if (isMac) {
     // macOS用パス
     possibleExePaths.push(
+      // 推奨: プラットフォーム共通配置 (build/bin/whisper-cli)
+      path.join(
+        __dirname,
+        "whisper.cpp",
+        "build",
+        "bin",
+        "whisper-cli"
+      ),
       path.join(
         __dirname,
         "whisper.cpp",
@@ -410,6 +418,14 @@ async function executeLocalWhisper(outputFile, msg) {
   } else if (isLinux) {
     // Linux用パス
     possibleExePaths.push(
+      // 推奨: プラットフォーム共通配置 (build/bin/whisper-cli)
+      path.join(
+        __dirname,
+        "whisper.cpp",
+        "build",
+        "bin",
+        "whisper-cli"
+      ),
       path.join(
         __dirname,
         "whisper.cpp",
