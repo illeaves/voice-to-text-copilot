@@ -2,6 +2,30 @@
 
 All notable changes to the "Voice to Text + Copilot Chat" extension will be documented in this file.
 
+## [1.4.1] - 2025-10-11
+
+### 📖 Documentation
+
+- **CUDA ビルド手順の改善** / **Improved CUDA Build Instructions**
+  - 700MB 以上の CUDA DLL のコピーが不要であることを明記
+  - Clarified that 700MB+ CUDA DLLs are no longer required
+  - 現在のビルド方法では NVIDIA ドライバーから自動的に CUDA 機能を利用
+  - Current build method automatically uses CUDA functions from NVIDIA drivers
+  - 詳細なビルドコマンド (`-T cuda=12.6`) を追加
+  - Added detailed build commands with `-T cuda=12.6` option
+  - ユーザーディレクトリへのコピー手順を明確化
+  - Clarified steps to copy files to user directory
+
+- **古い情報の削除** / **Removed Outdated Information**
+  - 削除済みの `bin/*-custom/` への参照を削除
+  - Removed references to deleted `bin/*-custom/` directories
+  - 実装しなかった「自動移行」機能の記述を削除
+  - Removed mentions of unimplemented "automatic migration" feature
+  - バージョンバッジを最新に更新
+  - Updated version badge to current version
+
+---
+
 ## [1.4.0] - 2025-10-11
 
 ### 🎯 Major Changes
