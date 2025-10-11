@@ -276,9 +276,12 @@ function getHistory(context) {
 }
 
 /**
- * 📥 モデルダウンロード（リダイレクト対応）
+ * 📥 モデルダウンロード(リダイレクト対応)
+ * @param {string} modelName - モデル名
+ * @param {object} msg - ローカライズメッセージ
+ * @param {function} onProgress - 進捗コールバック(percent, downloadedMB, totalMB)
  */
-async function downloadModel(modelName, msg) {
+async function downloadModel(modelName, msg, onProgress = null) {
   const modelUrl = `https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-${modelName}.bin`;
   const modelDir = path.join(__dirname, "whisper.cpp", "models");
   const modelPath = path.join(modelDir, `ggml-${modelName}.bin`);
@@ -326,10 +329,23 @@ async function downloadModel(modelName, msg) {
           response.on("data", (chunk) => {
             downloadedBytes += chunk.length;
             if (totalBytes) {
-              const progress = ((downloadedBytes / totalBytes) * 100).toFixed(
-                1
+              const percent = ((downloadedBytes / totalBytes) * 100).toFixed(1);
+              const downloadedMB = (downloadedBytes / 1024 / 1024).toFixed(1);
+              const totalMB = (totalBytes / 1024 / 1024).toFixed(1);
+
+              systemLog(
+                `Downloading ${modelName}: ${percent}% (${downloadedMB}MB / ${totalMB}MB)`,
+                "INFO"
               );
-              systemLog(`Downloading ${modelName}: ${progress}%`, "INFO");
+
+              // 進捗コールバック呼び出し
+              if (onProgress) {
+                onProgress(
+                  parseFloat(percent),
+                  parseFloat(downloadedMB),
+                  parseFloat(totalMB)
+                );
+              }
             }
           });
 
@@ -458,8 +474,16 @@ async function runInitialSetup(context, config, msg) {
           title: msg("downloadingModel", { model: modelChoice.value }),
           cancellable: false,
         },
-        async () => {
-          await downloadModel(modelChoice.value, msg);
+        async (progress) => {
+          // 進捗コールバック関数
+          const onProgress = (percent, downloadedMB, totalMB) => {
+            progress.report({
+              message: `${percent}% (${downloadedMB}MB / ${totalMB}MB)`,
+              increment: 0, // incrementは使わず、messageで表示
+            });
+          };
+
+          await downloadModel(modelChoice.value, msg, onProgress);
         }
       );
 
@@ -516,10 +540,8 @@ async function executeLocalWhisper(outputFile, msg) {
       path.join(__dirname, "whisper.cpp", "build", "bin", "main.exe")
     );
   } else if (isMac) {
-    // macOS用パス
+    // macOS用パス(パッケージ同梱版を優先)
     possibleExePaths.push(
-      // 推奨: プラットフォーム共通配置 (build/bin/whisper-cli)
-      path.join(__dirname, "whisper.cpp", "build", "bin", "whisper-cli"),
       path.join(
         __dirname,
         "whisper.cpp",
@@ -528,14 +550,13 @@ async function executeLocalWhisper(outputFile, msg) {
         "macos",
         "whisper-cli"
       ),
+      path.join(__dirname, "whisper.cpp", "build", "bin", "whisper-cli"),
       path.join(__dirname, "whisper.cpp", "main"), // Makefileでビルドした場合
       path.join(__dirname, "whisper.cpp", "whisper-cli")
     );
   } else if (isLinux) {
-    // Linux用パス
+    // Linux用パス(パッケージ同梱版を優先)
     possibleExePaths.push(
-      // 推奨: プラットフォーム共通配置 (build/bin/whisper-cli)
-      path.join(__dirname, "whisper.cpp", "build", "bin", "whisper-cli"),
       path.join(
         __dirname,
         "whisper.cpp",
@@ -544,6 +565,7 @@ async function executeLocalWhisper(outputFile, msg) {
         "linux",
         "whisper-cli"
       ),
+      path.join(__dirname, "whisper.cpp", "build", "bin", "whisper-cli"),
       path.join(__dirname, "whisper.cpp", "main"), // Makefileでビルドした場合
       path.join(__dirname, "whisper.cpp", "whisper-cli")
     );
