@@ -154,7 +154,7 @@ function startRecording(context, maxRecordSec, msg, onTimeout, mode = "api") {
 }
 
 // 🔇 内部録音停止関数
-function stopRecordingInternal() {
+async function stopRecordingInternal() {
   if (recordingTimeout) {
     clearTimeout(recordingTimeout);
     recordingTimeout = null;
@@ -170,7 +170,14 @@ function stopRecordingInternal() {
 
   if (outputFileStream) {
     try {
-      outputFileStream.end();
+      // ストリームのクローズを待つ（WAVヘッダーの書き込みを確実にする）
+      await new Promise((resolve, reject) => {
+        outputFileStream.end((err) => {
+          if (err) reject(err);
+          else resolve();
+        });
+      });
+      console.log("✅ Output stream closed successfully");
     } catch (error) {
       console.error("⚠️ Error closing output stream:", error);
     }
@@ -189,8 +196,8 @@ async function stopRecording(apiKey, msg) {
   }
 
   try {
-    // 録音を停止
-    stopRecordingInternal();
+    // 録音を停止（ストリームのクローズを待つ）
+    await stopRecordingInternal();
 
     // ファイルが作成されるまで少し待つ（Macは少し長めに）
     const waitTime = process.platform === "darwin" ? 1000 : 500;
@@ -316,8 +323,8 @@ async function stopRecordingLocal() {
   }
 
   try {
-    // 録音を停止
-    stopRecordingInternal();
+    // 録音を停止（ストリームのクローズを待つ）
+    await stopRecordingInternal();
 
     // ファイルが作成されるまで少し待つ（Macは少し長めに）
     const waitTime = process.platform === "darwin" ? 1000 : 500;
