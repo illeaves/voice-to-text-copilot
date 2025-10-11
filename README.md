@@ -216,6 +216,61 @@ Whisper は**100 以上の言語**を自動認識できます。
 
 ---
 
+### 🚀 パフォーマンスノート
+
+#### 📦 同梱されているバイナリ
+
+この拡張機能には、各プラットフォーム用に最適化されたバイナリが同梱されています:
+
+- **Windows**: DirectML 版（NVIDIA/AMD/Intel GPU に対応）
+- **macOS**: Metal 版（M1/M2/M3/M4 および Intel Mac に対応）
+- **Linux**: Vulkan 版（NVIDIA/AMD GPU に対応）
+
+これらのバイナリは、追加セットアップなしでほとんどのシステムで動作します。
+
+#### ⚡ 最高のパフォーマンスを得るには（オプション）
+
+ほとんどのユーザーは同梱バイナリで優れたパフォーマンスを得られますが、さらに高速化したい場合:
+
+**再ビルドが必要な場合:**
+
+- **Windows（NVIDIA ユーザー）**: CUDA 版をビルドすると、DirectML 版より 2-3 倍高速
+- **特定の GPU 最適化**: ハードウェア固有の機能を使用
+- **最新の GPU 機能**: 最先端の GPU 機能を利用
+
+**再ビルド不要な場合:**
+
+- ✅ Metal 版はすべての M シリーズ Mac（M1-M4）で最適動作
+- ✅ DirectML 版は Windows 上のあらゆる GPU で自動最適化
+- ✅ ほとんどのユーザーは同梱バイナリで優れたパフォーマンスを実現
+
+#### 🔧 自分でビルドする方法（上級者向け）
+
+```bash
+cd whisper.cpp
+mkdir build && cd build
+
+# Windows（CUDA版 - NVIDIAユーザー）
+cmake .. -DGGML_CUDA=ON -DCMAKE_BUILD_TYPE=Release
+cmake --build . --config Release
+
+# macOS（すでにMetal対応済み）
+cmake .. -DGGML_METAL=ON -DCMAKE_BUILD_TYPE=Release
+make
+
+# Linux（Vulkan版）
+cmake .. -DGGML_VULKAN=ON -DCMAKE_BUILD_TYPE=Release
+make
+```
+
+ビルドした `whisper-cli` を以下にコピー:
+
+- Windows: `bin/windows/whisper-cli.exe`
+- macOS: `bin/macos/whisper-cli`
+- Linux: `bin/linux/whisper-cli`
+
+---
+
 ### ライセンス
 
 MIT License
@@ -442,6 +497,61 @@ Voice input results are automatically saved to history (up to 10 items).
   - Reduce background noise and speak closer to the microphone
   - Very short recordings (1-2 seconds) may not be recognized
   - For local mode, try a larger model (Small or above)
+
+---
+
+### 🚀 Performance Notes
+
+#### 📦 Pre-built Binaries
+
+This extension includes optimized binaries for each platform:
+
+- **Windows**: DirectML version (compatible with NVIDIA/AMD/Intel GPUs)
+- **macOS**: Metal version (compatible with M1/M2/M3/M4 and Intel Macs)
+- **Linux**: Vulkan version (compatible with NVIDIA/AMD GPUs)
+
+These binaries work on most systems without additional setup.
+
+#### ⚡ Maximum Performance (Optional)
+
+Most users get excellent performance with the pre-built binaries, but for even faster processing:
+
+**When to rebuild:**
+
+- **Windows (NVIDIA users)**: Build CUDA version for 2-3x faster than DirectML
+- **Specific GPU optimization**: Use hardware-specific features
+- **Latest GPU features**: Leverage cutting-edge GPU capabilities
+
+**When NOT needed:**
+
+- ✅ Metal version works optimally on all M-series Macs (M1-M4)
+- ✅ DirectML version auto-optimizes for your GPU on Windows
+- ✅ Most users get excellent performance with pre-built binaries
+
+#### 🔧 How to Build (Advanced Users)
+
+```bash
+cd whisper.cpp
+mkdir build && cd build
+
+# Windows (CUDA version - NVIDIA users)
+cmake .. -DGGML_CUDA=ON -DCMAKE_BUILD_TYPE=Release
+cmake --build . --config Release
+
+# macOS (already optimal with Metal)
+cmake .. -DGGML_METAL=ON -DCMAKE_BUILD_TYPE=Release
+make
+
+# Linux (Vulkan version)
+cmake .. -DGGML_VULKAN=ON -DCMAKE_BUILD_TYPE=Release
+make
+```
+
+Copy the built `whisper-cli` to:
+
+- Windows: `bin/windows/whisper-cli.exe`
+- macOS: `bin/macos/whisper-cli`
+- Linux: `bin/linux/whisper-cli`
 
 ---
 
