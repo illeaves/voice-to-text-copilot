@@ -763,11 +763,8 @@ async function executeLocalWhisper(outputFile, msg) {
   }
 
   if (isWindows) {
-    // Windows用パス(拡張機能ディレクトリのカスタムビルド → デフォルトのbin/ → whisper.cpp/build/)
+    // Windows用パス(デフォルトのbin/ → whisper.cpp/build/)
     possibleExePaths.push(
-      // 拡張機能ディレクトリのカスタムビルド (後方互換)
-      path.join(__dirname, "bin", "windows-custom", "whisper-cli.exe"),
-      path.join(__dirname, "bin", "windows-custom", "main.exe"),
       // デフォルトのCPU版
       path.join(__dirname, "bin", "windows", "whisper-cli.exe"),
       path.join(__dirname, "bin", "windows", "main.exe"),
@@ -792,10 +789,8 @@ async function executeLocalWhisper(outputFile, msg) {
       path.join(__dirname, "whisper.cpp", "build", "bin", "main.exe")
     );
   } else if (isMac) {
-    // macOS用パス(拡張機能ディレクトリのカスタムビルド → デフォルトのbin/ → whisper.cpp/build/)
+    // macOS用パス(デフォルトのbin/ → whisper.cpp/build/)
     possibleExePaths.push(
-      // 拡張機能ディレクトリのカスタムビルド (後方互換)
-      path.join(__dirname, "bin", "macos-custom", "whisper-cli"),
       // デフォルトのMetal版
       path.join(__dirname, "bin", "macos", "whisper-cli"),
       // 開発用 (whisper.cpp/build/)
@@ -812,10 +807,8 @@ async function executeLocalWhisper(outputFile, msg) {
       path.join(__dirname, "whisper.cpp", "whisper-cli")
     );
   } else if (isLinux) {
-    // Linux用パス(拡張機能ディレクトリのカスタムビルド → デフォルトのbin/ → whisper.cpp/build/)
+    // Linux用パス(デフォルトのbin/ → whisper.cpp/build/)
     possibleExePaths.push(
-      // 拡張機能ディレクトリのカスタムビルド (後方互換)
-      path.join(__dirname, "bin", "linux-custom", "whisper-cli"),
       // デフォルトのCPU版
       path.join(__dirname, "bin", "linux", "whisper-cli"),
       // 開発用 (whisper.cpp/build/)
@@ -1138,8 +1131,6 @@ function deactivate() {
   }
   console.log("🧹 Voice to Text + Copilot Chat: deactivated");
 }
-
-module.exports = { activate, deactivate };
 
 // ================== 追加: コマンド登録関連ユーティリティ ==================
 

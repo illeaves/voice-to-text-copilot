@@ -20,23 +20,8 @@ whisper.cpp/Testing/
 # Node modules - バンドルしない場合は含める必要がある
 # (警告が出ているがバンドル化は今回スキップ)
 
-# Keep only minimal runtime binaries; exclude auxiliary executables
-bin/windows/bench.exe
-bin/windows/main.exe
-bin/windows/quantize.exe
-bin/windows/test-vad-full.exe
-bin/windows/test-vad.exe
-bin/windows/vad-speech-segments.exe
-bin/windows/whisper-bench.exe
-bin/windows/whisper-server.exe
-bin/linux/bench
-bin/linux/main
-bin/linux/quantize
-bin/linux/test-vad
-bin/linux/test-vad-full
-bin/linux/vad-speech-segments
-bin/linux/whisper-bench
-bin/linux/whisper-server
+# Keep only whisper-cli binary (main runtime executable)
+# All other executables are excluded as they are not needed for the extension
 
 # Runtime generated files
 voice.wav
