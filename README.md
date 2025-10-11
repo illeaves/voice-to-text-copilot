@@ -2,7 +2,7 @@
 
 _(日本語 / English)_
 
-![Version](https://img.shields.io/badge/version-1.4.1-blue.svg)\
+![Version](https://img.shields.io/badge/version-1.4.2-blue.svg)\
 ![VSCode](https://img.shields.io/badge/VS_Code-Extension-007ACC.svg)\
 ![License](https://img.shields.io/badge/license-MIT-green.svg)\
 ![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Mac%20%7C%20Linux-lightgrey.svg)
@@ -298,8 +298,6 @@ ggml-cpu.dll
 ggml-cuda.dll      # CUDA サポート (約88MB)
 whisper.dll
 ```
-
-> **💡 重要**: 以前のバージョンでは 700MB 以上の CUDA DLL (`cublas64_12.dll` など) のコピーが必要でしたが、**現在のビルド方法では不要です**。システムにインストール済みの NVIDIA ドライバーから自動的に CUDA 機能が利用されます。
 
 **macOS/Linux:**
 
@@ -658,8 +656,6 @@ ggml-cpu.dll
 ggml-cuda.dll      # CUDA support (~88MB)
 whisper.dll
 ```
-
-> **💡 Note**: Earlier versions required copying 700MB+ of CUDA DLLs (`cublas64_12.dll`, etc.), but **this is no longer necessary**. The current build automatically uses CUDA functions from your installed NVIDIA drivers.
 
 **File Locations:**
 

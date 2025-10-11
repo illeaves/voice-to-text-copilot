@@ -2,11 +2,24 @@
 
 All notable changes to the "Voice to Text + Copilot Chat" extension will be documented in this file.
 
+## [1.4.2] - 2025-10-11
+
+### 📖 Documentation
+
+- **ドキュメントの簡素化** / **Simplified Documentation**
+  - 過去バージョンの情報(「以前は 700MB の DLL が必要でした」)を削除
+  - Removed references to past versions ("Earlier versions required 700MB+ DLLs")
+  - 現在必要なファイルのみをシンプルに記載
+  - Now only lists currently required files simply and clearly
+
+---
+
 ## [1.4.1] - 2025-10-11
 
 ### 📖 Documentation
 
 - **CUDA ビルド手順の改善** / **Improved CUDA Build Instructions**
+
   - 700MB 以上の CUDA DLL のコピーが不要であることを明記
   - Clarified that 700MB+ CUDA DLLs are no longer required
   - 現在のビルド方法では NVIDIA ドライバーから自動的に CUDA 機能を利用
