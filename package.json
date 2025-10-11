@@ -142,6 +142,10 @@
     "url": "https://github.com/aleaf/voice-to-text-copilot"
   },
   "license": "MIT",
+  "vsce": {
+    "dependencies": true,
+    "yarn": false
+  },
   "dependencies": {
     "openai": "^6.2.0"
   }

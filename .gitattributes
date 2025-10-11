@@ -1,0 +1,9 @@
+# Preserve executable permissions for binary files
+bin/macos/whisper-cli binary
+bin/linux/whisper-cli binary
+bin/windows/*.exe binary
+
+# Ensure line endings are consistent
+*.js text eol=lf
+*.json text eol=lf
+*.md text eol=lf
