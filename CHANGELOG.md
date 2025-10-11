@@ -2,6 +2,20 @@
 
 All notable changes to the "Voice to Text + Copilot Chat" extension will be documented in this file.
 
+## [1.4.4] - 2025-10-11
+
+### 🐛 Critical Bug Fix
+
+- **実行権限の修正** / **Fixed Executable Permissions** ⚠️ **CRITICAL**
+  - Windows/Linux/macOS の実行ファイルに実行権限を追加
+  - Added execute permissions to Windows/Linux/macOS binaries
+  - `.gitattributes` を追加してVSIXパッケージ内でも権限を保持
+  - Added `.gitattributes` to preserve permissions in VSIX packages
+  - **この修正により、ローカルモード(whisper.cpp)が正常に動作するようになります**
+  - **This fix ensures Local mode (whisper.cpp) works correctly**
+
+---
+
 ## [1.4.3] - 2025-10-11
 
 ### ✨ New Features
