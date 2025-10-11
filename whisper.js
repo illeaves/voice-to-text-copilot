@@ -98,38 +98,71 @@ function startRecording(context, maxRecordSec, msg, onTimeout, mode = "api") {
     // プラットフォーム検出
     const isMac = process.platform === "darwin";
 
-    // micモジュールで録音(Macの場合はデバイス指定)
-    const micConfig = {
-      rate: "16000",
-      channels: "1",
-      debug: true, // デバッグモード有効化
-      bitwidth: "16",
-      encoding: "signed-integer",
-    };
-
-    // Macの場合、デフォルトデバイスを明示的に指定
+    // Macの場合、SOXを直接使って録音（micモジュールはWAVヘッダーを正しく生成しない）
     if (isMac) {
-      micConfig.device = "default";
-      // 注: Macのハードウェアは16kHzをサポートしないため、
-      // SOXは自動的に48kHzで録音し、後で16kHzに変換します
+      const { spawn } = require("child_process");
+      const soxPath = "/opt/homebrew/bin/sox";
+
+      // SOXで直接16kHz WAVを録音
+      const soxArgs = [
+        "-d", // デフォルト入力デバイス
+        "-r",
+        "16000", // サンプルレート: 16kHz
+        "-c",
+        "1", // チャンネル: mono
+        "-b",
+        "16", // ビット深度: 16-bit
+        recordingFile, // 出力ファイル
+      ];
+
+      console.log(`🎤 Starting SOX recording: ${soxPath} ${soxArgs.join(" ")}`);
+      micInstance = spawn(soxPath, soxArgs);
+
+      micInstance.stdout.on("data", (data) => {
+        console.log(`SOX stdout: ${data}`);
+      });
+
+      micInstance.stderr.on("data", (data) => {
+        console.log(`SOX info: ${data}`);
+      });
+
+      micInstance.on("error", (err) => {
+        console.error("⚠️ SOX process error:", err);
+        vscode.window.showErrorMessage(
+          msg("microphoneError", { error: err.message })
+        );
+      });
+
+      micInstance.on("exit", (code) => {
+        console.log(`SOX process exited with code ${code}`);
+      });
+    } else {
+      // Windows/Linuxでは従来通りmicモジュールを使用
+      const micConfig = {
+        rate: "16000",
+        channels: "1",
+        debug: true,
+        bitwidth: "16",
+        encoding: "signed-integer",
+      };
+
+      micInstance = micModule(micConfig);
+      micInputStream = micInstance.getAudioStream();
+
+      // モードに応じたファイルに保存
+      outputFileStream = fs.createWriteStream(recordingFile);
+      micInputStream.pipe(outputFileStream);
+
+      // エラーハンドリング
+      micInputStream.on("error", (err) => {
+        console.error("⚠️ Microphone error:", err);
+        vscode.window.showErrorMessage(
+          msg("microphoneError", { error: err.message })
+        );
+      });
+
+      micInstance.start();
     }
-
-    micInstance = micModule(micConfig);
-    micInputStream = micInstance.getAudioStream();
-
-    // モードに応じたファイルに保存
-    outputFileStream = fs.createWriteStream(recordingFile);
-    micInputStream.pipe(outputFileStream);
-
-    // エラーハンドリング
-    micInputStream.on("error", (err) => {
-      console.error("⚠️ Microphone error:", err);
-      vscode.window.showErrorMessage(
-        msg("microphoneError", { error: err.message })
-      );
-    });
-
-    micInstance.start();
 
     console.log(msg("recordingStart", { seconds: maxRecordSec }));
 
@@ -155,6 +188,8 @@ function startRecording(context, maxRecordSec, msg, onTimeout, mode = "api") {
 
 // 🔇 内部録音停止関数
 async function stopRecordingInternal() {
+  const isMac = process.platform === "darwin";
+
   if (recordingTimeout) {
     clearTimeout(recordingTimeout);
     recordingTimeout = null;
@@ -162,7 +197,22 @@ async function stopRecordingInternal() {
 
   if (micInstance) {
     try {
-      micInstance.stop();
+      if (isMac) {
+        // MacではSOXプロセスを停止（SIGINTで正常終了）
+        micInstance.kill("SIGINT");
+        // プロセスが終了するのを待つ
+        await new Promise((resolve) => {
+          micInstance.on("exit", () => {
+            console.log("✅ SOX process terminated successfully");
+            resolve();
+          });
+          // タイムアウト保護（2秒）
+          setTimeout(resolve, 2000);
+        });
+      } else {
+        // Windows/Linuxではmicモジュールを停止
+        micInstance.stop();
+      }
     } catch (error) {
       console.error("⚠️ Error stopping microphone:", error);
     }
@@ -218,59 +268,13 @@ async function stopRecording(apiKey, msg) {
       return null;
     }
 
-    // Macの場合、OpenAI API用に16kHz WAVに変換
-    const isMac = process.platform === "darwin";
-    let apiFile = outputFile;
-
-    if (isMac) {
-      const convertedFile = path.join(
-        path.dirname(outputFile),
-        "voice_converted.wav"
-      );
-
-      console.log(`🔄 Converting audio file for OpenAI API...`);
-
-      // SOXで16kHz, mono, 16-bit WAVに変換
-      const soxPath = "/opt/homebrew/bin/sox"; // Homebrewのデフォルトパス
-      const soxArgs = [
-        outputFile,
-        "-r",
-        "16000", // サンプルレート: 16kHz
-        "-c",
-        "1", // チャンネル: mono
-        "-b",
-        "16", // ビット深度: 16-bit
-        convertedFile,
-      ];
-
-      try {
-        const { execFileSync } = require("child_process");
-        execFileSync(soxPath, soxArgs);
-
-        const convertedStats = fs.statSync(convertedFile);
-        console.log(`✅ Converted file size: ${convertedStats.size} bytes`);
-
-        apiFile = convertedFile;
-      } catch (error) {
-        console.error("❌ SOX conversion failed:", error.message);
-        // 変換失敗時は元のファイルを使用
-      }
-    }
-
-    // ファイルサイズをチェック
-    const stats = fs.statSync(apiFile);
-    if (stats.size === 0) {
-      console.warn("⚠️ Empty voice file");
-      fs.unlink(apiFile, () => {}); // 空ファイルを削除
-      return null;
-    }
-
-    console.log(`📝 Sending WAV to OpenAI API (${stats.size} bytes)`);
+    // Macでは既に16kHz WAVで録音されているので変換不要
+    console.log(`📝 Sending WAV to OpenAI API (${fileStats.size} bytes)`);
 
     const openai = new OpenAI({ apiKey });
 
     const res = await openai.audio.transcriptions.create({
-      file: fs.createReadStream(apiFile),
+      file: fs.createReadStream(outputFile),
       model: "whisper-1",
     });
 
@@ -279,14 +283,6 @@ async function stopRecording(apiKey, msg) {
       if (err) console.error("⚠️ Failed to delete voice file:", err);
       else console.log(`🗑️ Deleted voice file: ${outputFile}`);
     });
-
-    // 変換ファイルも削除(Macの場合)
-    if (isMac && apiFile !== outputFile) {
-      fs.unlink(apiFile, (err) => {
-        if (err) console.error("⚠️ Failed to delete converted file:", err);
-        else console.log(`🗑️ Deleted converted file: ${apiFile}`);
-      });
-    }
 
     return res.text;
   } catch (e) {
