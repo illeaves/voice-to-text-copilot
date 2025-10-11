@@ -1,9 +1,9 @@
 {
   "name": "voice-to-text-copilot",
-  "displayName": "Voice to Text + Copilot Chat",
+  "displayName": "Voice to Text (also for Copilot Chat)",
   "description": "Whisperを利用した音声入力拡張。APIモード(クラウド・高精度)とローカルモード(オフライン・無料)から選択可能。(Voice input extension with API mode [cloud, accurate] or Local mode [offline, free] using Whisper.)",
   "publisher": "aleaf",
-  "version": "1.4.4",
+  "version": "1.5.0",
   "engines": {
     "vscode": "^1.80.0"
   },
@@ -47,16 +47,16 @@
   "main": "./extension.js",
   "contributes": {
     "configuration": {
-      "title": "Voice to Text + Copilot Chat",
+      "title": "Voice to Text (also for Copilot Chat)",
       "properties": {
-        "whisperVoiceInput.maxRecordSeconds": {
+        "voiceToText.maxRecordSeconds": {
           "type": "number",
           "default": 180,
           "minimum": 10,
           "maximum": 600,
           "description": "Maximum recording time in seconds (default: 180)"
         },
-        "whisperVoiceInput.language": {
+        "voiceToText.language": {
           "type": "string",
           "enum": [
             "ja",
@@ -83,7 +83,7 @@
           "default": "",
           "description": "Interface language for messages"
         },
-        "whisperVoiceInput.mode": {
+        "voiceToText.mode": {
           "type": "string",
           "enum": [
             "api",
@@ -92,7 +92,7 @@
           "default": "api",
           "description": "Select whether to use OpenAI API (requires key) or local whisper.cpp model"
         },
-        "whisperVoiceInput.localModel": {
+        "voiceToText.localModel": {
           "type": "string",
           "enum": [
             "tiny",
@@ -108,31 +108,31 @@
     },
     "commands": [
       {
-        "command": "whisperVoiceInput.toggle",
+        "command": "voiceToText.toggle",
         "title": "Voice to Text: Start / Stop Recording (Paste to Current Focus)"
       },
       {
-        "command": "whisperVoiceInput.toggleForChat",
+        "command": "voiceToText.toggleForChat",
         "title": "Voice to Text: Start / Stop Recording (Paste to Copilot Chat)"
       },
       {
-        "command": "whisperVoiceInput.setApiKey",
+        "command": "voiceToText.setApiKey",
         "title": "Voice to Text: Set OpenAI API Key"
       },
       {
-        "command": "whisperVoiceInput.setupWizard",
+        "command": "voiceToText.setupWizard",
         "title": "Voice to Text: Run Setup Wizard"
       },
       {
-        "command": "whisperVoiceInput.showHistory",
+        "command": "voiceToText.showHistory",
         "title": "Voice to Text: Show History"
       },
       {
-        "command": "whisperVoiceInput.openCustomBuildFolder",
+        "command": "voiceToText.openCustomBuildFolder",
         "title": "Voice to Text: Open Custom Build Folder (for GPU builds)"
       },
       {
-        "command": "whisperVoiceInput.cleanUp",
+        "command": "voiceToText.cleanUp",
         "title": "Voice to Text: Clean Up (Remove Models & Custom Builds)"
       }
     ]

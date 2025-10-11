@@ -1,5 +1,5 @@
 {
-  "activated": "🟢 Voice to Text + Copilot Chat 扩展已启用！",
+  "activated": "🟢 Voice to Text (also for Copilot Chat) 扩展已启用！",
   "recordingStart": "🎙️ 开始录音（最长{{seconds}}秒）",
   "recordingStopAuto": "⏰ 超过{{seconds}}秒，录音已自动停止。",
   "sendingToWhisper": "📦 正在发送到Whisper…",
@@ -69,5 +69,20 @@
   "soxInstallInstructionsLinux": "要在Ubuntu/Debian上安装SOX,请运行:\n\nsudo apt-get update && sudo apt-get install sox\n\n对于其他Linux发行版:\n- Fedora/RHEL: sudo dnf install sox\n- Arch: sudo pacman -S sox",
   "soxInstallInstructionsWindows": "在Windows上安装SOX的方法:\n\n【方法1】使用Chocolatey(推荐):\n以管理员身份打开PowerShell并运行:\nchoco install sox.portable\n\n【方法2】使用Scoop:\nscoop install sox\n\n【方法3】手动安装:\n1. 从 https://sourceforge.net/projects/sox/files/sox/ 下载\n2. 解压zip文件\n3. 将sox.exe的路径添加到PATH环境变量",
   "soxReloadMessage": "安装后,请重新加载VS Code以使用扩展。",
-  "clickToRecord": "点击开始录音"
+  "clickToRecord": "点击开始录音",
+  "recordingDisabled": "录音期间无法切换",
+  "processingDisabled": "处理期间无法操作",
+  "recordToEditor": "录音（粘贴到编辑器）",
+  "recordToChat": "录音（粘贴到Copilot Chat）",
+  "noDataToDelete": "没有数据需要删除。",
+  "confirmDelete": "删除",
+  "cancelDelete": "取消",
+  "confirmDeleteMessage": "您要删除以下数据吗？\n文件夹：{{folder}}\n大小：约{{size}} MB\n\n包含：\n- 模型文件\n- GPU版本自定义构建\n\n此操作无法撤销。",
+  "dataDeleted": "数据已删除（释放{{size}} MB）",
+  "deleteFailed": "删除数据失败：{{error}}",
+  "customBuildFolderMessage": "请将{{platform}} GPU构建版本放在此文件夹中：\n{{folder}}",
+    "folderOpenFailed": "无法打开文件夹: {{folder}}",
+  "statusWaiting": "🎤 等待中",
+  "statusRecordingTime": "🔴 录音中",
+  "soxRecordingError": "SOX录音错误: {{error}}"
 }

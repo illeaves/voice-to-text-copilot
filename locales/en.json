@@ -1,5 +1,5 @@
 {
-  "activated": "🟢 Voice to Text + Copilot Chat extension activated!",
+  "activated": "🟢 Voice to Text (also for Copilot Chat) extension activated!",
   "recordingStart": "🎙️ Recording started (max {{seconds}} sec)",
   "recordingStopAuto": "⏰ Recording automatically stopped after {{seconds}} seconds.",
   "sendingToWhisper": "📦 Sending to Whisper...",
@@ -69,5 +69,20 @@
   "soxInstallInstructionsLinux": "To install SOX on Ubuntu/Debian, run:\n\nsudo apt-get update && sudo apt-get install sox\n\nFor other Linux distributions:\n- Fedora/RHEL: sudo dnf install sox\n- Arch: sudo pacman -S sox",
   "soxInstallInstructionsWindows": "To install SOX on Windows:\n\n【Method 1】Using Chocolatey (recommended):\nOpen PowerShell as Administrator and run:\nchoco install sox.portable\n\n【Method 2】Using Scoop:\nscoop install sox\n\n【Method 3】Manual installation:\n1. Download from https://sourceforge.net/projects/sox/files/sox/\n2. Extract the zip file\n3. Add the sox.exe path to your PATH environment variable",
   "soxReloadMessage": "After installation, please reload VS Code to use the extension.",
-  "clickToRecord": "Click to start recording"
+  "clickToRecord": "Click to start recording",
+  "recordingDisabled": "Cannot switch during recording",
+  "processingDisabled": "Cannot operate during processing",
+  "recordToEditor": "Record (Paste to Editor)",
+  "recordToChat": "Record (Paste to Copilot Chat)",
+  "noDataToDelete": "No data to delete.",
+  "confirmDelete": "Delete",
+  "cancelDelete": "Cancel",
+  "confirmDeleteMessage": "Do you want to delete the following data?\nFolder: {{folder}}\nSize: approximately {{size}} MB\n\nContains:\n- Model files\n- GPU version custom builds\n\nThis action cannot be undone.",
+  "dataDeleted": "Data deleted ({{size}} MB freed)",
+  "deleteFailed": "Failed to delete data: {{error}}",
+  "customBuildFolderMessage": "Place {{platform}} GPU builds in this folder:\n{{folder}}",
+  "folderOpenFailed": "Failed to open folder: {{folder}}",
+  "statusWaiting": "🎤 Waiting",
+  "statusRecordingTime": "🔴 Recording",
+  "soxRecordingError": "SOX recording error: {{error}}"
 }

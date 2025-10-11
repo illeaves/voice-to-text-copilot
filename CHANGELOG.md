@@ -1,6 +1,16 @@
 # Change Log
 
-All notable changes to the "Voice to Text + Copilot Chat" extension will be documented in this file.
+All notable changes to the "Voice to Text (also for Copilot Chat)" extension will be documented in this file.
+
+## [1.5.0] - 2025-10-12
+
+### 🔧 Internal Changes (Breaking)
+
+- **識別子の統一** / **Unified Identifiers**
+  - 内部識別子を `whisperVoiceInput.*` から `voiceToText.*` に変更
+  - Changed internal identifiers from `whisperVoiceInput.*` to `voiceToText.*`
+  - ⚠️ **破壊的変更**: キーボードショートカットの再設定が必要
+  - ⚠️ **Breaking Change**: Keyboard shortcuts need to be reconfigured
 
 ## [1.4.4] - 2025-10-11
 

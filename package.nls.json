@@ -1,10 +1,10 @@
 {
-  "displayName": "Voice to Text + Copilot Chat",
+  "displayName": "Voice to Text (also for Copilot Chat)",
   "description": "🎙️ Voice input for VS Code using OpenAI Whisper API (multilingual speech-to-text).",
-  "title": "Voice to Text + Copilot Chat",
+  "title": "Voice to Text (also for Copilot Chat)",
   "config.maxRecordSeconds": "Maximum recording duration (in seconds). Default is 180 (3 minutes).",
   "config.language": "Language for messages in the extension UI.",
-  "command.toggle": "Voice to Text + Copilot Chat: Start / Stop Voice Input",
+  "command.toggle": "Voice to Text (also for Copilot Chat): Start / Stop Voice Input",
   "command.setApiKey": "Voice to Text: Set API Key",
   "command.setupWizard": "Voice to Text: Run Setup Wizard",
   "command.showHistory": "Voice to Text: Show History"

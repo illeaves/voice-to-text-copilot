@@ -1,5 +1,5 @@
 {
-  "activated": "🟢 Voice to Text + Copilot Chat Erweiterung aktiviert!",
+  "activated": "🟢 Voice to Text (also for Copilot Chat) Erweiterung aktiviert!",
   "recordingStart": "🎙️ Aufnahme gestartet (max {{seconds}} Sek.)",
   "recordingStopAuto": "⏰ Aufnahme nach {{seconds}} Sekunden automatisch gestoppt.",
   "sendingToWhisper": "📦 Sende an Whisper…",
@@ -69,5 +69,20 @@
   "soxInstallInstructionsLinux": "Um SOX auf Ubuntu/Debian zu installieren, führen Sie aus:\n\nsudo apt-get update && sudo apt-get install sox\n\nFür andere Linux-Distributionen:\n- Fedora/RHEL: sudo dnf install sox\n- Arch: sudo pacman -S sox",
   "soxInstallInstructionsWindows": "So installieren Sie SOX auf Windows:\n\n【Methode 1】Mit Chocolatey (empfohlen):\nÖffnen Sie PowerShell als Administrator und führen Sie aus:\nchoco install sox.portable\n\n【Methode 2】Mit Scoop:\nscoop install sox\n\n【Methode 3】Manuelle Installation:\n1. Laden Sie von https://sourceforge.net/projects/sox/files/sox/ herunter\n2. Entpacken Sie die Zip-Datei\n3. Fügen Sie den Pfad von sox.exe zu Ihrer PATH-Umgebungsvariable hinzu",
   "soxReloadMessage": "Laden Sie nach der Installation VS Code neu, um die Erweiterung zu verwenden.",
-  "clickToRecord": "Klicken Sie, um die Aufnahme zu starten"
+  "clickToRecord": "Klicken Sie, um die Aufnahme zu starten",
+  "recordingDisabled": "Wechsel während Aufnahme nicht möglich",
+  "processingDisabled": "Bedienung während Verarbeitung nicht möglich",
+  "recordToEditor": "Aufnehmen (In Editor einfügen)",
+  "recordToChat": "Aufnehmen (In Copilot Chat einfügen)",
+  "noDataToDelete": "Keine Daten zum Löschen.",
+  "confirmDelete": "Löschen",
+  "cancelDelete": "Abbrechen",
+  "confirmDeleteMessage": "Möchten Sie die folgenden Daten löschen?\nOrdner: {{folder}}\nGröße: ca. {{size}} MB\n\nEnthält:\n- Modelldateien\n- GPU-Version benutzerdefinierte Builds\n\nDiese Aktion kann nicht rückgängig gemacht werden.",
+  "dataDeleted": "Daten gelöscht ({{size}} MB freigegeben)",
+  "deleteFailed": "Fehler beim Löschen der Daten: {{error}}",
+  "customBuildFolderMessage": "Platzieren Sie {{platform}} GPU-Builds in diesem Ordner:\n{{folder}}",
+  "folderOpenFailed": "Fehler beim Öffnen des Ordners: {{folder}}",
+  "statusWaiting": "🎤 Warten",
+  "statusRecordingTime": "🔴 Aufnahme",
+  "soxRecordingError": "SOX-Aufnahmefehler: {{error}}"
 }

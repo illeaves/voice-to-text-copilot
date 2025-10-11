@@ -1,4 +1,4 @@
-# 🎙 Voice to Text + Copilot Chat
+# 🎙 Voice to Text (also for Copilot Chat)
 
 _(日本語 / English)_
 
@@ -91,7 +91,7 @@ Whisper は**100 以上の言語**を自動認識できます。
 頻繁に使用する場合は、**キーボードショートカット**を設定することをお勧めします：
 
 1. コマンドパレット（`Ctrl + Shift + P`）で **「基本設定: キーボードショートカットを開く」** を選択
-2. 検索欄で **「whisperVoiceInput.toggle」** を検索
+2. 検索欄で **「voiceToText.toggle」** を検索
 3. 「+」ボタンをクリックして、お好みのキー（例：`Ctrl + Alt + V`）を設定
 
 これで、設定したキーを押すだけで録音を開始/停止できます！
@@ -110,13 +110,44 @@ Whisper は**100 以上の言語**を自動認識できます。
 
 #### 🎙️ 音声入力の使い方
 
-1.  コマンドパレット（`Ctrl + Shift + P`）で **「Voice to Text: Start / Stop Recording」** を選択
-2.  **ステータスバー**（右下）で録音状態を確認
+##### 📍 2つの貼り付けモード
+
+この拡張機能では、音声入力結果を**2つの場所**に貼り付けることができます：
+
+**1. 📍 Focus モード** - エディタの元の位置に貼り付け
+- 録音停止直前にカーソルがあった場所に貼り付け
+- コードやドキュメントの編集中に便利
+
+**2. 💬 Chat モード** - Copilot Chatに貼り付け  
+- Copilot Chatの入力欄に直接貼り付け
+- AIに質問や指示をする際に便利
+
+##### 🖱️ ステータスバーボタンの使い方
+
+**ステータスバー（右下）**に3つのボタンが表示されます：
+
+- **🎤待機中** - 現在の状態表示
+- **📍 Focus** - Focus モードで録音開始（エディタに貼り付け）
+- **💬 Chat** - Chat モードで録音開始（Copilot Chatに貼り付け）
+
+##### 🎯 基本的な使い方
+
+1.  **ステータスバー**で貼り付け先を選択：
+    - **📍 Focus** をクリック → エディタの元の位置に貼り付け
+    - **💬 Chat** をクリック → Copilot Chatに貼り付け
+2.  **録音状態をリアルタイム確認**：
     - 🔴 **0:45 / 3:00** - 録音中（経過時間 / 残り時間）
     - $(sync~spin) ⏳ **処理中...** `[API]` または `[Local:Small]` - 文字起こし中
-    - 🎙️ **待機中** - 待機中
-3.  もう一度コマンドを実行すると録音停止 → 自動的にテキスト化
-4.  現在フォーカス位置に自動でテキストが貼り付けられます 🎉
+    - ✅ **貼り付け完了** - 処理完了
+3.  **録音停止**：同じボタンをもう一度クリック → 自動的にテキスト化&貼り付け
+
+##### 💡 便利な使い分け
+
+- **📍 Focus モード**: コードのコメント、ドキュメント編集、変数名の入力など
+- **💬 Chat モード**: Copilot に質問、コード説明の依頼、リファクタリングの相談など
+
+**従来の方法**も引き続き利用可能：
+- コマンドパレット（`Ctrl + Shift + P`）で **「Voice to Text: Start / Stop Recording」** を選択
 
 #### ⚙️ モード切り替え
 
@@ -154,7 +185,7 @@ Whisper は**100 以上の言語**を自動認識できます。
 ### 📊 ステータス確認
 
 - **ステータスバー**: 右下に録音状態をリアルタイム表示
-- **アウトプットパネル**: 詳細ログを確認（`Ctrl+Shift+U` → 「Voice to Text + Copilot Chat」選択）
+- **アウトプットパネル**: 詳細ログを確認（`Ctrl+Shift+U` → 「Voice to Text (also for Copilot Chat)」選択）
 
 ---
 
@@ -207,7 +238,7 @@ Whisper は**100 以上の言語**を自動認識できます。
 
   1. VS Code にマイクアクセス権限が与えられているか確認
   2. システム設定でマイクデバイスが有効か確認
-  3. アウトプットパネル（`Ctrl+Shift+U` → 「Voice to Text + Copilot Chat」）でエラー詳細を確認
+  3. アウトプットパネル（`Ctrl+Shift+U` → 「Voice to Text (also for Copilot Chat)」）でエラー詳細を確認
 
 - **音声が認識されない**
   - 周囲の騒音を減らし、マイクに近づいて話す
@@ -458,7 +489,7 @@ Whisper automatically recognizes and transcribes speech in **100+ languages**, i
 For frequent use, we recommend setting up a **keyboard shortcut**:
 
 1. Open Command Palette (`Ctrl + Shift + P`) → **"Preferences: Open Keyboard Shortcuts"**
-2. Search for **"whisperVoiceInput.toggle"**
+2. Search for **"voiceToText.toggle"**
 3. Click the "+" button and assign your preferred key (e.g., `Ctrl + Alt + V`)
 
 Now you can start/stop recording with just your assigned key combination!
@@ -477,13 +508,44 @@ Now you can start/stop recording with just your assigned key combination!
 
 #### 🎙️ Using Voice Input
 
-1.  Open Command Palette (`Ctrl + Shift + P`) → **"Voice to Text: Start / Stop Recording"**
-2.  Check the **status bar** (bottom right) for recording state
+##### 📍 Two Paste Modes
+
+This extension offers **two paste destinations** for your voice input results:
+
+**1. 📍 Focus Mode** - Paste to original editor position
+- Pastes text where your cursor was just before stopping recording
+- Perfect for coding and document editing
+
+**2. 💬 Chat Mode** - Paste to Copilot Chat
+- Pastes directly into Copilot Chat input field
+- Ideal for asking questions or giving AI instructions
+
+##### 🖱️ Status Bar Button Usage
+
+**Three buttons appear in the status bar** (bottom right):
+
+- **🎤Idle** - Current status display
+- **📍 Focus** - Start recording in Focus mode (paste to editor)
+- **💬 Chat** - Start recording in Chat mode (paste to Copilot Chat)
+
+##### 🎯 Basic Usage
+
+1.  **Select paste destination** from status bar:
+    - Click **📍 Focus** → Paste to original editor position
+    - Click **💬 Chat** → Paste to Copilot Chat
+2.  **Monitor recording status** in real-time:
     - 🔴 **0:45 / 3:00** - Recording (elapsed time / remaining time)
     - $(sync~spin) ⏳ **Processing...** `[API]` or `[Local:Small]` - Transcribing
-    - 🎙️ **Idle** - Idle
-3.  Execute the command again to stop recording → automatic transcription
-4.  Transcribed text is automatically pasted at your current focus position 🎉
+    - ✅ **Paste Complete** - Processing finished
+3.  **Stop recording**: Click the same button again → automatic transcription & paste
+
+##### 💡 Smart Usage Tips
+
+- **📍 Focus Mode**: Code comments, documentation, variable names, etc.
+- **💬 Chat Mode**: Ask Copilot questions, request code explanations, refactoring consultations, etc.
+
+**Traditional method** still available:
+- Open Command Palette (`Ctrl + Shift + P`) → **"Voice to Text: Start / Stop Recording"**
 
 #### ⚙️ Switching Modes
 
@@ -521,7 +583,7 @@ Voice input results are automatically saved to history (up to 10 items).
 ### 📊 Status Monitoring
 
 - **Status Bar**: Real-time recording status display in bottom bar
-- **Output Panel**: Detailed logs available (`Ctrl+Shift+U` → Select "Voice to Text + Copilot Chat")
+- **Output Panel**: Detailed logs available (`Ctrl+Shift+U` → Select "Voice to Text (also for Copilot Chat)")
 
 ---
 
@@ -574,7 +636,7 @@ Voice input results are automatically saved to history (up to 10 items).
 
   1. Verify VS Code has microphone access permissions
   2. Check microphone device is enabled in system settings
-  3. Check Output Panel (`Ctrl+Shift+U` → "Voice to Text + Copilot Chat") for detailed errors
+  3. Check Output Panel (`Ctrl+Shift+U` → "Voice to Text (also for Copilot Chat)") for detailed errors
 
 - **Speech not recognized**
   - Reduce background noise and speak closer to the microphone

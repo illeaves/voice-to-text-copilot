@@ -1,7 +1,7 @@
 {
-  "displayName": "Whisper语音输入",
+  "displayName": "语音转文字 (支持Copilot Chat)",
   "description": "🎙️ 使用OpenAI Whisper API的VS Code语音输入扩展（支持多语言转录）。",
-  "title": "Whisper语音输入",
+  "title": "语音转文字 (支持Copilot Chat)",
   "config.maxRecordSeconds": "最大录音时间（以秒为单位）。默认值：180（3分钟）。",
   "config.language": "扩展消息显示的语言。",
   "command.toggle": "Whisper：开始 / 停止语音输入",

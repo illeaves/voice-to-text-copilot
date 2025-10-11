@@ -158,7 +158,7 @@ function startRecording(context, maxRecordSec, msg, onTimeout, mode = "api") {
       if (code !== 0 && code !== null && soxErrorOutput) {
         console.error(`⚠️ SOX failed: ${soxErrorOutput}`);
         vscode.window.showErrorMessage(
-          `SOX録音エラー: ${soxErrorOutput.trim()}`
+          msg("soxRecordingError", { error: soxErrorOutput.trim() })
         );
       }
     });

@@ -1,5 +1,5 @@
 {
-  "activated": "🟢 Voice to Text + Copilot Chat 확장 기능이 활성화되었습니다!",
+  "activated": "🟢 Voice to Text (also for Copilot Chat) 확장 기능이 활성화되었습니다!",
   "recordingStart": "🎙️ 녹음을 시작했습니다 (최대 {{seconds}}초)",
   "recordingStopAuto": "⏰ {{seconds}}초를 초과하여 자동으로 녹음을 중지했습니다.",
   "sendingToWhisper": "📦 Whisper로 전송 중…",
@@ -69,5 +69,20 @@
   "soxInstallInstructionsLinux": "Ubuntu/Debian에 SOX를 설치하려면 다음을 실행하세요:\n\nsudo apt-get update && sudo apt-get install sox\n\n다른 Linux 배포판의 경우:\n- Fedora/RHEL: sudo dnf install sox\n- Arch: sudo pacman -S sox",
   "soxInstallInstructionsWindows": "Windows에 SOX를 설치하는 방법:\n\n【방법 1】Chocolatey 사용 (권장):\nPowerShell을 관리자 권한으로 열고 실행:\nchoco install sox.portable\n\n【방법 2】Scoop 사용:\nscoop install sox\n\n【방법 3】수동 설치:\n1. https://sourceforge.net/projects/sox/files/sox/ 에서 다운로드\n2. zip 파일 압축 해제\n3. sox.exe 경로를 PATH 환경 변수에 추가",
   "soxReloadMessage": "설치 후 VS Code를 다시 로드하여 확장 프로그램을 사용하세요.",
-  "clickToRecord": "클릭하여 녹음 시작"
+  "clickToRecord": "클릭하여 녹음 시작",
+  "recordingDisabled": "녹음 중에는 전환할 수 없음",
+  "processingDisabled": "처리 중에는 조작할 수 없음",
+  "recordToEditor": "녹음 (에디터에 붙여넣기)",
+  "recordToChat": "녹음 (Copilot Chat에 붙여넣기)",
+  "noDataToDelete": "삭제할 데이터가 없습니다.",
+  "confirmDelete": "삭제",
+  "cancelDelete": "취소",
+  "confirmDeleteMessage": "다음 데이터를 삭제하시겠습니까?\n폴더: {{folder}}\n크기: 약 {{size}} MB\n\n포함 항목:\n- 모델 파일\n- GPU 버전 사용자 정의 빌드\n\n이 작업은 취소할 수 없습니다.",
+  "dataDeleted": "데이터 삭제됨 ({{size}} MB 해제됨)",
+  "deleteFailed": "데이터 삭제 실패: {{error}}",
+  "customBuildFolderMessage": "이 폴더에 {{platform}} GPU 빌드를 배치하세요:\n{{folder}}",
+    "folderOpenFailed": "폴더를 열 수 없습니다: {{folder}}",
+  "statusWaiting": "🎤 대기 중",
+  "statusRecordingTime": "🔴 녹음 중",
+  "soxRecordingError": "SOX 녹음 오류: {{error}}"
 }

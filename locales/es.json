@@ -1,5 +1,5 @@
 {
-  "activated": "🟢 Extensión Voice to Text + Copilot Chat activada !",
+  "activated": "🟢 Extensión Voice to Text (also for Copilot Chat) activada !",
   "recordingStart": "🎙️ Grabación iniciada (máx {{seconds}} seg)",
   "recordingStopAuto": "⏰ Grabación detenida automáticamente después de {{seconds}} seg.",
   "sendingToWhisper": "📦 Enviando a Whisper…",
@@ -69,5 +69,20 @@
   "soxInstallInstructionsLinux": "Para instalar SOX en Ubuntu/Debian, ejecute:\n\nsudo apt-get update && sudo apt-get install sox\n\nPara otras distribuciones de Linux:\n- Fedora/RHEL: sudo dnf install sox\n- Arch: sudo pacman -S sox",
   "soxInstallInstructionsWindows": "Para instalar SOX en Windows:\n\n【Método 1】Usando Chocolatey (recomendado):\nAbra PowerShell como administrador y ejecute:\nchoco install sox.portable\n\n【Método 2】Usando Scoop:\nscoop install sox\n\n【Método 3】Instalación manual:\n1. Descargue desde https://sourceforge.net/projects/sox/files/sox/\n2. Extraiga el archivo zip\n3. Agregue la ruta de sox.exe a su variable de entorno PATH",
   "soxReloadMessage": "Después de la instalación, recargue VS Code para usar la extensión.",
-  "clickToRecord": "Haga clic para comenzar a grabar"
+  "clickToRecord": "Haga clic para comenzar a grabar",
+  "recordingDisabled": "No se puede cambiar durante la grabación",
+  "processingDisabled": "No se puede operar durante el procesamiento",
+  "recordToEditor": "Grabar (Pegar en el editor)",
+  "recordToChat": "Grabar (Pegar en Copilot Chat)",
+  "noDataToDelete": "No hay datos para eliminar.",
+  "confirmDelete": "Eliminar",
+  "cancelDelete": "Cancelar",
+  "confirmDeleteMessage": "¿Desea eliminar los siguientes datos?\nCarpeta: {{folder}}\nTamaño: aproximadamente {{size}} MB\n\nContiene:\n- Archivos de modelo\n- Compilaciones personalizadas GPU\n\nEsta acción no se puede deshacer.",
+  "dataDeleted": "Datos eliminados ({{size}} MB liberados)",
+  "deleteFailed": "Error al eliminar datos: {{error}}",
+  "customBuildFolderMessage": "Coloque las compilaciones GPU de {{platform}} en esta carpeta:\n{{folder}}",
+  "folderOpenFailed": "Error al abrir la carpeta: {{folder}}",
+  "statusWaiting": "🎤 Esperando",
+  "statusRecordingTime": "🔴 Grabando",
+  "soxRecordingError": "Error de grabación SOX: {{error}}"
 }

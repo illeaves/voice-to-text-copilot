@@ -1,7 +1,7 @@
 {
-  "displayName": "Entrada de voz Whisper",
+  "displayName": "Voz a Texto (también para Copilot Chat)",
   "description": "🎙️ Entrada de voz para VS Code usando la API Whisper de OpenAI (transcripción multilingüe).",
-  "title": "Entrada de voz Whisper",
+  "title": "Voz a Texto (también para Copilot Chat)",
   "config.maxRecordSeconds": "Duración máxima de grabación (en segundos). Predeterminado: 180 (3 minutos).",
   "config.language": "Idioma de los mensajes en la interfaz de la extensión.",
   "command.toggle": "Whisper: iniciar / detener entrada de voz",

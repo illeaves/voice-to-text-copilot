@@ -1,7 +1,7 @@
 {
-  "displayName": "Whisper Spracheingabe",
+  "displayName": "Sprache zu Text (auch für Copilot Chat)",
   "description": "🎙️ Spracheingabe für VS Code mit der OpenAI Whisper API (mehrsprachige Transkription).",
-  "title": "Whisper Spracheingabe",
+  "title": "Sprache zu Text (auch für Copilot Chat)",
   "config.maxRecordSeconds": "Maximale Aufnahmezeit (in Sekunden). Standard: 180 (3 Minuten).",
   "config.language": "Sprache der Nachrichten in der Erweiterungsoberfläche.",
   "command.toggle": "Whisper: Spracheingabe starten / stoppen",

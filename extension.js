@@ -1,7 +1,7 @@
 /**
- * Voice to Text + Copilot Chat Extension for VS Code
+ * Voice to Text (also for Copilot Chat) Extension for VS Code
  * Author: aleaf
- * Version: 1.1.0
+ * Version: 1.4.4
  */
 "use strict";
 
@@ -224,7 +224,7 @@ function updateStatusBar(state = "idle", elapsed = 0, max = 0) {
   if (!statusBarItemStatus || !statusBarItemFocus || !statusBarItemChat) return;
 
   // 現在のモードを取得
-  const config = vscode.workspace.getConfiguration("whisperVoiceInput");
+  const config = vscode.workspace.getConfiguration("voiceToText");
   const mode = config.get("mode", "api");
   const localModel = config.get("localModel", "base");
 
@@ -239,7 +239,7 @@ function updateStatusBar(state = "idle", elapsed = 0, max = 0) {
       const elapsedSec = elapsed % 60;
       const remainingMin = Math.floor(remaining / 60);
       const remainingSec = remaining % 60;
-      const timeText = `🔴 録音中 ${elapsedMin}:${elapsedSec
+      const timeText = `${msg("statusRecordingTime")} ${elapsedMin}:${elapsedSec
         .toString()
         .padStart(2, "0")} / ${
         max > 0
@@ -259,11 +259,11 @@ function updateStatusBar(state = "idle", elapsed = 0, max = 0) {
         statusBarItemFocus.backgroundColor = new vscode.ThemeColor(
           "statusBarItem.warningBackground"
         );
-        statusBarItemFocus.command = "whisperVoiceInput.toggle"; // 停止可能
+        statusBarItemFocus.command = "voiceToText.toggle"; // 停止可能
         statusBarItemFocus.color = undefined;
 
         statusBarItemChat.text = "💬Chat";
-        statusBarItemChat.tooltip = "録音中は切り替え不可";
+        statusBarItemChat.tooltip = msg("recordingDisabled");
         statusBarItemChat.backgroundColor = undefined;
         statusBarItemChat.command = undefined;
         statusBarItemChat.color = new vscode.ThemeColor(
@@ -275,11 +275,11 @@ function updateStatusBar(state = "idle", elapsed = 0, max = 0) {
         statusBarItemChat.backgroundColor = new vscode.ThemeColor(
           "statusBarItem.warningBackground"
         );
-        statusBarItemChat.command = "whisperVoiceInput.toggleForChat"; // 停止可能
+        statusBarItemChat.command = "voiceToText.toggleForChat"; // 停止可能
         statusBarItemChat.color = undefined;
 
         statusBarItemFocus.text = "📍Focus";
-        statusBarItemFocus.tooltip = "録音中は切り替え不可";
+        statusBarItemFocus.tooltip = msg("recordingDisabled");
         statusBarItemFocus.backgroundColor = undefined;
         statusBarItemFocus.command = undefined;
         statusBarItemFocus.color = new vscode.ThemeColor(
@@ -301,7 +301,7 @@ function updateStatusBar(state = "idle", elapsed = 0, max = 0) {
 
       // 両方disabled
       statusBarItemFocus.text = "📍Focus";
-      statusBarItemFocus.tooltip = "処理中は操作不可";
+      statusBarItemFocus.tooltip = msg("processingDisabled");
       statusBarItemFocus.backgroundColor = undefined;
       statusBarItemFocus.command = undefined;
       statusBarItemFocus.color = new vscode.ThemeColor(
@@ -309,7 +309,7 @@ function updateStatusBar(state = "idle", elapsed = 0, max = 0) {
       );
 
       statusBarItemChat.text = "💬Chat";
-      statusBarItemChat.tooltip = "処理中は操作不可";
+      statusBarItemChat.tooltip = msg("processingDisabled");
       statusBarItemChat.backgroundColor = undefined;
       statusBarItemChat.command = undefined;
       statusBarItemChat.color = new vscode.ThemeColor(
@@ -330,15 +330,15 @@ function updateStatusBar(state = "idle", elapsed = 0, max = 0) {
 
       // 両方enabled
       statusBarItemFocus.text = "📍Focus";
-      statusBarItemFocus.tooltip = `録音 (エディタに貼り付け) [${modeLabel}]`;
+      statusBarItemFocus.tooltip = `${msg("recordToEditor")} [${modeLabel}]`;
       statusBarItemFocus.backgroundColor = undefined;
-      statusBarItemFocus.command = "whisperVoiceInput.toggle";
+      statusBarItemFocus.command = "voiceToText.toggle";
       statusBarItemFocus.color = undefined;
 
       statusBarItemChat.text = "💬Chat";
-      statusBarItemChat.tooltip = `録音 (Copilot Chatに貼り付け) [${modeLabel}]`;
+      statusBarItemChat.tooltip = `${msg("recordToChat")} [${modeLabel}]`;
       statusBarItemChat.backgroundColor = undefined;
-      statusBarItemChat.command = "whisperVoiceInput.toggleForChat";
+      statusBarItemChat.command = "voiceToText.toggleForChat";
       statusBarItemChat.color = undefined;
 
       statusBarItemStatus.show();
@@ -348,21 +348,21 @@ function updateStatusBar(state = "idle", elapsed = 0, max = 0) {
     }
     case "idle":
     default: {
-      statusBarItemStatus.text = "🎤待機中";
-      statusBarItemStatus.tooltip = `Voice to Text + Copilot Chat [${modeLabel}]`;
+      statusBarItemStatus.text = msg("statusWaiting");
+      statusBarItemStatus.tooltip = `Voice to Text (also for Copilot Chat) [${modeLabel}]`;
       statusBarItemStatus.backgroundColor = undefined;
 
       statusBarItemFocus.text = "📍Focus";
-      statusBarItemFocus.tooltip = `録音 (エディタに貼り付け) [${modeLabel}]`;
+      statusBarItemFocus.tooltip = `${msg("recordToEditor")} [${modeLabel}]`;
       statusBarItemFocus.backgroundColor = undefined;
-      statusBarItemFocus.command = "whisperVoiceInput.toggle";
+      statusBarItemFocus.command = "voiceToText.toggle";
       statusBarItemFocus.color = undefined;
       statusBarItemFocus.show();
 
       statusBarItemChat.text = "💬Chat";
-      statusBarItemChat.tooltip = `録音 (Copilot Chatに貼り付け) [${modeLabel}]`;
+      statusBarItemChat.tooltip = `${msg("recordToChat")} [${modeLabel}]`;
       statusBarItemChat.backgroundColor = undefined;
-      statusBarItemChat.command = "whisperVoiceInput.toggleForChat";
+      statusBarItemChat.command = "voiceToText.toggleForChat";
       statusBarItemChat.color = undefined;
       statusBarItemChat.show();
 
@@ -648,7 +648,7 @@ async function runInitialSetup(context, config, msg) {
     );
 
     if (setKey === msg("setupNow")) {
-      await vscode.commands.executeCommand("whisperVoiceInput.setApiKey");
+      await vscode.commands.executeCommand("voiceToText.setApiKey");
     }
   } else {
     // === ローカルモード ===
@@ -736,7 +736,7 @@ async function runInitialSetup(context, config, msg) {
  * 🤖 ローカルWhisper実行（whisper.cpp）
  */
 async function executeLocalWhisper(outputFile, msg) {
-  const config = vscode.workspace.getConfiguration("whisperVoiceInput");
+  const config = vscode.workspace.getConfiguration("voiceToText");
   const selectedModel = config.get("localModel") || "base";
 
   // プラットフォーム判定
@@ -995,17 +995,17 @@ async function executeLocalWhisper(outputFile, msg) {
  * 🎬 拡張アクティベーション
  */
 async function activate(context) {
-  console.log("🟢 Voice to Text + Copilot Chat: Activation started");
+  console.log("🟢 Voice to Text (also for Copilot Chat): Activation started");
 
   try {
     // --- アウトプットチャンネル作成 ---
     outputChannel = vscode.window.createOutputChannel(
-      "Voice to Text + Copilot Chat"
+      "Voice to Text (also for Copilot Chat)"
     );
     context.subscriptions.push(outputChannel);
 
     // --- 設定を取得 ---
-    const config = vscode.workspace.getConfiguration("whisperVoiceInput");
+    const config = vscode.workspace.getConfiguration("voiceToText");
     let lang = config.get("language");
 
     // --- 言語自動検出（初回のみ） ---
@@ -1052,36 +1052,36 @@ async function activate(context) {
       systemLog(`✅ SOX is installed (${soxCheck.platform})`, "INFO");
     }
 
-    // --- ステータスバーアイテム作成 (3つ) ---
+    // --- ステータスバーアイテム作成 (3つ) - 右寄せ ---
     // 区切り記号＋ステータス表示
     statusBarItemStatus = vscode.window.createStatusBarItem(
-      vscode.StatusBarAlignment.Left,
-      102 // 一番左
+      vscode.StatusBarAlignment.Right,
+      1000 // 一番左（右寄せエリア内）- 高い優先度で確実に左端に配置
     );
-    statusBarItemStatus.text = "🎤待機中";
-    statusBarItemStatus.tooltip = "Voice to Text + Copilot Chat";
+    statusBarItemStatus.text = msg("statusWaiting");
+    statusBarItemStatus.tooltip = "Voice to Text (also for Copilot Chat)";
     statusBarItemStatus.show();
     context.subscriptions.push(statusBarItemStatus);
 
     // Focusボタン
     statusBarItemFocus = vscode.window.createStatusBarItem(
-      vscode.StatusBarAlignment.Left,
-      101
+      vscode.StatusBarAlignment.Right,
+      999 // ステータス表示の右隣
     );
-    statusBarItemFocus.command = "whisperVoiceInput.toggle";
-    statusBarItemFocus.text = "📍 Focus";
-    statusBarItemFocus.tooltip = "録音 (エディタに貼り付け)";
+    statusBarItemFocus.command = "voiceToText.toggle";
+    statusBarItemFocus.text = "📍Focus";
+    statusBarItemFocus.tooltip = msg("recordToEditor");
     statusBarItemFocus.show();
     context.subscriptions.push(statusBarItemFocus);
 
     // Chatボタン
     statusBarItemChat = vscode.window.createStatusBarItem(
-      vscode.StatusBarAlignment.Left,
-      100
+      vscode.StatusBarAlignment.Right,
+      998 // フォーカスボタンの右隣
     );
-    statusBarItemChat.command = "whisperVoiceInput.toggleForChat";
-    statusBarItemChat.text = "💬 Chat";
-    statusBarItemChat.tooltip = "録音 (Copilot Chatに貼り付け)";
+    statusBarItemChat.command = "voiceToText.toggleForChat";
+    statusBarItemChat.text = "💬Chat";
+    statusBarItemChat.tooltip = msg("recordToChat");
     statusBarItemChat.show();
     context.subscriptions.push(statusBarItemChat);
 
@@ -1092,8 +1092,8 @@ async function activate(context) {
     context.subscriptions.push(
       vscode.workspace.onDidChangeConfiguration((e) => {
         if (
-          e.affectsConfiguration("whisperVoiceInput.mode") ||
-          e.affectsConfiguration("whisperVoiceInput.localModel")
+          e.affectsConfiguration("voiceToText.mode") ||
+          e.affectsConfiguration("voiceToText.localModel")
         ) {
           systemLog("Configuration changed, updating status bar", "INFO");
           updateStatusBar("idle");
@@ -1129,7 +1129,7 @@ function deactivate() {
   if (outputChannel) {
     outputChannel.dispose();
   }
-  console.log("🧹 Voice to Text + Copilot Chat: deactivated");
+  console.log("🧹 Voice to Text (also for Copilot Chat): deactivated");
 }
 
 // ================== 追加: コマンド登録関連ユーティリティ ==================
@@ -1140,14 +1140,14 @@ function deactivate() {
  * @param {vscode.ExtensionContext} context
  */
 async function handleToggleCommand(context) {
-  console.log("🎙️ Command executed: whisperVoiceInput.toggle");
+  console.log("🎙️ Command executed: voiceToText.toggle");
 
   if (isProcessing) {
     vscode.window.showWarningMessage(msg("processingWait"));
     return;
   }
 
-  const currentConfig = vscode.workspace.getConfiguration("whisperVoiceInput");
+  const currentConfig = vscode.workspace.getConfiguration("voiceToText");
   const maxSec = currentConfig.get("maxRecordSeconds") || 180;
 
   if (!isRecording || !isCurrentlyRecording()) {
@@ -1286,7 +1286,7 @@ function registerCommands(context) {
   const disposables = [];
 
   disposables.push(
-    vscode.commands.registerCommand("whisperVoiceInput.toggle", () => {
+    vscode.commands.registerCommand("voiceToText.toggle", () => {
       // 現在のフォーカス位置に貼り付け (従来の動作)
       pasteTarget = "auto";
       activeRecordingButton = "focus";
@@ -1295,7 +1295,7 @@ function registerCommands(context) {
   );
 
   disposables.push(
-    vscode.commands.registerCommand("whisperVoiceInput.toggleForChat", () => {
+    vscode.commands.registerCommand("voiceToText.toggleForChat", () => {
       // Copilot Chatに貼り付け (新機能)
       pasteTarget = "chat";
       activeRecordingButton = "chat";
@@ -1305,7 +1305,7 @@ function registerCommands(context) {
   );
 
   disposables.push(
-    vscode.commands.registerCommand("whisperVoiceInput.setApiKey", async () => {
+    vscode.commands.registerCommand("voiceToText.setApiKey", async () => {
       const key = await vscode.window.showInputBox({
         prompt: msg("promptApiKey"),
         ignoreFocusOut: true,
@@ -1320,10 +1320,10 @@ function registerCommands(context) {
 
   disposables.push(
     vscode.commands.registerCommand(
-      "whisperVoiceInput.setupWizard",
+      "voiceToText.setupWizard",
       async () => {
         systemLog("Running setup wizard manually", "INFO");
-        const config = vscode.workspace.getConfiguration("whisperVoiceInput");
+        const config = vscode.workspace.getConfiguration("voiceToText");
         await runInitialSetup(context, config, msg);
       }
     )
@@ -1331,7 +1331,7 @@ function registerCommands(context) {
 
   disposables.push(
     vscode.commands.registerCommand(
-      "whisperVoiceInput.showHistory",
+      "voiceToText.showHistory",
       async () => {
         const history = getHistory(context);
         if (history.length === 0) {
@@ -1378,7 +1378,7 @@ function registerCommands(context) {
   // カスタムビルドフォルダーを開くコマンド
   disposables.push(
     vscode.commands.registerCommand(
-      "whisperVoiceInput.openCustomBuildFolder",
+      "voiceToText.openCustomBuildFolder",
       async () => {
         const customDir = getCustomBuildDir(); // ユーザーディレクトリに変更
         const platform = process.platform;
@@ -1401,13 +1401,13 @@ function registerCommands(context) {
           await vscode.commands.executeCommand("revealFileInOS", uri);
 
           // 情報メッセージ
-          const message = `${platformName} GPU版ビルドをこのフォルダーに配置してください:\n${customDir}`;
+          const message = msg("customBuildFolderMessage", { platform: platformName, folder: customDir });
 
           vscode.window.showInformationMessage(message);
           systemLog(`Opened custom build folder: ${customDir}`, "INFO");
         } catch (error) {
           vscode.window.showErrorMessage(
-            `フォルダーを開けませんでした: ${customDir}`
+            msg("folderOpenFailed", { folder: customDir })
           );
           systemLog(`Failed to open custom build folder: ${error}`, "ERROR");
         }
@@ -1417,12 +1417,12 @@ function registerCommands(context) {
 
   // クリーンアップコマンド (モデルとカスタムビルドを削除)
   disposables.push(
-    vscode.commands.registerCommand("whisperVoiceInput.cleanUp", async () => {
+    vscode.commands.registerCommand("voiceToText.cleanUp", async () => {
       const userDataDir = getUserDataDir();
 
       // ディレクトリが存在しない場合
       if (!fs.existsSync(userDataDir)) {
-        vscode.window.showInformationMessage("削除するデータがありません。");
+        vscode.window.showInformationMessage(msg("noDataToDelete"));
         return;
       }
 
@@ -1446,19 +1446,13 @@ function registerCommands(context) {
 
       // 確認ダイアログ
       const choice = await vscode.window.showWarningMessage(
-        `以下のデータを削除しますか?\n` +
-          `フォルダー: ${userDataDir}\n` +
-          `サイズ: 約 ${sizeMB} MB\n\n` +
-          `含まれるもの:\n` +
-          `- モデルファイル\n` +
-          `- GPU版カスタムビルド\n\n` +
-          `この操作は取り消せません。`,
+        msg("confirmDeleteMessage", { folder: userDataDir, size: sizeMB }),
         { modal: true },
-        "削除する",
-        "キャンセル"
+        msg("confirmDelete"),
+        msg("cancelDelete")
       );
 
-      if (choice !== "削除する") {
+      if (choice !== msg("confirmDelete")) {
         return;
       }
 
@@ -1466,12 +1460,12 @@ function registerCommands(context) {
       try {
         fs.rmSync(userDataDir, { recursive: true, force: true });
         vscode.window.showInformationMessage(
-          `データを削除しました (${sizeMB} MB 解放)`
+          msg("dataDeleted", { size: sizeMB })
         );
         systemLog(`Cleaned up user data: ${userDataDir}`, "INFO");
       } catch (error) {
         vscode.window.showErrorMessage(
-          `データの削除に失敗しました: ${error.message}`
+          msg("deleteFailed", { error: error.message })
         );
         systemLog(`Failed to clean up user data: ${error}`, "ERROR");
       }
