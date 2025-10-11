@@ -518,8 +518,10 @@ async function executeLocalWhisper(outputFile, msg) {
   const possibleExePaths = [];
 
   if (isWindows) {
-    // Windows用パス
+    // Windows用パス(bin/フォルダを優先、次にwhisper.cpp/build/)
     possibleExePaths.push(
+      path.join(__dirname, "bin", "windows", "whisper-cli.exe"),
+      path.join(__dirname, "bin", "windows", "main.exe"),
       path.join(
         __dirname,
         "whisper.cpp",
@@ -540,8 +542,9 @@ async function executeLocalWhisper(outputFile, msg) {
       path.join(__dirname, "whisper.cpp", "build", "bin", "main.exe")
     );
   } else if (isMac) {
-    // macOS用パス(パッケージ同梱版を優先)
+    // macOS用パス(bin/フォルダを優先、次にwhisper.cpp/build/)
     possibleExePaths.push(
+      path.join(__dirname, "bin", "macos", "whisper-cli"),
       path.join(
         __dirname,
         "whisper.cpp",
@@ -555,8 +558,9 @@ async function executeLocalWhisper(outputFile, msg) {
       path.join(__dirname, "whisper.cpp", "whisper-cli")
     );
   } else if (isLinux) {
-    // Linux用パス(パッケージ同梱版を優先)
+    // Linux用パス(bin/フォルダを優先、次にwhisper.cpp/build/)
     possibleExePaths.push(
+      path.join(__dirname, "bin", "linux", "whisper-cli"),
       path.join(
         __dirname,
         "whisper.cpp",
