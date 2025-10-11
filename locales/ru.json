@@ -61,10 +61,12 @@
   "modelDownloadFailed": "Ошибка загрузки модели: {{error}}",
   "soxRequiredTitle": "Требуется SOX",
   "soxRequiredMessage": "SOX необходим для записи аудио на Mac. Хотите увидеть инструкции по установке?",
+  "soxRequiredMessageLinux": "SOX необходим для записи аудио на Linux. Хотите увидеть инструкции по установке?",
+  "soxRequiredMessageWindows": "SOX необходим для записи аудио на Windows. Хотите увидеть инструкции по установке?",
   "soxShowInstructions": "Показать инструкции",
   "soxDismiss": "Закрыть",
   "soxInstallInstructions": "Чтобы установить SOX на Mac, выполните эту команду в Терминале:\n\nbrew install sox\n\nЕсли у вас нет Homebrew, сначала установите его:\n/bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\"",
   "soxInstallInstructionsLinux": "Чтобы установить SOX на Ubuntu/Debian, выполните:\n\nsudo apt-get update && sudo apt-get install sox\n\nДля других дистрибутивов Linux:\n- Fedora/RHEL: sudo dnf install sox\n- Arch: sudo pacman -S sox",
-  "soxReloadMessage": "После установки перезагрузите VS Code для использования расширения.",
-  "soxRequiredMessageLinux": "SOX необходим для записи аудио на Linux. Хотите увидеть инструкции по установке?"
+  "soxInstallInstructionsWindows": "Как установить SOX на Windows:\n\n【Способ 1】Используя Chocolatey (рекомендуется):\nОткройте PowerShell от имени администратора и выполните:\nchoco install sox.portable\n\n【Способ 2】Используя Scoop:\nscoop install sox\n\n【Способ 3】Ручная установка:\n1. Загрузите с https://sourceforge.net/projects/sox/files/sox/\n2. Распакуйте zip-файл\n3. Добавьте путь к sox.exe в переменную среды PATH",
+  "soxReloadMessage": "После установки перезагрузите VS Code для использования расширения."
 }

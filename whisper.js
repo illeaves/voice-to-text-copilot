@@ -3,24 +3,11 @@ const path = require("path");
 const OpenAI = require("openai");
 const vscode = require("vscode");
 
-let mic;
-let micInstance, micInputStream, outputFileStream, recordingTimeout;
+let micInstance, recordingTimeout;
 let currentRecordingFile; // 現在録音中のファイルパス
 const outputFile = path.join(__dirname, "voice.wav");
 const soxOutputFile = path.join(__dirname, "voice_sox.wav");
 const rawOutputFile = path.join(__dirname, "voice_raw.pcm");
-
-// micモジュールの遅延ロード
-function getMic() {
-  if (!mic) {
-    try {
-      mic = require("mic");
-    } catch (error) {
-      throw new Error("soxNotInstalled"); // メッセージキーを返す
-    }
-  }
-  return mic;
-}
 
 /**
  * 📝 WAVヘッダーを作成（44バイト）
@@ -76,7 +63,6 @@ function convertPcmToWav(pcmFile, wavFile) {
 function startRecording(context, maxRecordSec, msg, onTimeout, mode = "api") {
   try {
     const MAX_RECORD_TIME = maxRecordSec * 1000;
-    const micModule = getMic();
 
     // 既存の録音をクリーンアップ
     if (micInstance) {
@@ -95,17 +81,27 @@ function startRecording(context, maxRecordSec, msg, onTimeout, mode = "api") {
       console.log(`🗑️ Deleted old recording file: ${recordingFile}`);
     }
 
-    // プラットフォーム検出
-    const isMac = process.platform === "darwin";
+    // 全プラットフォームでSOXを直接使用
+    const { spawn } = require("child_process");
+    const platform = process.platform;
 
-    // Macの場合、SOXを直接使って録音（micモジュールはWAVヘッダーを正しく生成しない）
-    if (isMac) {
-      const { spawn } = require("child_process");
-      const soxPath = "/opt/homebrew/bin/sox";
+    // プラットフォームごとのSOXパス
+    let soxPath;
+    if (platform === "darwin") {
+      soxPath = "/opt/homebrew/bin/sox"; // Mac (Homebrew)
+    } else {
+      soxPath = "sox"; // Windows/Linux (PATH内)
+    }
 
-      // SOXで直接16kHz WAVを録音
-      const soxArgs = [
-        "-d", // デフォルト入力デバイス
+    // SOXで直接16kHz WAVを録音
+    // Windows: waveaudioドライバを明示的に指定
+    // Mac/Linux: デフォルトデバイス(-d)を使用
+    let soxArgs;
+    if (platform === "win32") {
+      soxArgs = [
+        "-t",
+        "waveaudio",
+        "default", // Windowsのデフォルト録音デバイス
         "-r",
         "16000", // サンプルレート: 16kHz
         "-c",
@@ -114,55 +110,58 @@ function startRecording(context, maxRecordSec, msg, onTimeout, mode = "api") {
         "16", // ビット深度: 16-bit
         recordingFile, // 出力ファイル
       ];
-
-      console.log(`🎤 Starting SOX recording: ${soxPath} ${soxArgs.join(" ")}`);
-      micInstance = spawn(soxPath, soxArgs);
-
-      micInstance.stdout.on("data", (data) => {
-        console.log(`SOX stdout: ${data}`);
-      });
-
-      micInstance.stderr.on("data", (data) => {
-        console.log(`SOX info: ${data}`);
-      });
-
-      micInstance.on("error", (err) => {
-        console.error("⚠️ SOX process error:", err);
-        vscode.window.showErrorMessage(
-          msg("microphoneError", { error: err.message })
-        );
-      });
-
-      micInstance.on("exit", (code) => {
-        console.log(`SOX process exited with code ${code}`);
-      });
     } else {
-      // Windows/Linuxでは従来通りmicモジュールを使用
-      const micConfig = {
-        rate: "16000",
-        channels: "1",
-        debug: true,
-        bitwidth: "16",
-        encoding: "signed-integer",
-      };
-
-      micInstance = micModule(micConfig);
-      micInputStream = micInstance.getAudioStream();
-
-      // モードに応じたファイルに保存
-      outputFileStream = fs.createWriteStream(recordingFile);
-      micInputStream.pipe(outputFileStream);
-
-      // エラーハンドリング
-      micInputStream.on("error", (err) => {
-        console.error("⚠️ Microphone error:", err);
-        vscode.window.showErrorMessage(
-          msg("microphoneError", { error: err.message })
-        );
-      });
-
-      micInstance.start();
+      soxArgs = [
+        "-d", // Mac/Linux: デフォルト入力デバイス
+        "-r",
+        "16000", // サンプルレート: 16kHz
+        "-c",
+        "1", // チャンネル: mono
+        "-b",
+        "16", // ビット深度: 16-bit
+        recordingFile, // 出力ファイル
+      ];
     }
+
+    console.log(
+      `🎤 Starting SOX recording (${platform}): ${soxPath} ${soxArgs.join(" ")}`
+    );
+    micInstance = spawn(soxPath, soxArgs);
+
+    let soxErrorOutput = ""; // SOXのエラーメッセージを蓄積
+
+    micInstance.stdout.on("data", (data) => {
+      console.log(`SOX stdout: ${data}`);
+    });
+
+    micInstance.stderr.on("data", (data) => {
+      const message = data.toString();
+      console.log(`SOX info: ${message}`);
+
+      // エラーメッセージを蓄積
+      if (message.includes("FAIL") || message.includes("error")) {
+        soxErrorOutput += message;
+      }
+    });
+
+    micInstance.on("error", (err) => {
+      console.error("⚠️ SOX process error:", err);
+      vscode.window.showErrorMessage(
+        msg("microphoneError", { error: err.message })
+      );
+    });
+
+    micInstance.on("exit", (code) => {
+      console.log(`SOX process exited with code ${code}`);
+
+      // 異常終了時にエラーメッセージを表示
+      if (code !== 0 && code !== null && soxErrorOutput) {
+        console.error(`⚠️ SOX failed: ${soxErrorOutput}`);
+        vscode.window.showErrorMessage(
+          `SOX録音エラー: ${soxErrorOutput.trim()}`
+        );
+      }
+    });
 
     console.log(msg("recordingStart", { seconds: maxRecordSec }));
 
@@ -188,8 +187,6 @@ function startRecording(context, maxRecordSec, msg, onTimeout, mode = "api") {
 
 // 🔇 内部録音停止関数
 async function stopRecordingInternal() {
-  const isMac = process.platform === "darwin";
-
   if (recordingTimeout) {
     clearTimeout(recordingTimeout);
     recordingTimeout = null;
@@ -197,45 +194,23 @@ async function stopRecordingInternal() {
 
   if (micInstance) {
     try {
-      if (isMac) {
-        // MacではSOXプロセスを停止（SIGINTで正常終了）
-        micInstance.kill("SIGINT");
-        // プロセスが終了するのを待つ
-        await new Promise((resolve) => {
-          micInstance.on("exit", () => {
-            console.log("✅ SOX process terminated successfully");
-            resolve();
-          });
-          // タイムアウト保護（2秒）
-          setTimeout(resolve, 2000);
+      // 全プラットフォームでSOXプロセスを停止（SIGINTで正常終了）
+      micInstance.kill("SIGINT");
+      // プロセスが終了するのを待つ
+      await new Promise((resolve) => {
+        micInstance.on("exit", () => {
+          console.log("✅ SOX process terminated successfully");
+          resolve();
         });
-      } else {
-        // Windows/Linuxではmicモジュールを停止
-        micInstance.stop();
-      }
-    } catch (error) {
-      console.error("⚠️ Error stopping microphone:", error);
-    }
-  }
-
-  if (outputFileStream) {
-    try {
-      // ストリームのクローズを待つ（WAVヘッダーの書き込みを確実にする）
-      await new Promise((resolve, reject) => {
-        outputFileStream.end((err) => {
-          if (err) reject(err);
-          else resolve();
-        });
+        // タイムアウト保護（2秒）
+        setTimeout(resolve, 2000);
       });
-      console.log("✅ Output stream closed successfully");
     } catch (error) {
-      console.error("⚠️ Error closing output stream:", error);
+      console.error("⚠️ Error stopping SOX process:", error);
     }
   }
 
   micInstance = null;
-  micInputStream = null;
-  outputFileStream = null;
 }
 
 // 🎧 録音停止とWhisper送信（APIモード用）
@@ -246,15 +221,21 @@ async function stopRecording(apiKey, msg) {
   }
 
   try {
-    // 録音を停止（ストリームのクローズを待つ）
+    // 録音を停止(ストリームのクローズを待つ)
     await stopRecordingInternal();
 
-    // ファイルが作成されるまで少し待つ（Macは少し長めに）
-    const waitTime = process.platform === "darwin" ? 1000 : 500;
-    await new Promise((resolve) => setTimeout(resolve, waitTime));
+    // ファイルが作成されるまでポーリング(最大1秒、100ms間隔)
+    let fileFound = false;
+    for (let i = 0; i < 10; i++) {
+      if (fs.existsSync(outputFile)) {
+        fileFound = true;
+        break;
+      }
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    }
 
     // ファイルの存在確認
-    if (!fs.existsSync(outputFile)) {
+    if (!fileFound) {
       console.error("⚠️ Voice file not found");
       return null;
     }
@@ -268,7 +249,7 @@ async function stopRecording(apiKey, msg) {
       return null;
     }
 
-    // Macでは既に16kHz WAVで録音されているので変換不要
+    // 全プラットフォームで既に16kHz WAVで録音されているので変換不要
     console.log(`📝 Sending WAV to OpenAI API (${fileStats.size} bytes)`);
 
     const openai = new OpenAI({ apiKey });
@@ -319,14 +300,20 @@ async function stopRecordingLocal() {
   }
 
   try {
-    // 録音を停止（ストリームのクローズを待つ）
+    // 録音を停止(ストリームのクローズを待つ)
     await stopRecordingInternal();
 
-    // ファイルが作成されるまで少し待つ（Macは少し長めに）
-    const waitTime = process.platform === "darwin" ? 1000 : 500;
-    await new Promise((resolve) => setTimeout(resolve, waitTime));
+    // ファイルが作成されるまでポーリング(最大1秒、100ms間隔)
+    let fileFound = false;
+    for (let i = 0; i < 10; i++) {
+      if (fs.existsSync(soxOutputFile)) {
+        fileFound = true;
+        break;
+      }
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    }
 
-    if (!fs.existsSync(soxOutputFile)) {
+    if (!fileFound) {
       console.error("⚠️ SOX WAV file not found:", soxOutputFile);
       return null;
     }

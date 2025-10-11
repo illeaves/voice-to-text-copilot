@@ -61,10 +61,12 @@
   "modelDownloadFailed": "모델 다운로드 실패: {{error}}",
   "soxRequiredTitle": "SOX 필요",
   "soxRequiredMessage": "Mac에서 오디오 녹음을 하려면 SOX가 필요합니다. 설치 방법을 보시겠습니까?",
+  "soxRequiredMessageLinux": "Linux에서 오디오 녹음을 하려면 SOX가 필요합니다. 설치 방법을 보시겠습니까?",
+  "soxRequiredMessageWindows": "Windows에서 오디오 녹음을 하려면 SOX가 필요합니다. 설치 방법을 보시겠습니까?",
   "soxShowInstructions": "설치 방법 보기",
   "soxDismiss": "닫기",
   "soxInstallInstructions": "Mac에 SOX를 설치하려면 터미널에서 다음 명령어를 실행하세요:\n\nbrew install sox\n\nHomebrew가 설치되어 있지 않다면 먼저 설치하세요:\n/bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\"",
   "soxInstallInstructionsLinux": "Ubuntu/Debian에 SOX를 설치하려면 다음을 실행하세요:\n\nsudo apt-get update && sudo apt-get install sox\n\n다른 Linux 배포판의 경우:\n- Fedora/RHEL: sudo dnf install sox\n- Arch: sudo pacman -S sox",
-  "soxReloadMessage": "설치 후 VS Code를 다시 로드하여 확장 프로그램을 사용하세요.",
-  "soxRequiredMessageLinux": "Linux에서 오디오 녹음을 하려면 SOX가 필요합니다. 설치 방법을 보시겠습니까?"
+  "soxInstallInstructionsWindows": "Windows에 SOX를 설치하는 방법:\n\n【방법 1】Chocolatey 사용 (권장):\nPowerShell을 관리자 권한으로 열고 실행:\nchoco install sox.portable\n\n【방법 2】Scoop 사용:\nscoop install sox\n\n【방법 3】수동 설치:\n1. https://sourceforge.net/projects/sox/files/sox/ 에서 다운로드\n2. zip 파일 압축 해제\n3. sox.exe 경로를 PATH 환경 변수에 추가",
+  "soxReloadMessage": "설치 후 VS Code를 다시 로드하여 확장 프로그램을 사용하세요."
 }

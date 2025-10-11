@@ -131,7 +131,6 @@
   },
   "license": "MIT",
   "dependencies": {
-    "mic": "^2.1.2",
     "openai": "^6.2.0"
   }
 }

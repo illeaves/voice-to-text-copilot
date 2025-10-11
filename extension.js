@@ -70,16 +70,15 @@ function systemLog(message, level = "INFO") {
 async function checkSoxInstallation() {
   const platform = process.platform;
 
-  // Windowsの場合、micモジュールを使うのでSOXチェック不要
-  if (platform === "win32") {
-    return { installed: true, platform: "windows" };
+  // 全プラットフォームでSOXの存在確認
+  let soxPath;
+  if (platform === "darwin") {
+    soxPath = "/opt/homebrew/bin/sox"; // Mac (Homebrew)
+  } else if (platform === "win32") {
+    soxPath = "sox"; // Windows (PATH内、またはChocolatey/Scoop経由)
+  } else {
+    soxPath = "sox"; // Linux (PATH内)
   }
-
-  // Mac/Linuxの場合、SOXの存在確認
-  const soxPath =
-    platform === "darwin"
-      ? "/opt/homebrew/bin/sox" // Mac (Homebrew)
-      : "sox"; // Linux (PATH内)
 
   try {
     await execFilePromise(soxPath, ["--version"]);
@@ -91,12 +90,18 @@ async function checkSoxInstallation() {
 
 async function promptSoxInstallation(platform) {
   // プラットフォームに応じたメッセージとインストール手順を選択
-  const messageKey =
-    platform === "linux" ? "soxRequiredMessageLinux" : "soxRequiredMessage";
-  const instructionsKey =
-    platform === "linux"
-      ? "soxInstallInstructionsLinux"
-      : "soxInstallInstructions";
+  let messageKey, instructionsKey;
+
+  if (platform === "win32") {
+    messageKey = "soxRequiredMessageWindows";
+    instructionsKey = "soxInstallInstructionsWindows";
+  } else if (platform === "linux") {
+    messageKey = "soxRequiredMessageLinux";
+    instructionsKey = "soxInstallInstructionsLinux";
+  } else {
+    messageKey = "soxRequiredMessage"; // Mac
+    instructionsKey = "soxInstallInstructions";
+  }
 
   const action = await vscode.window.showWarningMessage(
     msg(messageKey),
