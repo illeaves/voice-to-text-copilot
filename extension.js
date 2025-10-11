@@ -66,6 +66,106 @@ function systemLog(message, level = "INFO") {
   if (outputChannel) outputChannel.appendLine(logMessage);
 }
 
+// ====== SOX Installation Check ======
+async function checkSoxInstallation() {
+  const platform = process.platform;
+
+  // Windowsの場合、micモジュールを使うのでSOXチェック不要
+  if (platform === "win32") {
+    return { installed: true, platform: "windows" };
+  }
+
+  // Mac/Linuxの場合、SOXの存在確認
+  const soxPath =
+    platform === "darwin"
+      ? "/opt/homebrew/bin/sox" // Mac (Homebrew)
+      : "sox"; // Linux (PATH内)
+
+  try {
+    await execFilePromise(soxPath, ["--version"]);
+    return { installed: true, platform };
+  } catch (error) {
+    return { installed: false, platform };
+  }
+}
+
+async function promptSoxInstallation(platform) {
+  const installInstructions = {
+    darwin: {
+      title: "SOX Required",
+      message:
+        "SOX is required for audio recording on Mac. Would you like to see installation instructions?",
+      instructions: `To install SOX on Mac, run this command in Terminal:
+
+brew install sox
+
+If you don't have Homebrew, install it first:
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"`,
+    },
+    linux: {
+      title: "SOX Required",
+      message:
+        "SOX is required for audio recording on Linux. Would you like to see installation instructions?",
+      instructions: `To install SOX on Ubuntu/Debian, run:
+
+sudo apt-get update && sudo apt-get install sox
+
+For other Linux distributions:
+- Fedora/RHEL: sudo dnf install sox
+- Arch: sudo pacman -S sox`,
+    },
+  };
+
+  const info = installInstructions[platform];
+  if (!info) return;
+
+  const action = await vscode.window.showWarningMessage(
+    info.message,
+    "Show Instructions",
+    "Dismiss"
+  );
+
+  if (action === "Show Instructions") {
+    const panel = vscode.window.createWebviewPanel(
+      "soxInstall",
+      info.title,
+      vscode.ViewColumn.One,
+      {}
+    );
+
+    panel.webview.html = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <style>
+          body {
+            font-family: var(--vscode-font-family);
+            padding: 20px;
+            color: var(--vscode-foreground);
+            background-color: var(--vscode-editor-background);
+          }
+          pre {
+            background-color: var(--vscode-textCodeBlock-background);
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+          }
+          code {
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+          }
+        </style>
+      </head>
+      <body>
+        <h2>${info.title}</h2>
+        <pre><code>${info.instructions}</code></pre>
+        <p>After installation, please reload VS Code to use the extension.</p>
+      </body>
+      </html>
+    `;
+  }
+}
+
 // ====== Status Bar Helper ======
 /**
  * 📝 ステータスバー更新（状態に応じて）
@@ -644,6 +744,18 @@ async function activate(context) {
     const hasConfigured = context.globalState.get("hasConfiguredMode");
     if (!hasConfigured) {
       await runInitialSetup(context, config, msg);
+    }
+
+    // --- SOXインストールチェック（Mac/Linuxのみ） ---
+    const soxCheck = await checkSoxInstallation();
+    if (!soxCheck.installed) {
+      systemLog(
+        `⚠️ SOX not found on ${soxCheck.platform}. Recording will fail.`,
+        "WARNING"
+      );
+      await promptSoxInstallation(soxCheck.platform);
+    } else {
+      systemLog(`✅ SOX is installed (${soxCheck.platform})`, "INFO");
     }
 
     // --- ステータスバーアイテム作成（表示専用） ---
