@@ -624,10 +624,18 @@ async function executeLocalWhisper(outputFile, msg) {
   }
 
   try {
-    // 言語は自動検出（-l オプションなし）
-    const args = ["-m", modelPath, "-f", outputFile, "--output-txt"];
+    // 言語は自動検出して、検出した言語で出力（翻訳しない）
+    const args = [
+      "-m",
+      modelPath,
+      "-f",
+      outputFile,
+      "--output-txt",
+      "--language",
+      "auto",
+    ];
 
-    systemLog("Language: auto-detect", "INFO");
+    systemLog("Language: auto-detect (no translation)", "INFO");
     systemLog(`Executing: ${whisperPath} ${args.join(" ")}`, "INFO");
     const { stdout, stderr } = await execFilePromise(whisperPath, args);
 
