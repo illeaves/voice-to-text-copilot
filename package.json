@@ -109,7 +109,11 @@
     "commands": [
       {
         "command": "whisperVoiceInput.toggle",
-        "title": "Voice to Text: Start / Stop Recording"
+        "title": "Voice to Text: Start / Stop Recording (Paste to Current Focus)"
+      },
+      {
+        "command": "whisperVoiceInput.toggleForChat",
+        "title": "Voice to Text: Start / Stop Recording (Paste to Copilot Chat)"
       },
       {
         "command": "whisperVoiceInput.setApiKey",

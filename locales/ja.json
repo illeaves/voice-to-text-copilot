@@ -68,5 +68,7 @@
   "soxInstallInstructions": "Macにソックスをインストールするには、ターミナルで次のコマンドを実行してください:\n\nbrew install sox\n\nHomebrewがインストールされていない場合は、まずHomebrewをインストールしてください:\n/bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\"",
   "soxInstallInstructionsLinux": "Ubuntu/DebianでSOXをインストールするには:\n\nsudo apt-get update && sudo apt-get install sox\n\nその他のLinuxディストリビューション:\n- Fedora/RHEL: sudo dnf install sox\n- Arch: sudo pacman -S sox",
   "soxInstallInstructionsWindows": "WindowsでSOXをインストールする方法:\n\n【方法1】Chocolateyを使う場合（推奨）:\nPowerShellを管理者権限で開いて実行:\nchoco install sox.portable\n\n【方法2】Scoopを使う場合:\nscoop install sox\n\n【方法3】手動インストール:\n1. https://sourceforge.net/projects/sox/files/sox/ からダウンロード\n2. zipファイルを展開\n3. sox.exeのパスを環境変数PATHに追加",
-  "soxReloadMessage": "インストール後、VS Codeをリロードして拡張機能を使用してください。"
+  "soxReloadMessage": "インストール後、VS Codeをリロードして拡張機能を使用してください。",
+  "clickToRecord": "クリックで録音開始"
 }
+

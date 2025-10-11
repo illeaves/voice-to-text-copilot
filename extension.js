@@ -25,11 +25,19 @@ const os = require("os");
 let isRecording = false; // 録音中か
 let isProcessing = false; // 音声→テキスト処理中か
 let messages = {}; // ローカライズメッセージ
-let statusBarItem; // ステータスバー項目
+let statusBarItemStatus; // ステータスバー項目 (ステータス表示)
+let statusBarItemFocus; // ステータスバー項目 (Focus)
+let statusBarItemChat; // ステータスバー項目 (Chat)
 let outputChannel; // アウトプットチャンネル
 let recordingTimer = null; // 録音時間表示用タイマー
 let recordingStartTime = null; // 録音開始時刻
 let recordingMaxSeconds = 180; // 最大録音時間
+let activeRecordingButton = null; // 'focus' or 'chat' - どちらのボタンで録音開始したか
+
+// 📍 貼り付け先情報の保存
+let pasteTarget = null; // 'auto' or 'chat'
+let savedEditor = null; // 録音開始時のエディタ
+let savedPosition = null; // 録音開始時のカーソル位置
 
 // ====== History Constants ======
 const WHISPER_HISTORY_KEY = "whisperHistory"; // 履歴保存キー
@@ -213,7 +221,7 @@ async function promptSoxInstallation(platform) {
  * @param {number} max - 最大秒数（recording時のみ）
  */
 function updateStatusBar(state = "idle", elapsed = 0, max = 0) {
-  if (!statusBarItem) return;
+  if (!statusBarItemStatus || !statusBarItemFocus || !statusBarItemChat) return;
 
   // 現在のモードを取得
   const config = vscode.workspace.getConfiguration("whisperVoiceInput");
@@ -225,48 +233,225 @@ function updateStatusBar(state = "idle", elapsed = 0, max = 0) {
   const modeLabel = mode === "api" ? "API" : `Local:${modelName}`;
 
   switch (state) {
-    case "recording":
+    case "recording": {
       const remaining = max - elapsed;
       const elapsedMin = Math.floor(elapsed / 60);
       const elapsedSec = elapsed % 60;
       const remainingMin = Math.floor(remaining / 60);
       const remainingSec = remaining % 60;
-      statusBarItem.text = `🔴 ${elapsedMin}:${elapsedSec
+      const timeText = `🔴 録音中 ${elapsedMin}:${elapsedSec
         .toString()
-        .padStart(2, "0")} / ${remainingMin}:${remainingSec
-        .toString()
-        .padStart(2, "0")}`;
-      statusBarItem.tooltip =
-        msg("statusRecording") + ` [${modeLabel}] - ` + msg("commandOnlyMode");
-      statusBarItem.backgroundColor = new vscode.ThemeColor(
+        .padStart(2, "0")} / ${
+        max > 0
+          ? `${remainingMin}:${remainingSec.toString().padStart(2, "0")}`
+          : ""
+      }`;
+      statusBarItemStatus.text = `${timeText}`;
+      statusBarItemStatus.tooltip = msg("statusRecording") + ` [${modeLabel}]`;
+      statusBarItemStatus.backgroundColor = new vscode.ThemeColor(
         "statusBarItem.warningBackground"
       );
+
+      // ボタンは両方表示、録音開始した方のみenabled（停止可能）、もう一方はdisabled
+      if (activeRecordingButton === "focus") {
+        statusBarItemFocus.text = "🟦Focus";
+        statusBarItemFocus.tooltip = msg("statusRecording") + ` [${modeLabel}]`;
+        statusBarItemFocus.backgroundColor = new vscode.ThemeColor(
+          "statusBarItem.warningBackground"
+        );
+        statusBarItemFocus.command = "whisperVoiceInput.toggle"; // 停止可能
+        statusBarItemFocus.color = undefined;
+
+        statusBarItemChat.text = "💬Chat";
+        statusBarItemChat.tooltip = "録音中は切り替え不可";
+        statusBarItemChat.backgroundColor = undefined;
+        statusBarItemChat.command = undefined;
+        statusBarItemChat.color = new vscode.ThemeColor(
+          "statusBarItem.inactiveForeground"
+        );
+      } else if (activeRecordingButton === "chat") {
+        statusBarItemChat.text = "🟦Chat";
+        statusBarItemChat.tooltip = msg("statusRecording") + ` [${modeLabel}]`;
+        statusBarItemChat.backgroundColor = new vscode.ThemeColor(
+          "statusBarItem.warningBackground"
+        );
+        statusBarItemChat.command = "whisperVoiceInput.toggleForChat"; // 停止可能
+        statusBarItemChat.color = undefined;
+
+        statusBarItemFocus.text = "📍Focus";
+        statusBarItemFocus.tooltip = "録音中は切り替え不可";
+        statusBarItemFocus.backgroundColor = undefined;
+        statusBarItemFocus.command = undefined;
+        statusBarItemFocus.color = new vscode.ThemeColor(
+          "statusBarItem.inactiveForeground"
+        );
+      }
+      statusBarItemStatus.show();
+      statusBarItemFocus.show();
+      statusBarItemChat.show();
       break;
-    case "processing":
-      statusBarItem.text = `$(sync~spin) ${msg(
-        "statusProcessing"
-      )} [${modeLabel}]`;
-      statusBarItem.tooltip =
-        msg("statusProcessing") + ` [${modeLabel}] - ` + msg("commandOnlyMode");
-      statusBarItem.backgroundColor = new vscode.ThemeColor(
+    }
+    case "processing": {
+      const processingText = `$(sync~spin) ${msg("statusProcessing")}`;
+      statusBarItemStatus.text = `${processingText}`;
+      statusBarItemStatus.tooltip = msg("statusProcessing") + ` [${modeLabel}]`;
+      statusBarItemStatus.backgroundColor = new vscode.ThemeColor(
         "statusBarItem.warningBackground"
       );
+
+      // 両方disabled
+      statusBarItemFocus.text = "📍Focus";
+      statusBarItemFocus.tooltip = "処理中は操作不可";
+      statusBarItemFocus.backgroundColor = undefined;
+      statusBarItemFocus.command = undefined;
+      statusBarItemFocus.color = new vscode.ThemeColor(
+        "statusBarItem.inactiveForeground"
+      );
+
+      statusBarItemChat.text = "💬Chat";
+      statusBarItemChat.tooltip = "処理中は操作不可";
+      statusBarItemChat.backgroundColor = undefined;
+      statusBarItemChat.command = undefined;
+      statusBarItemChat.color = new vscode.ThemeColor(
+        "statusBarItem.inactiveForeground"
+      );
+
+      statusBarItemStatus.show();
+      statusBarItemFocus.show();
+      statusBarItemChat.show();
       break;
-    case "success":
-      statusBarItem.text = "✅ " + msg("pasteDone");
-      statusBarItem.tooltip = msg("pasteDone");
-      statusBarItem.backgroundColor = new vscode.ThemeColor(
+    }
+    case "success": {
+      statusBarItemStatus.text = `✅${msg("pasteDone")}`;
+      statusBarItemStatus.tooltip = msg("pasteDone");
+      statusBarItemStatus.backgroundColor = new vscode.ThemeColor(
         "statusBarItem.prominentBackground"
       );
+
+      // 両方enabled
+      statusBarItemFocus.text = "📍Focus";
+      statusBarItemFocus.tooltip = `録音 (エディタに貼り付け) [${modeLabel}]`;
+      statusBarItemFocus.backgroundColor = undefined;
+      statusBarItemFocus.command = "whisperVoiceInput.toggle";
+      statusBarItemFocus.color = undefined;
+
+      statusBarItemChat.text = "💬Chat";
+      statusBarItemChat.tooltip = `録音 (Copilot Chatに貼り付け) [${modeLabel}]`;
+      statusBarItemChat.backgroundColor = undefined;
+      statusBarItemChat.command = "whisperVoiceInput.toggleForChat";
+      statusBarItemChat.color = undefined;
+
+      statusBarItemStatus.show();
+      statusBarItemFocus.show();
+      statusBarItemChat.show();
       break;
+    }
     case "idle":
-    default:
-      statusBarItem.text = `${msg("statusIdle")} [${modeLabel}]`;
-      statusBarItem.tooltip =
-        msg("statusIdle") + ` [${modeLabel}] - ` + msg("commandOnlyMode");
-      statusBarItem.backgroundColor = undefined;
+    default: {
+      statusBarItemStatus.text = "🎤待機中";
+      statusBarItemStatus.tooltip = `Voice to Text + Copilot Chat [${modeLabel}]`;
+      statusBarItemStatus.backgroundColor = undefined;
+
+      statusBarItemFocus.text = "📍Focus";
+      statusBarItemFocus.tooltip = `録音 (エディタに貼り付け) [${modeLabel}]`;
+      statusBarItemFocus.backgroundColor = undefined;
+      statusBarItemFocus.command = "whisperVoiceInput.toggle";
+      statusBarItemFocus.color = undefined;
+      statusBarItemFocus.show();
+
+      statusBarItemChat.text = "💬Chat";
+      statusBarItemChat.tooltip = `録音 (Copilot Chatに貼り付け) [${modeLabel}]`;
+      statusBarItemChat.backgroundColor = undefined;
+      statusBarItemChat.command = "whisperVoiceInput.toggleForChat";
+      statusBarItemChat.color = undefined;
+      statusBarItemChat.show();
+
+      statusBarItemStatus.show();
+      activeRecordingButton = null;
       break;
+    }
   }
+}
+
+// ====== 貼り付け処理関数 ======
+/**
+ * 💬 Copilot Chatに貼り付け
+ */
+async function pasteToChat(text) {
+  systemLog("📍 Copilot Chatに貼り付けます", "INFO");
+
+  // Copilot Chatを開く
+  await vscode.commands.executeCommand("workbench.action.chat.open");
+  await new Promise((r) => setTimeout(r, 200));
+
+  // クリップボード経由で貼り付け
+  const originalClipboard = await vscode.env.clipboard.readText();
+  await vscode.env.clipboard.writeText(text);
+  await vscode.commands.executeCommand("editor.action.clipboardPasteAction");
+
+  // クリップボードを復元
+  setTimeout(async () => {
+    await vscode.env.clipboard.writeText(originalClipboard);
+    systemLog("Clipboard restored", "INFO");
+  }, 100);
+}
+
+/**
+ * 📍 保存された位置に貼り付け
+ */
+async function pasteToSavedPosition(text) {
+  // エディタがまだ存在するか確認
+  const stillExists = vscode.window.visibleTextEditors.includes(savedEditor);
+
+  if (!stillExists) {
+    systemLog(
+      "⚠ エディタが閉じられました - Copilot Chatにフォールバックします",
+      "WARNING"
+    );
+    await pasteToChat(text);
+    return;
+  }
+
+  systemLog(
+    `📍 保存された位置に貼り付けます: 行 ${savedPosition.line + 1}, 列 ${
+      savedPosition.character + 1
+    }`,
+    "INFO"
+  );
+
+  // エディタにフォーカスを戻す
+  await vscode.window.showTextDocument(savedEditor.document, {
+    viewColumn: savedEditor.viewColumn,
+    preserveFocus: false,
+  });
+
+  // 保存された位置にカーソルを移動
+  savedEditor.selection = new vscode.Selection(savedPosition, savedPosition);
+
+  // テキストを挿入
+  await savedEditor.edit((editBuilder) => {
+    editBuilder.insert(savedPosition, text);
+  });
+
+  systemLog("✅ 保存された位置に貼り付けが完了しました", "SUCCESS");
+}
+
+/**
+ * 🔄 現在のフォーカス位置に貼り付け (従来の動作)
+ */
+async function pasteToCurrentFocus(text) {
+  systemLog("📍 現在のフォーカス位置に貼り付けます", "INFO");
+
+  const originalClipboard = await vscode.env.clipboard.readText();
+  systemLog("Original clipboard saved", "INFO");
+
+  await vscode.env.clipboard.writeText(text);
+  await vscode.commands.executeCommand("editor.action.clipboardPasteAction");
+
+  setTimeout(async () => {
+    await vscode.env.clipboard.writeText(originalClipboard);
+    systemLog("Clipboard restored", "INFO");
+  }, 100);
 }
 
 /**
@@ -284,7 +469,7 @@ function startRecordingTimer(maxSeconds) {
 }
 
 /**
- * ⏹️ 録音時間表示タイマーを停止
+ * 🟦 録音時間表示タイマーを停止
  */
 function stopRecordingTimer() {
   if (recordingTimer) {
@@ -874,19 +1059,38 @@ async function activate(context) {
       systemLog(`✅ SOX is installed (${soxCheck.platform})`, "INFO");
     }
 
-    // --- ステータスバーアイテム作成（表示専用） ---
-    statusBarItem = vscode.window.createStatusBarItem(
+    // --- ステータスバーアイテム作成 (3つ) ---
+    // 区切り記号＋ステータス表示
+    statusBarItemStatus = vscode.window.createStatusBarItem(
+      vscode.StatusBarAlignment.Left,
+      102 // 一番左
+    );
+    statusBarItemStatus.text = "🎤待機中";
+    statusBarItemStatus.tooltip = "Voice to Text + Copilot Chat";
+    statusBarItemStatus.show();
+    context.subscriptions.push(statusBarItemStatus);
+
+    // Focusボタン
+    statusBarItemFocus = vscode.window.createStatusBarItem(
+      vscode.StatusBarAlignment.Left,
+      101
+    );
+    statusBarItemFocus.command = "whisperVoiceInput.toggle";
+    statusBarItemFocus.text = "📍 Focus";
+    statusBarItemFocus.tooltip = "録音 (エディタに貼り付け)";
+    statusBarItemFocus.show();
+    context.subscriptions.push(statusBarItemFocus);
+
+    // Chatボタン
+    statusBarItemChat = vscode.window.createStatusBarItem(
       vscode.StatusBarAlignment.Left,
       100
     );
-
-    // クリック機能は無効化（表示専用）
-    statusBarItem.command = undefined;
-
-    statusBarItem.text = msg("statusIdle");
-    statusBarItem.tooltip = msg("statusIdle") + " - " + msg("commandOnlyMode");
-    statusBarItem.show();
-    context.subscriptions.push(statusBarItem);
+    statusBarItemChat.command = "whisperVoiceInput.toggleForChat";
+    statusBarItemChat.text = "💬 Chat";
+    statusBarItemChat.tooltip = "録音 (Copilot Chatに貼り付け)";
+    statusBarItemChat.show();
+    context.subscriptions.push(statusBarItemChat);
 
     // 初期状態でステータスバーを更新
     updateStatusBar("idle");
@@ -920,8 +1124,14 @@ async function activate(context) {
  */
 function deactivate() {
   stopRecordingTimer(); // タイマー停止
-  if (statusBarItem) {
-    statusBarItem.dispose();
+  if (statusBarItemStatus) {
+    statusBarItemStatus.dispose();
+  }
+  if (statusBarItemFocus) {
+    statusBarItemFocus.dispose();
+  }
+  if (statusBarItemChat) {
+    statusBarItemChat.dispose();
   }
   if (outputChannel) {
     outputChannel.dispose();
@@ -991,6 +1201,27 @@ async function handleToggleCommand(context) {
       updateStatusBar("processing");
       systemLog(msg("sendingToWhisper"), "INFO");
 
+      // 📍 'auto' モードの場合、現在のカーソル位置を保存
+      if (pasteTarget === "auto") {
+        const editor = vscode.window.activeTextEditor;
+        if (editor) {
+          savedEditor = editor;
+          savedPosition = editor.selection.active;
+          systemLog(
+            `📍 保存された位置: 行 ${savedPosition.line + 1}, 列 ${
+              savedPosition.character + 1
+            }`,
+            "INFO"
+          );
+        } else {
+          systemLog(
+            "⚠ アクティブなエディタがありません - Copilot Chatにフォールバックします",
+            "WARNING"
+          );
+          pasteTarget = "chat";
+        }
+      }
+
       const mode = currentConfig.get("mode") || "api";
       systemLog(`Current mode: ${mode}`, "INFO");
       let text;
@@ -1016,19 +1247,22 @@ async function handleToggleCommand(context) {
       if (text && text.trim()) {
         addToHistory(context, text, currentConfig.get("mode", "api"));
 
-        // クリップボード保護付きペースト
-        const originalClipboard = await vscode.env.clipboard.readText();
-        systemLog("Original clipboard saved", "INFO");
+        // 📍 保存された貼り付け先に応じて処理を分岐
+        if (pasteTarget === "chat") {
+          // Copilot Chatに貼り付け
+          await pasteToChat(text);
+        } else if (pasteTarget === "auto" && savedEditor && savedPosition) {
+          // 保存された位置に貼り付け
+          await pasteToSavedPosition(text);
+        } else {
+          // フォールバック: 従来の動作 (クリップボード経由で貼り付け)
+          await pasteToCurrentFocus(text);
+        }
 
-        await vscode.env.clipboard.writeText(text);
-        await vscode.commands.executeCommand(
-          "editor.action.clipboardPasteAction"
-        );
-
-        setTimeout(async () => {
-          await vscode.env.clipboard.writeText(originalClipboard);
-          systemLog("Clipboard restored", "INFO");
-        }, 100);
+        // 貼り付け先情報をリセット
+        pasteTarget = null;
+        savedEditor = null;
+        savedPosition = null;
 
         updateStatusBar("success");
         setTimeout(() => {
@@ -1061,9 +1295,22 @@ function registerCommands(context) {
   const disposables = [];
 
   disposables.push(
-    vscode.commands.registerCommand("whisperVoiceInput.toggle", () =>
-      handleToggleCommand(context)
-    )
+    vscode.commands.registerCommand("whisperVoiceInput.toggle", () => {
+      // 現在のフォーカス位置に貼り付け (従来の動作)
+      pasteTarget = "auto";
+      activeRecordingButton = "focus";
+      handleToggleCommand(context);
+    })
+  );
+
+  disposables.push(
+    vscode.commands.registerCommand("whisperVoiceInput.toggleForChat", () => {
+      // Copilot Chatに貼り付け (新機能)
+      pasteTarget = "chat";
+      activeRecordingButton = "chat";
+      systemLog("📍 Copilot Chatに貼り付けます", "INFO");
+      handleToggleCommand(context);
+    })
   );
 
   disposables.push(
@@ -1241,23 +1488,6 @@ function registerCommands(context) {
   );
 
   disposables.forEach((d) => context.subscriptions.push(d));
-}
-
-/**
- * 拡張機能の非アクティブ化
- */
-function deactivate() {
-  const userDataDir = getUserDataDir();
-
-  // ユーザーデータが存在する場合は通知
-  if (fs.existsSync(userDataDir)) {
-    vscode.window.showInformationMessage(
-      "Voice to Text をアンインストールしました。\n" +
-        "モデルファイルとカスタムビルド(約1GB)を削除する場合は、\n" +
-        "再インストール後に「Voice to Text: Clean Up」コマンドを実行してください。",
-      "OK"
-    );
-  }
 }
 
 module.exports = {

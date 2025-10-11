@@ -68,5 +68,6 @@
   "soxInstallInstructions": "To install SOX on Mac, run this command in Terminal:\n\nbrew install sox\n\nIf you don't have Homebrew, install it first:\n/bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\"",
   "soxInstallInstructionsLinux": "To install SOX on Ubuntu/Debian, run:\n\nsudo apt-get update && sudo apt-get install sox\n\nFor other Linux distributions:\n- Fedora/RHEL: sudo dnf install sox\n- Arch: sudo pacman -S sox",
   "soxInstallInstructionsWindows": "To install SOX on Windows:\n\n【Method 1】Using Chocolatey (recommended):\nOpen PowerShell as Administrator and run:\nchoco install sox.portable\n\n【Method 2】Using Scoop:\nscoop install sox\n\n【Method 3】Manual installation:\n1. Download from https://sourceforge.net/projects/sox/files/sox/\n2. Extract the zip file\n3. Add the sox.exe path to your PATH environment variable",
-  "soxReloadMessage": "After installation, please reload VS Code to use the extension."
+  "soxReloadMessage": "After installation, please reload VS Code to use the extension.",
+  "clickToRecord": "Click to start recording"
 }
