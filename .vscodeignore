@@ -10,18 +10,15 @@ package-lock.json
 *.log
 *.tmp
 
-# whisper.cpp - 完全除外してから必要なファイルのみ含める
-whisper.cpp/**
-!whisper.cpp/build/
-!whisper.cpp/build/bin/
-!whisper.cpp/build/bin/Release/
-!whisper.cpp/build/bin/Release/whisper-cli.exe
-!whisper.cpp/build/bin/Release/*.dll
-!whisper.cpp/README.md
-!whisper.cpp/LICENSE
+# whisper.cpp - ソースコードとドキュメントのみ含める(ビルド生成物は除外)
+whisper.cpp/build/
+whisper.cpp/models/
+whisper.cpp/.git/
+whisper.cpp/.github/
+whisper.cpp/Testing/
 
-# Models (exclude all model weights)
-whisper.cpp/models/**
+# Node modules - バンドルしない場合は含める必要がある
+# (警告が出ているがバンドル化は今回スキップ)
 
 # Exclude custom build (user local GPU builds)
 # But keep the README guides
