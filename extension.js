@@ -1059,5 +1059,70 @@ function registerCommands(context) {
     )
   );
 
+  // カスタムビルドフォルダーを開くコマンド
+  disposables.push(
+    vscode.commands.registerCommand(
+      "whisperVoiceInput.openCustomBuildFolder",
+      async () => {
+        const platform = process.platform;
+        let customDir;
+        let platformName;
+
+        if (platform === "win32") {
+          customDir = path.join(__dirname, "bin", "windows-custom");
+          platformName = "Windows";
+        } else if (platform === "darwin") {
+          customDir = path.join(__dirname, "bin", "macos-custom");
+          platformName = "macOS";
+        } else {
+          customDir = path.join(__dirname, "bin", "linux-custom");
+          platformName = "Linux";
+        }
+
+        // ディレクトリが存在しない場合は作成
+        if (!fs.existsSync(customDir)) {
+          fs.mkdirSync(customDir, { recursive: true });
+          systemLog(`Created custom build directory: ${customDir}`, "INFO");
+        }
+
+        // README.mdのパス
+        const readmePath = path.join(customDir, "README.md");
+        const readmeExists = fs.existsSync(readmePath);
+
+        // エクスプローラー/Finderで開く
+        try {
+          const uri = vscode.Uri.file(customDir);
+          await vscode.commands.executeCommand("revealFileInOS", uri);
+
+          // 情報メッセージ
+          const message = readmeExists
+            ? `${platformName} GPU版ビルドをこのフォルダーに配置してください。詳細はREADME.mdをご覧ください。`
+            : `${platformName} GPU版ビルドをこのフォルダーに配置してください: ${customDir}`;
+
+          vscode.window.showInformationMessage(message);
+          systemLog(`Opened custom build folder: ${customDir}`, "INFO");
+
+          // README.mdが存在する場合は開くか尋ねる
+          if (readmeExists) {
+            const choice = await vscode.window.showInformationMessage(
+              "GPU版ビルド手順を表示しますか?",
+              "はい",
+              "いいえ"
+            );
+            if (choice === "はい") {
+              const doc = await vscode.workspace.openTextDocument(readmePath);
+              await vscode.window.showTextDocument(doc, { preview: false });
+            }
+          }
+        } catch (error) {
+          vscode.window.showErrorMessage(
+            `フォルダーを開けませんでした: ${customDir}`
+          );
+          systemLog(`Failed to open custom build folder: ${error}`, "ERROR");
+        }
+      }
+    )
+  );
+
   disposables.forEach((d) => context.subscriptions.push(d));
 }

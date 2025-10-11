@@ -2,6 +2,29 @@
 
 All notable changes to the "Voice to Text + Copilot Chat" extension will be documented in this file.
 
+## [1.3.1] - 2025-10-11
+
+### ✨ New Features
+
+- **カスタムビルドフォルダーを開くコマンド** / **Open Custom Build Folder Command**
+  - `Ctrl+Shift+P` → "Voice to Text: Open Custom Build Folder (for GPU builds)"
+  - GPU 版ビルドを配置するフォルダーをワンクリックで開けるように
+  - One-click access to the folder for placing GPU builds
+  - README.md が存在する場合は、ビルド手順の表示を提案
+  - Offers to display build instructions if README.md exists
+
+### 📖 Documentation
+
+- **GPU 版セットアップ手順の改善** / **Improved GPU Build Setup Instructions**
+  - カスタムフォルダーへのアクセス方法を明確化
+  - Clarified how to access custom build folders
+  - コマンドパレットからの簡単アクセス方法を追加
+  - Added easy access method via command palette
+  - 不要な「カスタムパス設定」オプションを削除してシンプル化
+  - Simplified by removing unnecessary "custom path" option
+
+---
+
 ## [1.3.0] - 2025-10-11
 
 ### 🚀 Major Features

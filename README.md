@@ -277,25 +277,63 @@ cmake --build . --config Release
   - `cudart64_12.dll`, `cublas64_12.dll`, `cublasLt64_12.dll` など
   - 詳細は `bin/windows-custom/README.md` を参照
 
-**配置場所:**
+**配置場所の見つけ方:**
 
-- **カスタムビルド**: `bin/windows-custom/` ← **優先使用**
-- デフォルト: `bin/windows/` ← カスタム版がない場合に使用
+**🎯 最も簡単な方法:**
+
+1. VS Code で `Ctrl+Shift+P` (macOS: `Cmd+Shift+P`)
+2. **「Voice to Text: Open Custom Build Folder」** を選択
+3. フォルダーが自動的に開きます
+4. GPU 版ビルドをここにコピーしてください
+
+**手動でアクセスする場合:**
+
+拡張機能のインストールディレクトリは以下の場所にあります:
+
+```
+Windows:
+C:\Users\<ユーザー名>\.vscode\extensions\aleaf.voice-to-text-copilot-<バージョン>\bin\windows-custom\
+
+macOS:
+~/.vscode/extensions/aleaf.voice-to-text-copilot-<バージョン>/bin/macos-custom/
+
+Linux:
+~/.vscode/extensions/aleaf.voice-to-text-copilot-<バージョン>/bin/linux-custom/
+```
+
+**ターミナルから開く:**
+
+```powershell
+# Windows (PowerShell)
+explorer $env:USERPROFILE\.vscode\extensions\aleaf.voice-to-text-copilot-*\bin\windows-custom
+
+# macOS
+open ~/.vscode/extensions/aleaf.voice-to-text-copilot-*/bin/macos-custom
+
+# Linux
+xdg-open ~/.vscode/extensions/aleaf.voice-to-text-copilot-*/bin/linux-custom
+```
+
+---
+
+**ファイル配置後の確認:**
+
+音声入力を実行すると、ログに以下のように表示されます:
+
+```
+Found whisper executable: <パス>
+whisper_backend_init_gpu: found 1 CUDA devices  ← GPU検出成功!
+```
+
+**検出の優先順位:**
+
+**検出の優先順位:**
+
+1. **bin/\*-custom/** (GPU 版) ← ユーザーがビルドした版
+2. **bin/\*/** (CPU 版) ← デフォルト(拡張機能に同梱)
+3. **whisper.cpp/build/** (開発用)
 
 詳細な手順は [`bin/windows-custom/README.md`](bin/windows-custom/README.md) をご覧ください
-
-# Linux（Vulkan 版）
-
-cmake .. -DGGML_VULKAN=ON -DCMAKE_BUILD_TYPE=Release
-make
-
-````
-
-ビルドした `whisper-cli` を以下にコピー:
-
-- Windows: `bin/windows/whisper-cli.exe`
-- macOS: `bin/macos/whisper-cli`
-- Linux: `bin/linux/whisper-cli`
 
 ---
 
@@ -539,6 +577,7 @@ This extension includes binaries for each platform:
 - **Linux**: CPU version (works on all Linux systems)
 
 **Processing Characteristics** (Medium model):
+
 - CPU build processes slower than real-time, but is fine for short notes and typical editor workflows ✅
 - Smaller models trade accuracy for speed (Tiny/Base < Small < Medium < Large)
 
@@ -547,10 +586,12 @@ This extension includes binaries for each platform:
 Depending on your hardware, you can build a GPU-accelerated version for a **significant speedup**:
 
 **What to expect:**
+
 - GPU builds dramatically reduce the encoder phase; the overall speedup can range from a few times faster to an order of magnitude faster
 - Higher‑end GPUs see larger gains; exact numbers vary widely by GPU, driver, model size, and system load
 
 **Supported GPUs:**
+
 - **NVIDIA GPU (RTX/GTX series)**: Build CUDA version
 - **AMD GPU (Radeon series)**: Build ROCm version (Linux only)
 - **macOS**: Metal version already included ✅
@@ -558,6 +599,7 @@ Depending on your hardware, you can build a GPU-accelerated version for a **sign
 #### 🔧 Building GPU Version (NVIDIA GPU Example)
 
 **Requirements:**
+
 1. [CUDA Toolkit 12.6](https://developer.nvidia.com/cuda-downloads) (~2-3GB)
 2. Visual Studio 2022 Build Tools (C++ workload)
 
@@ -576,7 +618,7 @@ cmake --build . --config Release
 # 3. Copy built files
 # Windows: build/bin/Release/* → bin/windows-custom/
 # Files in bin/windows-custom/ are automatically prioritized
-````
+```
 
 **Required Files (CUDA version):**
 
