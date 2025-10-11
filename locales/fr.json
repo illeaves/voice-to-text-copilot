@@ -84,5 +84,9 @@
   "folderOpenFailed": "Échec de l'ouverture du dossier: {{folder}}",
   "statusWaiting": "🎤 En attente",
   "statusRecordingTime": "🔴 Enregistrement",
-  "soxRecordingError": "Erreur d'enregistrement SOX: {{error}}"
+  "soxRecordingError": "Erreur d'enregistrement SOX: {{error}}",
+  "modelAlreadyExists": "Le modèle '{{model}}' est déjà téléchargé.",
+  "modelExistsOverwrite": "Le modèle '{{model}}' existe déjà. Voulez-vous l'écraser?",
+  "overwriteModel": "Écraser",
+  "useExistingModel": "Utiliser le modèle existant"
 }

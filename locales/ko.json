@@ -84,5 +84,9 @@
     "folderOpenFailed": "폴더를 열 수 없습니다: {{folder}}",
   "statusWaiting": "🎤 대기 중",
   "statusRecordingTime": "🔴 녹음 중",
-  "soxRecordingError": "SOX 녹음 오류: {{error}}"
+  "soxRecordingError": "SOX 녹음 오류: {{error}}",
+  "modelAlreadyExists": "모델 '{{model}}'이 이미 다운로드되어 있습니다.",
+  "modelExistsOverwrite": "모델 '{{model}}'이 이미 존재합니다. 덮어쓰시겠습니까?",
+  "overwriteModel": "덮어쓰기",
+  "useExistingModel": "기존 모델 사용"
 }

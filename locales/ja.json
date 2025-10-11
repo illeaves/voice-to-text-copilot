@@ -84,6 +84,10 @@
   "folderOpenFailed": "フォルダーを開けませんでした: {{folder}}",
   "statusWaiting": "🎤待機中",
   "statusRecordingTime": "🔴録音中",
-  "soxRecordingError": "SOX録音エラー: {{error}}"
+  "soxRecordingError": "SOX録音エラー: {{error}}",
+  "modelAlreadyExists": "モデル '{{model}}' は既にダウンロード済みです。",
+  "modelExistsOverwrite": "モデル '{{model}}' は既に存在します。上書きしますか？",
+  "overwriteModel": "上書きする",
+  "useExistingModel": "既存のモデルを使用"
 }
 

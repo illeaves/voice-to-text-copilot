@@ -84,5 +84,9 @@
     "folderOpenFailed": "无法打开文件夹: {{folder}}",
   "statusWaiting": "🎤 等待中",
   "statusRecordingTime": "🔴 录音中",
-  "soxRecordingError": "SOX录音错误: {{error}}"
+  "soxRecordingError": "SOX录音错误: {{error}}",
+  "modelAlreadyExists": "模型 '{{model}}' 已经下载。",
+  "modelExistsOverwrite": "模型 '{{model}}' 已存在。要覆盖它吗？",
+  "overwriteModel": "覆盖",
+  "useExistingModel": "使用现有模型"
 }

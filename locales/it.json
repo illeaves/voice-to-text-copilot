@@ -84,5 +84,9 @@
     "folderOpenFailed": "Impossibile aprire la cartella: {{folder}}",
   "statusWaiting": "🎤 In attesa",
   "statusRecordingTime": "🔴 Registrazione",
-  "soxRecordingError": "Errore di registrazione SOX: {{error}}"
+  "soxRecordingError": "Errore di registrazione SOX: {{error}}",
+  "modelAlreadyExists": "Il modello '{{model}}' è già scaricato.",
+  "modelExistsOverwrite": "Il modello '{{model}}' esiste già. Vuoi sovrascriverlo?",
+  "overwriteModel": "Sovrascrivi",
+  "useExistingModel": "Usa modello esistente"
 }

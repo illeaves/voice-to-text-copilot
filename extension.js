@@ -226,7 +226,7 @@ function updateStatusBar(state = "idle", elapsed = 0, max = 0) {
   // 現在のモードを取得
   const config = vscode.workspace.getConfiguration("voiceToText");
   const mode = config.get("mode", "api");
-  const localModel = config.get("localModel", "base");
+  const localModel = config.get("localModel", "small");
 
   // モデル名を大文字に変換（Tiny, Base, Small, Medium, Large）
   const modelName = localModel.charAt(0).toUpperCase() + localModel.slice(1);
@@ -697,7 +697,46 @@ async function runInitialSetup(context, config, msg) {
       vscode.ConfigurationTarget.Global
     );
 
-    // モデルダウンロード
+    // モデルファイルの存在確認
+    const modelDir = getModelDir();
+    const modelPath = path.join(modelDir, `ggml-${modelChoice.value}.bin`);
+    
+    if (fs.existsSync(modelPath)) {
+      // 既にモデルファイルが存在する場合、上書きするか確認
+      systemLog(`Model already exists: ${modelPath}`, "INFO");
+      
+      const overwriteChoice = await vscode.window.showInformationMessage(
+        msg("modelExistsOverwrite", { model: modelChoice.value }),
+        msg("overwriteModel"),
+        msg("useExistingModel")
+      );
+      
+      if (overwriteChoice === msg("useExistingModel")) {
+        // 既存のモデルを使用
+        vscode.window.showInformationMessage(
+          msg("modelAlreadyExists", { model: modelChoice.value })
+        );
+        vscode.window.showInformationMessage(msg("setupComplete"));
+        await context.globalState.update("hasConfiguredMode", true);
+        return;
+      } else if (overwriteChoice !== msg("overwriteModel")) {
+        // キャンセルされた場合
+        return;
+      }
+      // overwriteModelが選択された場合は、既存ファイルを削除してから続行
+      try {
+        fs.unlinkSync(modelPath);
+        systemLog(`Deleted existing model: ${modelPath}`, "INFO");
+      } catch (error) {
+        systemLog(`Failed to delete existing model: ${error.message}`, "ERROR");
+        vscode.window.showErrorMessage(
+          msg("deleteFailed", { error: error.message })
+        );
+        return;
+      }
+    }
+    
+    // モデルダウンロード処理
     try {
       await vscode.window.withProgress(
         {
@@ -719,13 +758,15 @@ async function runInitialSetup(context, config, msg) {
       );
 
       vscode.window.showInformationMessage(msg("downloadComplete"));
-      vscode.window.showInformationMessage(msg("setupComplete"));
     } catch (error) {
       systemLog(`Model download failed: ${error.message}`, "ERROR");
       vscode.window.showErrorMessage(
         msg("downloadFailed", { error: error.message })
       );
+      return; // エラー時は早期リターン
     }
+
+    vscode.window.showInformationMessage(msg("setupComplete"));
   }
 
   // セットアップ完了フラグ
@@ -737,7 +778,7 @@ async function runInitialSetup(context, config, msg) {
  */
 async function executeLocalWhisper(outputFile, msg) {
   const config = vscode.workspace.getConfiguration("voiceToText");
-  const selectedModel = config.get("localModel") || "base";
+  const selectedModel = config.get("localModel") || "small";
 
   // プラットフォーム判定
   const platform = process.platform; // 'win32', 'darwin', 'linux'
@@ -1217,7 +1258,7 @@ async function handleToggleCommand(context) {
       systemLog(`Current mode: ${mode}`, "INFO");
       let text;
       if (mode === "local") {
-        const localModel = currentConfig.get("localModel", "base");
+        const localModel = currentConfig.get("localModel") || "small";
         systemLog(`Using local whisper.cpp (model: ${localModel})`, "INFO");
         const outputFile = await stopRecordingLocal();
         if (!outputFile) throw new Error("Failed to convert audio file");
