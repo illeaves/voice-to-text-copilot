@@ -166,14 +166,21 @@ function startRecording(context, maxRecordSec, msg, onTimeout, mode = "api") {
     console.log(msg("recordingStart", { seconds: maxRecordSec }));
 
     // ⏱ 上限時間を超えたら自動停止
-    recordingTimeout = setTimeout(() => {
+    recordingTimeout = setTimeout(async () => {
       if (micInstance) {
-        stopRecordingInternal();
+        console.log("⏰ Recording timeout reached, stopping...");
+        await stopRecordingInternal();
         vscode.window.showWarningMessage(
           msg("recordingStopAuto", { seconds: maxRecordSec })
         );
-        // タイムアウト時のコールバック実行
-        if (onTimeout) onTimeout();
+        
+        // 少し待ってからコールバック実行（ファイル作成完了を待つ）
+        setTimeout(() => {
+          if (onTimeout) {
+            console.log("⏰ Executing timeout callback");
+            onTimeout();
+          }
+        }, 500); // 500ms待機
       }
     }, MAX_RECORD_TIME);
   } catch (error) {
@@ -224,9 +231,9 @@ async function stopRecording(apiKey, msg) {
     // 録音を停止(ストリームのクローズを待つ)
     await stopRecordingInternal();
 
-    // ファイルが作成されるまでポーリング(最大1秒、100ms間隔)
+    // ファイルが作成されるまでポーリング(最大3秒、100ms間隔)
     let fileFound = false;
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < 30; i++) {
       if (fs.existsSync(outputFile)) {
         fileFound = true;
         break;
@@ -303,9 +310,9 @@ async function stopRecordingLocal() {
     // 録音を停止(ストリームのクローズを待つ)
     await stopRecordingInternal();
 
-    // ファイルが作成されるまでポーリング(最大1秒、100ms間隔)
+    // ファイルが作成されるまでポーリング(最大3秒、100ms間隔)
     let fileFound = false;
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < 30; i++) {
       if (fs.existsSync(soxOutputFile)) {
         fileFound = true;
         break;

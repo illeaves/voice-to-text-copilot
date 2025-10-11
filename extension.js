@@ -1176,6 +1176,104 @@ function deactivate() {
 // ================== 追加: コマンド登録関連ユーティリティ ==================
 
 /**
+ * 録音停止後の音声処理（共通処理）
+ * @param {vscode.ExtensionContext} context
+ */
+async function processRecordedVoice(context) {
+  try {
+    isProcessing = true;
+    updateStatusBar("processing");
+    systemLog(msg("sendingToWhisper"), "INFO");
+
+    // 📍 'auto' モードの場合、現在のカーソル位置を保存
+    if (pasteTarget === "auto") {
+      const editor = vscode.window.activeTextEditor;
+      if (editor) {
+        savedEditor = editor;
+        savedPosition = editor.selection.active;
+        systemLog(
+          `📍 保存された位置: 行 ${savedPosition.line + 1}, 列 ${
+            savedPosition.character + 1
+          }`,
+          "INFO"
+        );
+      } else {
+        systemLog(
+          "⚠ アクティブなエディタがありません - Copilot Chatにフォールバックします",
+          "WARNING"
+        );
+        pasteTarget = "chat";
+      }
+    }
+
+    const currentConfig = vscode.workspace.getConfiguration("voiceToText");
+    const mode = currentConfig.get("mode") || "api";
+    systemLog(`Current mode: ${mode}`, "INFO");
+    let text;
+    
+    if (mode === "local") {
+      const localModel = currentConfig.get("localModel") || "small";
+      systemLog(`Using local whisper.cpp (model: ${localModel})`, "INFO");
+      const outputFile = await stopRecordingLocal();
+      if (!outputFile) throw new Error("Failed to convert audio file");
+      text = await executeLocalWhisper(outputFile, msg);
+    } else {
+      systemLog("Using OpenAI API", "INFO");
+      const apiKey = await context.secrets.get("openaiApiKey");
+      if (!apiKey) {
+        vscode.window.showWarningMessage(msg("apiKeyMissing"));
+        systemLog("Missing API key", "WARNING");
+        isProcessing = false;
+        updateStatusBar("idle");
+        return;
+      }
+      text = await stopRecording(apiKey, msg);
+    }
+
+    if (text && text.trim()) {
+      addToHistory(context, text, currentConfig.get("mode", "api"));
+
+      // 📍 保存された貼り付け先に応じて処理を分岐
+      if (pasteTarget === "chat") {
+        // Copilot Chatに貼り付け
+        await pasteToChat(text);
+      } else if (pasteTarget === "auto" && savedEditor && savedPosition) {
+        // 保存された位置に貼り付け
+        await pasteToSavedPosition(text);
+      } else {
+        // フォールバック: 従来の動作 (クリップボード経由で貼り付け)
+        await pasteToCurrentFocus(text);
+      }
+
+      // 貼り付け先情報をリセット
+      pasteTarget = null;
+      savedEditor = null;
+      savedPosition = null;
+
+      updateStatusBar("success");
+      setTimeout(() => {
+        updateStatusBar("idle");
+        systemLog("Status bar reset to idle", "INFO");
+      }, 3000);
+
+      systemLog(msg("pasteDone"), "SUCCESS");
+    } else {
+      systemLog(msg("noAudioOrFail"), "WARNING");
+      vscode.window.showWarningMessage(msg("noAudioOrFail"));
+      updateStatusBar("idle");
+    }
+  } catch (error) {
+    systemLog(`Failed to process recording: ${error.message}`, "ERROR");
+    vscode.window.showErrorMessage(
+      msg("processingFailed", { error: error.message })
+    );
+    updateStatusBar("idle");
+  } finally {
+    isProcessing = false;
+  }
+}
+
+/**
  * トグル処理（録音開始/停止と結果貼り付け）
  * 以前のインライン実装を関数化
  * @param {vscode.ExtensionContext} context
@@ -1204,10 +1302,14 @@ async function handleToggleCommand(context) {
         context,
         maxSec,
         msg,
-        () => {
+        async () => {
+          // タイムアウト時の処理: 手動停止時と同じ処理を実行
+          systemLog("⏰ Recording timeout - starting voice processing", "INFO");
           isRecording = false;
           stopRecordingTimer(); // タイマー停止
-          updateStatusBar("idle");
+          
+          // 共通の音声処理を呼び出し
+          await processRecordedVoice(context);
         },
         mode
       );
@@ -1226,96 +1328,11 @@ async function handleToggleCommand(context) {
     }
   } else {
     // 録音停止～処理
-    try {
-      isProcessing = true;
-      isRecording = false;
-      stopRecordingTimer(); // タイマー停止
-      updateStatusBar("processing");
-      systemLog(msg("sendingToWhisper"), "INFO");
-
-      // 📍 'auto' モードの場合、現在のカーソル位置を保存
-      if (pasteTarget === "auto") {
-        const editor = vscode.window.activeTextEditor;
-        if (editor) {
-          savedEditor = editor;
-          savedPosition = editor.selection.active;
-          systemLog(
-            `📍 保存された位置: 行 ${savedPosition.line + 1}, 列 ${
-              savedPosition.character + 1
-            }`,
-            "INFO"
-          );
-        } else {
-          systemLog(
-            "⚠ アクティブなエディタがありません - Copilot Chatにフォールバックします",
-            "WARNING"
-          );
-          pasteTarget = "chat";
-        }
-      }
-
-      const mode = currentConfig.get("mode") || "api";
-      systemLog(`Current mode: ${mode}`, "INFO");
-      let text;
-      if (mode === "local") {
-        const localModel = currentConfig.get("localModel") || "small";
-        systemLog(`Using local whisper.cpp (model: ${localModel})`, "INFO");
-        const outputFile = await stopRecordingLocal();
-        if (!outputFile) throw new Error("Failed to convert audio file");
-        text = await executeLocalWhisper(outputFile, msg);
-      } else {
-        systemLog("Using OpenAI API", "INFO");
-        const apiKey = await context.secrets.get("openaiApiKey");
-        if (!apiKey) {
-          vscode.window.showWarningMessage(msg("apiKeyMissing"));
-          systemLog("Missing API key", "WARNING");
-          isProcessing = false;
-          updateStatusBar("idle");
-          return;
-        }
-        text = await stopRecording(apiKey, msg);
-      }
-
-      if (text && text.trim()) {
-        addToHistory(context, text, currentConfig.get("mode", "api"));
-
-        // 📍 保存された貼り付け先に応じて処理を分岐
-        if (pasteTarget === "chat") {
-          // Copilot Chatに貼り付け
-          await pasteToChat(text);
-        } else if (pasteTarget === "auto" && savedEditor && savedPosition) {
-          // 保存された位置に貼り付け
-          await pasteToSavedPosition(text);
-        } else {
-          // フォールバック: 従来の動作 (クリップボード経由で貼り付け)
-          await pasteToCurrentFocus(text);
-        }
-
-        // 貼り付け先情報をリセット
-        pasteTarget = null;
-        savedEditor = null;
-        savedPosition = null;
-
-        updateStatusBar("success");
-        setTimeout(() => {
-          updateStatusBar("idle");
-          systemLog("Status bar reset to idle", "INFO");
-        }, 3000);
-
-        systemLog(msg("pasteDone"), "SUCCESS");
-      } else {
-        systemLog(msg("noAudioOrFail"), "WARNING");
-        vscode.window.showWarningMessage(msg("noAudioOrFail"));
-      }
-    } catch (error) {
-      systemLog(`Failed to process recording: ${error.message}`, "ERROR");
-      vscode.window.showErrorMessage(
-        msg("processingFailed", { error: error.message })
-      );
-    } finally {
-      isProcessing = false;
-      updateStatusBar("idle");
-    }
+    isRecording = false;
+    stopRecordingTimer(); // タイマー停止
+    
+    // 共通の音声処理を呼び出し
+    await processRecordedVoice(context);
   }
 }
 
