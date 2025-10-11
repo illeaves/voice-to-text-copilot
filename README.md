@@ -283,12 +283,29 @@ cmake --build . --config Release
    Linux:   ~/.vscode/voice-to-text-copilot/custom-builds/linux/
    ```
 
-**必要なファイル (CUDA 版の場合):**
+**必要なファイル:**
 
-- ビルドした全ファイル (`build/bin/Release/*`)
-- CUDA DLL (`C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v12.6\bin\*.dll`)
-  - `cudart64_12.dll`, `cublas64_12.dll`, `cublasLt64_12.dll` など
-  - 合計約 740MB
+以下のファイルを上記ディレクトリにコピーしてください:
+
+**Windows (CUDA版):**
+```bash
+# whisper.cpp/build/bin/Release/ から以下をコピー
+whisper-cli.exe
+ggml.dll
+ggml-base.dll
+ggml-cpu.dll
+ggml-cuda.dll      # CUDA サポート (約88MB)
+whisper.dll
+```
+
+> **💡 重要**: 以前のバージョンでは 700MB 以上の CUDA DLL (`cublas64_12.dll` など) のコピーが必要でしたが、**現在のビルド方法では不要です**。システムにインストール済みの NVIDIA ドライバーから自動的に CUDA 機能が利用されます。
+
+**macOS/Linux:**
+```bash
+whisper-cli
+libggml.so (または .dylib)
+libwhisper.so (または .dylib)
+```
 
 **配置後の確認:**
 
@@ -610,39 +627,54 @@ Depending on your hardware, you can build a GPU-accelerated version for a **sign
 
 **Requirements:**
 
-1. [CUDA Toolkit 12.6](https://developer.nvidia.com/cuda-downloads) (~2-3GB)
-2. Visual Studio 2022 Build Tools (C++ workload)
+1. [CUDA Toolkit 12.6+](https://developer.nvidia.com/cuda-downloads)
+2. Visual Studio 2022 (Windows) or GCC/Clang (Linux/macOS)
 
-**Build Steps:**
+**Windows Build Steps:**
 
-```bash
-# 1. Clean build whisper.cpp
+```powershell
+# 1. Navigate to whisper.cpp directory
 cd whisper.cpp
-rm -rf build
-mkdir build && cd build
 
-# 2. Build with CUDA support
-cmake .. -DGGML_CUDA=ON -DCMAKE_BUILD_TYPE=Release
-cmake --build . --config Release
+# 2. Clean and create build directory
+Remove-Item -Recurse -Force build -ErrorAction SilentlyContinue
+mkdir build
+cd build
 
-# 3. Copy built files
-# Windows: build/bin/Release/* → bin/windows-custom/
-# Files in bin/windows-custom/ are automatically prioritized
+# 3. Configure with CUDA support
+cmake .. -G "Visual Studio 17 2022" -A x64 -DGGML_CUDA=ON -DCMAKE_BUILD_TYPE=Release -T cuda=12.6
+
+# 4. Build (5-10 minutes)
+cmake --build . --config Release -j 8
+
+# 5. Copy to user directory
+$customBuildDir = "$env:USERPROFILE\.vscode\voice-to-text-copilot\custom-builds\windows"
+New-Item -ItemType Directory -Path $customBuildDir -Force
+Copy-Item bin\Release\whisper-cli.exe $customBuildDir\
+Copy-Item bin\Release\*.dll $customBuildDir\
 ```
 
-**Required Files (CUDA version):**
+**Required Files:**
 
-- All built files (`build/bin/Release/*`)
-- CUDA DLLs (`C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v12.6\bin\*.dll`)
-  - `cudart64_12.dll`, `cublas64_12.dll`, `cublasLt64_12.dll`, etc.
-  - See `bin/windows-custom/README.md` for details
+Copy the following files from `build/bin/Release/`:
+
+```
+whisper-cli.exe
+ggml.dll
+ggml-base.dll
+ggml-cpu.dll
+ggml-cuda.dll      # CUDA support (~88MB)
+whisper.dll
+```
+
+> **💡 Note**: Earlier versions required copying 700MB+ of CUDA DLLs (`cublas64_12.dll`, etc.), but **this is no longer necessary**. The current build automatically uses CUDA functions from your installed NVIDIA drivers.
 
 **File Locations:**
 
-- **Custom build**: `bin/windows-custom/` ← **Used first**
-- Default: `bin/windows/` ← Used when custom version not available
+User directory custom builds are automatically prioritized:
 
-For detailed instructions, see [`bin/windows-custom/README.md`](bin/windows-custom/README.md)
+1. **User directory** (highest priority): `~/.vscode/voice-to-text-copilot/custom-builds/<platform>/`
+2. **Extension directory** (default): Built-in CPU version
 
 ---
 
