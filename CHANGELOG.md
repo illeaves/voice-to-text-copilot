@@ -6,24 +6,24 @@ All notable changes to the "Voice to Text + Copilot Chat" extension will be docu
 
 ### 🚀 Major Features
 
-- **GPU高速化サポート** / **GPU Acceleration Support**
+- **GPU 高速化サポート** / **GPU Acceleration Support**
 
   - カスタムビルドディレクトリ構造の追加
   - Added custom build directory structure for user-built GPU versions
-  - Windows: CUDA版のビルドガイドと配置方法を提供
+  - Windows: CUDA 版のビルドガイドと配置方法を提供
   - Windows: CUDA build guide and deployment instructions
-  - macOS: Metal版は既に同梱済み、カスタムビルドも可能
+  - macOS: Metal 版は既に同梱済み、カスタムビルドも可能
   - macOS: Metal version already included, custom builds also supported
-  - Linux: CUDA/ROCm/Vulkan版のビルドガイドを提供
+  - Linux: CUDA/ROCm/Vulkan 版のビルドガイドを提供
   - Linux: Build guides for CUDA/ROCm/Vulkan versions
   - 優先順位: カスタムビルド → デフォルトビルド → 開発ビルド
   - Priority: custom build → default build → development build
 
-- **Linux版バイナリ更新** / **Linux Binaries Updated**
+- **Linux 版バイナリ更新** / **Linux Binaries Updated**
 
-  - Linux版を共有ライブラリ付きで完全ビルド
+  - Linux 版を共有ライブラリ付きで完全ビルド
   - Fully built Linux version with shared libraries
-  - WSL2環境で動作確認済み
+  - WSL2 環境で動作確認済み
   - Verified functionality in WSL2 environment
   - 合計サイズ: ~3.1MB
   - Total size: ~3.1MB
@@ -34,19 +34,19 @@ All notable changes to the "Voice to Text + Copilot Chat" extension will be docu
 
   - 具体的な処理時間の例を削除し、環境依存を強調
   - Removed concrete timing examples, emphasized environment variability
-  - GPU高速化の効果を相対的に記述
+  - GPU 高速化の効果を相対的に記述
   - Described GPU acceleration effects relatively
   - 例: "数倍〜桁違いに速くなる" vs 具体的秒数
   - Example: "few times to order of magnitude faster" vs specific seconds
 
 - **中立的な表現への変更** / **Neutral Wording**
 
-  - APIモード推奨の表現を削除し、両モードを対等に紹介
+  - API モード推奨の表現を削除し、両モードを対等に紹介
   - Removed API mode recommendation wording, presented both modes equally
   - ユーザーが自分の用途に合わせて選択できるように改善
   - Improved to let users choose based on their needs
 
-- **バイリンガルREADME追加** / **Bilingual READMEs Added**
+- **バイリンガル README 追加** / **Bilingual READMEs Added**
   - 各カスタムビルドディレクトリに日英両言語のガイドを追加
   - Added Japanese and English guides for each custom build directory
   - Windows/macOS/Linux それぞれのビルド手順を詳細に記載
@@ -56,15 +56,15 @@ All notable changes to the "Voice to Text + Copilot Chat" extension will be docu
 
 - **優先順位ロジック実装** / **Priority Logic Implementation**
 
-  - extension.jsでカスタムビルドを優先使用する仕組み
+  - extension.js でカスタムビルドを優先使用する仕組み
   - Mechanism in extension.js to prioritize custom builds
-  - 動作確認済み: CUDA版 → CPU版のフォールバック
+  - 動作確認済み: CUDA 版 → CPU 版のフォールバック
   - Verified: CUDA version → CPU version fallback
 
-- **.gitignore更新** / **.gitignore Updated**
-  - カスタムビルドディレクトリを除外（READMEを除く）
+- **.gitignore 更新** / **.gitignore Updated**
+  - カスタムビルドディレクトリを除外（README を除く）
   - Excluded custom build directories (except READMEs)
-  - ユーザー固有のGPUビルドをバージョン管理対象外に
+  - ユーザー固有の GPU ビルドをバージョン管理対象外に
   - User-specific GPU builds excluded from version control
 
 ## [1.2.0] - 2025-10-11
