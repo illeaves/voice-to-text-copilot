@@ -2,6 +2,34 @@
 
 All notable changes to the "Voice to Text + Copilot Chat" extension will be documented in this file.
 
+## [1.4.3] - 2025-10-11
+
+### ✨ New Features
+
+- **2つの貼り付けモード** / **Dual Paste Mode**
+  - 📍 **Focus Mode**: エディタのカーソル位置に直接貼り付け
+  - 📍 **Focus Mode**: Paste directly to editor cursor position
+  - 💬 **Chat Mode**: Copilot Chatの入力欄に貼り付け
+  - 💬 **Chat Mode**: Paste to Copilot Chat input field
+
+- **ステータスバーボタン追加** / **Status Bar Buttons Added**
+  - 📍 **Focus Button**: エディタに貼り付け用の録音ボタン
+  - 📍 **Focus Button**: Record and paste to editor
+  - 💬 **Chat Button**: Copilot Chatに貼り付け用の録音ボタン
+  - 💬 **Chat Button**: Record and paste to Copilot Chat
+  - 録音中は選択したボタンのみ有効（切り替え不可）
+  - Only selected button is active during recording (no switching allowed)
+
+### 🐛 Bug Fixes
+
+- **実行権限の修正** / **Fixed Executable Permissions**
+  - Windows/Linux/macOS の実行ファイルに実行権限を追加
+  - Added execute permissions to Windows/Linux/macOS binaries
+  - `.gitattributes` を追加してVSIXパッケージ内でも権限を保持
+  - Added `.gitattributes` to preserve permissions in VSIX packages
+
+---
+
 ## [1.4.2] - 2025-10-11
 
 ### 📖 Documentation
