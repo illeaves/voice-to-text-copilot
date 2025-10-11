@@ -58,5 +58,13 @@
   "historySelectPlaceholder": "Whisper 기록에서 선택하여 클립보드에 복사",
   "voiceFileEmpty": "음성 파일이 비어 있습니다. 마이크가 제대로 작동하는지 확인해 주세요.",
   "whisperExecutionFailed": "Whisper 실행 실패: {{error}}",
-  "modelDownloadFailed": "모델 다운로드 실패: {{error}}"
+  "modelDownloadFailed": "모델 다운로드 실패: {{error}}",
+  "soxRequiredTitle": "SOX 필요",
+  "soxRequiredMessage": "Mac에서 오디오 녹음을 하려면 SOX가 필요합니다. 설치 방법을 보시겠습니까?",
+  "soxShowInstructions": "설치 방법 보기",
+  "soxDismiss": "닫기",
+  "soxInstallInstructions": "Mac에 SOX를 설치하려면 터미널에서 다음 명령어를 실행하세요:\n\nbrew install sox\n\nHomebrew가 설치되어 있지 않다면 먼저 설치하세요:\n/bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\"",
+  "soxInstallInstructionsLinux": "Ubuntu/Debian에 SOX를 설치하려면 다음을 실행하세요:\n\nsudo apt-get update && sudo apt-get install sox\n\n다른 Linux 배포판의 경우:\n- Fedora/RHEL: sudo dnf install sox\n- Arch: sudo pacman -S sox",
+  "soxReloadMessage": "설치 후 VS Code를 다시 로드하여 확장 프로그램을 사용하세요.",
+  "soxRequiredMessageLinux": "Linux에서 오디오 녹음을 하려면 SOX가 필요합니다. 설치 방법을 보시겠습니까?"
 }

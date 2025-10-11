@@ -58,5 +58,13 @@
   "historySelectPlaceholder": "Выбрать из истории Voice to Text для копирования в буфер обмена",
   "voiceFileEmpty": "Голосовой файл пуст. Пожалуйста, проверьте, правильно ли работает ваш микрофон.",
   "whisperExecutionFailed": "Ошибка выполнения Voice to Text: {{error}}",
-  "modelDownloadFailed": "Ошибка загрузки модели: {{error}}"
+  "modelDownloadFailed": "Ошибка загрузки модели: {{error}}",
+  "soxRequiredTitle": "Требуется SOX",
+  "soxRequiredMessage": "SOX необходим для записи аудио на Mac. Хотите увидеть инструкции по установке?",
+  "soxShowInstructions": "Показать инструкции",
+  "soxDismiss": "Закрыть",
+  "soxInstallInstructions": "Чтобы установить SOX на Mac, выполните эту команду в Терминале:\n\nbrew install sox\n\nЕсли у вас нет Homebrew, сначала установите его:\n/bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\"",
+  "soxInstallInstructionsLinux": "Чтобы установить SOX на Ubuntu/Debian, выполните:\n\nsudo apt-get update && sudo apt-get install sox\n\nДля других дистрибутивов Linux:\n- Fedora/RHEL: sudo dnf install sox\n- Arch: sudo pacman -S sox",
+  "soxReloadMessage": "После установки перезагрузите VS Code для использования расширения.",
+  "soxRequiredMessageLinux": "SOX необходим для записи аудио на Linux. Хотите увидеть инструкции по установке?"
 }

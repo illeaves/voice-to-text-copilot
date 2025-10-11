@@ -58,5 +58,13 @@
   "historySelectPlaceholder": "从Whisper历史记录中选择以复制到剪贴板",
   "voiceFileEmpty": "语音文件为空。请检查您的麦克风是否正常工作。",
   "whisperExecutionFailed": "Whisper执行失败: {{error}}",
-  "modelDownloadFailed": "模型下载失败: {{error}}"
+  "modelDownloadFailed": "模型下载失败: {{error}}",
+  "soxRequiredTitle": "需要SOX",
+  "soxRequiredMessage": "在Mac上进行音频录制需要SOX。要查看安装说明吗?",
+  "soxShowInstructions": "显示说明",
+  "soxDismiss": "关闭",
+  "soxInstallInstructions": "要在Mac上安装SOX,请在终端中运行此命令:\n\nbrew install sox\n\n如果您没有Homebrew,请先安装它:\n/bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\"",
+  "soxInstallInstructionsLinux": "要在Ubuntu/Debian上安装SOX,请运行:\n\nsudo apt-get update && sudo apt-get install sox\n\n对于其他Linux发行版:\n- Fedora/RHEL: sudo dnf install sox\n- Arch: sudo pacman -S sox",
+  "soxReloadMessage": "安装后,请重新加载VS Code以使用扩展。",
+  "soxRequiredMessageLinux": "在Linux上进行音频录制需要SOX。要查看安装说明吗?"
 }

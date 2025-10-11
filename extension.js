@@ -90,45 +90,24 @@ async function checkSoxInstallation() {
 }
 
 async function promptSoxInstallation(platform) {
-  const installInstructions = {
-    darwin: {
-      title: "SOX Required",
-      message:
-        "SOX is required for audio recording on Mac. Would you like to see installation instructions?",
-      instructions: `To install SOX on Mac, run this command in Terminal:
-
-brew install sox
-
-If you don't have Homebrew, install it first:
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"`,
-    },
-    linux: {
-      title: "SOX Required",
-      message:
-        "SOX is required for audio recording on Linux. Would you like to see installation instructions?",
-      instructions: `To install SOX on Ubuntu/Debian, run:
-
-sudo apt-get update && sudo apt-get install sox
-
-For other Linux distributions:
-- Fedora/RHEL: sudo dnf install sox
-- Arch: sudo pacman -S sox`,
-    },
-  };
-
-  const info = installInstructions[platform];
-  if (!info) return;
+  // プラットフォームに応じたメッセージとインストール手順を選択
+  const messageKey =
+    platform === "linux" ? "soxRequiredMessageLinux" : "soxRequiredMessage";
+  const instructionsKey =
+    platform === "linux"
+      ? "soxInstallInstructionsLinux"
+      : "soxInstallInstructions";
 
   const action = await vscode.window.showWarningMessage(
-    info.message,
-    "Show Instructions",
-    "Dismiss"
+    msg(messageKey),
+    msg("soxShowInstructions"),
+    msg("soxDismiss")
   );
 
-  if (action === "Show Instructions") {
+  if (action === msg("soxShowInstructions")) {
     const panel = vscode.window.createWebviewPanel(
       "soxInstall",
-      info.title,
+      msg("soxRequiredTitle"),
       vscode.ViewColumn.One,
       {}
     );
@@ -144,6 +123,10 @@ For other Linux distributions:
             color: var(--vscode-foreground);
             background-color: var(--vscode-editor-background);
           }
+          h2 {
+            color: var(--vscode-foreground);
+            margin-top: 0;
+          }
           pre {
             background-color: var(--vscode-textCodeBlock-background);
             padding: 15px;
@@ -154,12 +137,15 @@ For other Linux distributions:
             font-family: 'Courier New', monospace;
             font-size: 14px;
           }
+          p {
+            line-height: 1.6;
+          }
         </style>
       </head>
       <body>
-        <h2>${info.title}</h2>
-        <pre><code>${info.instructions}</code></pre>
-        <p>After installation, please reload VS Code to use the extension.</p>
+        <h2>${msg("soxRequiredTitle")}</h2>
+        <pre><code>${msg(instructionsKey)}</code></pre>
+        <p>${msg("soxReloadMessage")}</p>
       </body>
       </html>
     `;

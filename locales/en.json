@@ -58,5 +58,13 @@
   "historySelectPlaceholder": "Select from Voice to Text history to copy to clipboard",
   "voiceFileEmpty": "Voice file is empty. Please check if your microphone is working properly.",
   "whisperExecutionFailed": "whisper execution failed: {{error}}",
-  "modelDownloadFailed": "Model download failed: {{error}}"
+  "modelDownloadFailed": "Model download failed: {{error}}",
+  "soxRequiredTitle": "SOX Required",
+  "soxRequiredMessage": "SOX is required for audio recording on Mac. Would you like to see installation instructions?",
+  "soxRequiredMessageLinux": "SOX is required for audio recording on Linux. Would you like to see installation instructions?",
+  "soxShowInstructions": "Show Instructions",
+  "soxDismiss": "Dismiss",
+  "soxInstallInstructions": "To install SOX on Mac, run this command in Terminal:\n\nbrew install sox\n\nIf you don't have Homebrew, install it first:\n/bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\"",
+  "soxInstallInstructionsLinux": "To install SOX on Ubuntu/Debian, run:\n\nsudo apt-get update && sudo apt-get install sox\n\nFor other Linux distributions:\n- Fedora/RHEL: sudo dnf install sox\n- Arch: sudo pacman -S sox",
+  "soxReloadMessage": "After installation, please reload VS Code to use the extension."
 }

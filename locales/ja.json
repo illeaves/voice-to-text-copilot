@@ -58,5 +58,13 @@
   "historySelectPlaceholder": "Voice to Text履歴から選択してクリップボードにコピー",
   "voiceFileEmpty": "音声ファイルが空です。マイクが正しく動作しているか確認してください。",
   "whisperExecutionFailed": "whisperの実行に失敗しました: {{error}}",
-  "modelDownloadFailed": "モデルのダウンロードに失敗しました: {{error}}"
+  "modelDownloadFailed": "モデルのダウンロードに失敗しました: {{error}}",
+  "soxRequiredTitle": "SOXが必要です",
+  "soxRequiredMessage": "Macで音声録音を行うにはSOXが必要です。インストール手順を表示しますか？",
+  "soxRequiredMessageLinux": "Linuxで音声録音を行うにはSOXが必要です。インストール手順を表示しますか?",
+  "soxShowInstructions": "手順を表示",
+  "soxDismiss": "閉じる",
+  "soxInstallInstructions": "Macにソックスをインストールするには、ターミナルで次のコマンドを実行してください:\n\nbrew install sox\n\nHomebrewがインストールされていない場合は、まずHomebrewをインストールしてください:\n/bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\"",
+  "soxInstallInstructionsLinux": "Ubuntu/DebianでSOXをインストールするには:\n\nsudo apt-get update && sudo apt-get install sox\n\nその他のLinuxディストリビューション:\n- Fedora/RHEL: sudo dnf install sox\n- Arch: sudo pacman -S sox",
+  "soxReloadMessage": "インストール後、VS Codeをリロードして拡張機能を使用してください。"
 }

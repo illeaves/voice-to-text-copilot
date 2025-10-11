@@ -58,5 +58,13 @@
   "historySelectPlaceholder": "Seleziona dalla cronologia Voice to Text per copiare negli appunti",
   "voiceFileEmpty": "Il file vocale è vuoto. Verificare che il microfono funzioni correttamente.",
   "whisperExecutionFailed": "Esecuzione di Whisper fallita: {{error}}",
-  "modelDownloadFailed": "Download del modello fallito: {{error}}"
+  "modelDownloadFailed": "Download del modello fallito: {{error}}",
+  "soxRequiredTitle": "SOX richiesto",
+  "soxRequiredMessage": "SOX è necessario per la registrazione audio su Mac. Vuoi vedere le istruzioni di installazione?",
+  "soxShowInstructions": "Mostra istruzioni",
+  "soxDismiss": "Chiudi",
+  "soxInstallInstructions": "Per installare SOX su Mac, esegui questo comando nel Terminal:\n\nbrew install sox\n\nSe non hai Homebrew, installalo prima:\n/bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\"",
+  "soxInstallInstructionsLinux": "Per installare SOX su Ubuntu/Debian, esegui:\n\nsudo apt-get update && sudo apt-get install sox\n\nPer altre distribuzioni Linux:\n- Fedora/RHEL: sudo dnf install sox\n- Arch: sudo pacman -S sox",
+  "soxReloadMessage": "Dopo l'installazione, ricarica VS Code per utilizzare l'estensione.",
+  "soxRequiredMessageLinux": "SOX è necessario per la registrazione audio su Linux. Vuoi vedere le istruzioni di installazione?"
 }
