@@ -20,6 +20,36 @@ whisper.cpp/**
 !whisper.cpp/README.md
 !whisper.cpp/LICENSE
 
+# Models (exclude all model weights)
+whisper.cpp/models/**
+
+# Exclude custom build (user local GPU builds)
+# But keep the README guides
+bin/windows-custom/**
+!bin/windows-custom/README.md
+bin/macos-custom/**
+!bin/macos-custom/README.md
+bin/linux-custom/**
+!bin/linux-custom/README.md
+
+# Keep only minimal runtime binaries; exclude auxiliary executables
+bin/windows/bench.exe
+bin/windows/main.exe
+bin/windows/quantize.exe
+bin/windows/test-vad-full.exe
+bin/windows/test-vad.exe
+bin/windows/vad-speech-segments.exe
+bin/windows/whisper-bench.exe
+bin/windows/whisper-server.exe
+bin/linux/bench
+bin/linux/main
+bin/linux/quantize
+bin/linux/test-vad
+bin/linux/test-vad-full
+bin/linux/vad-speech-segments
+bin/linux/whisper-bench
+bin/linux/whisper-server
+
 # Runtime generated files
 voice.wav
 voice.txt
