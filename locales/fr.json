@@ -87,6 +87,6 @@
   "soxRecordingError": "Erreur d'enregistrement SOX: {{error}}",
   "modelAlreadyExists": "Le modèle '{{model}}' est déjà téléchargé.",
   "modelExistsOverwrite": "Le modèle '{{model}}' existe déjà. Voulez-vous l'écraser?",
-  "overwriteModel": "Écraser",
+    "overwriteModel": "Remplacer",
   "useExistingModel": "Utiliser le modèle existant"
 }

@@ -2,6 +2,32 @@
 
 All notable changes to the "Voice to Text (also for Copilot Chat)" extension will be documented in this file.
 
+## [1.5.1] - 2025-10-12
+
+### 🚀 New Features
+
+- **2つの貼り付けボタン** / **Dual Paste Buttons**
+  - `📍Focus` ボタン: 録音停止時のエディタ位置に貼り付け
+  - `📍Focus` button: Paste at editor position when recording stops
+  - `💬Chat` ボタン: Copilot Chatに直接貼り付け
+  - `💬Chat` button: Paste directly to Copilot Chat
+
+### 🐛 Bug Fixes
+
+- **タイムアウト処理の修正** / **Fixed Timeout Handling**
+  - タイムアウトで録音終了した際に音声が処理されない問題を修正
+  - Fixed issue where audio wasn't processed when recording ended by timeout
+  
+### 🔧 Improvements
+
+- **コード構造の簡素化** / **Code Structure Simplification**
+  - 重複コードの削除と関数の統合
+  - Removed duplicate code and unified functions
+  - 変数名の改善 (`micInstance` → `soxProcess`)
+  - Improved variable naming (`micInstance` → `soxProcess`)
+  - より明確なログメッセージ
+  - Clearer log messages
+
 ## [1.5.0] - 2025-10-12
 
 ### 🔧 Internal Changes (Breaking)

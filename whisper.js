@@ -3,74 +3,33 @@ const path = require("path");
 const OpenAI = require("openai");
 const vscode = require("vscode");
 
-let micInstance, recordingTimeout;
+let soxProcess, recordingTimeout;
 let currentRecordingFile; // 現在録音中のファイルパス
 const outputFile = path.join(__dirname, "voice.wav");
-const soxOutputFile = path.join(__dirname, "voice_sox.wav");
-const rawOutputFile = path.join(__dirname, "voice_raw.pcm");
 
-/**
- * 📝 WAVヘッダーを作成（44バイト）
- */
-function createWavHeader(
-  dataLength,
-  sampleRate = 16000,
-  channels = 1,
-  bitsPerSample = 16
-) {
-  const header = Buffer.alloc(44);
 
-  // RIFF header
-  header.write("RIFF", 0);
-  header.writeUInt32LE(36 + dataLength, 4); // ファイルサイズ - 8
-  header.write("WAVE", 8);
-
-  // fmt chunk
-  header.write("fmt ", 12);
-  header.writeUInt32LE(16, 16); // fmt chunk size
-  header.writeUInt16LE(1, 20); // audio format (1 = PCM)
-  header.writeUInt16LE(channels, 22);
-  header.writeUInt32LE(sampleRate, 24);
-  header.writeUInt32LE((sampleRate * channels * bitsPerSample) / 8, 28); // byte rate
-  header.writeUInt16LE((channels * bitsPerSample) / 8, 32); // block align
-  header.writeUInt16LE(bitsPerSample, 34);
-
-  // data chunk
-  header.write("data", 36);
-  header.writeUInt32LE(dataLength, 40);
-
-  return header;
-}
-
-/**
- * 🔄 Raw PCMをWAVに変換
- */
-function convertPcmToWav(pcmFile, wavFile) {
-  const pcmData = fs.readFileSync(pcmFile);
-  console.log(`📊 Raw PCM size: ${pcmData.length} bytes`);
-
-  const wavHeader = createWavHeader(pcmData.length);
-  const wavData = Buffer.concat([wavHeader, pcmData]);
-
-  fs.writeFileSync(wavFile, wavData);
-  console.log(`✅ WAV file created: ${wavFile} (${wavData.length} bytes)`);
-
-  // PCMファイルを削除
-  fs.unlinkSync(pcmFile);
-}
 
 // 🎙 録音開始
-function startRecording(context, maxRecordSec, msg, onTimeout, mode = "api") {
+function startRecording(context, maxRecordSec, msg, stopRecordingAndProcessVoice, mode = "api") {
   try {
     const MAX_RECORD_TIME = maxRecordSec * 1000;
 
     // 既存の録音をクリーンアップ
-    if (micInstance) {
-      stopRecordingInternal();
+    if (soxProcess) {
+      if (recordingTimeout) {
+        clearTimeout(recordingTimeout);
+        recordingTimeout = null;
+      }
+      try {
+        soxProcess.kill("SIGINT");
+      } catch (error) {
+        console.error("⚠️ Error stopping previous recording:", error);
+      }
+      soxProcess = null;
     }
 
-    // モードに応じて保存先を決定
-    const recordingFile = mode === "local" ? soxOutputFile : outputFile;
+    // 両モード共通でvoice.wavに録音
+    const recordingFile = outputFile;
     currentRecordingFile = recordingFile;
 
     console.log(`📝 Recording mode: ${mode}, file: ${recordingFile}`);
@@ -126,15 +85,15 @@ function startRecording(context, maxRecordSec, msg, onTimeout, mode = "api") {
     console.log(
       `🎤 Starting SOX recording (${platform}): ${soxPath} ${soxArgs.join(" ")}`
     );
-    micInstance = spawn(soxPath, soxArgs);
+    soxProcess = spawn(soxPath, soxArgs);
 
     let soxErrorOutput = ""; // SOXのエラーメッセージを蓄積
 
-    micInstance.stdout.on("data", (data) => {
+    soxProcess.stdout.on("data", (data) => {
       console.log(`SOX stdout: ${data}`);
     });
 
-    micInstance.stderr.on("data", (data) => {
+    soxProcess.stderr.on("data", (data) => {
       const message = data.toString();
       console.log(`SOX info: ${message}`);
 
@@ -144,14 +103,14 @@ function startRecording(context, maxRecordSec, msg, onTimeout, mode = "api") {
       }
     });
 
-    micInstance.on("error", (err) => {
+    soxProcess.on("error", (err) => {
       console.error("⚠️ SOX process error:", err);
       vscode.window.showErrorMessage(
         msg("microphoneError", { error: err.message })
       );
     });
 
-    micInstance.on("exit", (code) => {
+    soxProcess.on("exit", (code) => {
       console.log(`SOX process exited with code ${code}`);
 
       // 異常終了時にエラーメッセージを表示
@@ -166,21 +125,18 @@ function startRecording(context, maxRecordSec, msg, onTimeout, mode = "api") {
     console.log(msg("recordingStart", { seconds: maxRecordSec }));
 
     // ⏱ 上限時間を超えたら自動停止
-    recordingTimeout = setTimeout(async () => {
-      if (micInstance) {
-        console.log("⏰ Recording timeout reached, stopping...");
-        await stopRecordingInternal();
+    recordingTimeout = setTimeout(() => {
+      if (soxProcess) {
+        console.log("⏰ Recording timeout reached, executing timeout callback...");
         vscode.window.showWarningMessage(
           msg("recordingStopAuto", { seconds: maxRecordSec })
         );
         
-        // 少し待ってからコールバック実行（ファイル作成完了を待つ）
-        setTimeout(() => {
-          if (onTimeout) {
-            console.log("⏰ Executing timeout callback");
-            onTimeout();
-          }
-        }, 500); // 500ms待機
+        // 手動停止時と全く同じ関数を直接呼び出し
+        if (stopRecordingAndProcessVoice) {
+          console.log("⏰ Executing timeout processing - same as manual stop");
+          stopRecordingAndProcessVoice(context);
+        }
       }
     }, MAX_RECORD_TIME);
   } catch (error) {
@@ -192,46 +148,43 @@ function startRecording(context, maxRecordSec, msg, onTimeout, mode = "api") {
   }
 }
 
-// 🔇 内部録音停止関数
-async function stopRecordingInternal() {
-  if (recordingTimeout) {
-    clearTimeout(recordingTimeout);
-    recordingTimeout = null;
-  }
-
-  if (micInstance) {
-    try {
-      // 全プラットフォームでSOXプロセスを停止（SIGINTで正常終了）
-      micInstance.kill("SIGINT");
-      // プロセスが終了するのを待つ
-      await new Promise((resolve) => {
-        micInstance.on("exit", () => {
-          console.log("✅ SOX process terminated successfully");
-          resolve();
-        });
-        // タイムアウト保護（2秒）
-        setTimeout(resolve, 2000);
-      });
-    } catch (error) {
-      console.error("⚠️ Error stopping SOX process:", error);
-    }
-  }
-
-  micInstance = null;
-}
-
-// 🎧 録音停止とWhisper送信（APIモード用）
-async function stopRecording(apiKey, msg) {
-  if (!micInstance) {
+// 🎧 録音停止関数（全モード対応）
+async function stopRecording(mode = "api", apiKey = null, msg = null) {
+  if (!soxProcess) {
     console.warn("⚠️ No active recording to stop");
     return null;
   }
 
   try {
-    // 録音を停止(ストリームのクローズを待つ)
-    await stopRecordingInternal();
+    console.log(`🛑 Stopping recording (mode: ${mode})`);
+    
+    // 共通処理：録音を停止
+    if (recordingTimeout) {
+      clearTimeout(recordingTimeout);
+      recordingTimeout = null;
+    }
 
-    // ファイルが作成されるまでポーリング(最大3秒、100ms間隔)
+    if (soxProcess) {
+      try {
+        // 全プラットフォームでSOXプロセスを停止（SIGINTで正常終了）
+        soxProcess.kill("SIGINT");
+        // プロセスが終了するのを待つ
+        await new Promise((resolve) => {
+          soxProcess.on("exit", () => {
+            console.log("✅ SOX process terminated successfully");
+            resolve();
+          });
+          // タイムアウト保護（2秒）
+          setTimeout(resolve, 2000);
+        });
+      } catch (error) {
+        console.error("⚠️ Error stopping SOX process:", error);
+      }
+    }
+
+    soxProcess = null;
+
+    // 共通処理：ファイルが作成されるまでポーリング(最大3秒、100ms間隔)
     let fileFound = false;
     for (let i = 0; i < 30; i++) {
       if (fs.existsSync(outputFile)) {
@@ -241,24 +194,51 @@ async function stopRecording(apiKey, msg) {
       await new Promise((resolve) => setTimeout(resolve, 100));
     }
 
-    // ファイルの存在確認
+    // 共通処理：ファイルの存在確認
     if (!fileFound) {
-      console.error("⚠️ Voice file not found");
+      console.error("⚠️ Voice file not found:", outputFile);
       return null;
     }
 
-    // ファイルサイズをログ出力
+    // 共通処理：ファイルサイズをチェック
     const fileStats = fs.statSync(outputFile);
     console.log(`📊 Voice file size: ${fileStats.size} bytes`);
 
     if (fileStats.size === 0) {
-      console.error("⚠️ Voice file is empty (0 bytes)");
+      console.warn("⚠️ Empty WAV file (0 bytes)");
+      fs.unlinkSync(outputFile); // 空ファイルを削除
       return null;
     }
 
-    // 全プラットフォームで既に16kHz WAVで録音されているので変換不要
-    console.log(`📝 Sending WAV to OpenAI API (${fileStats.size} bytes)`);
+    // モード別処理
+    if (mode === "api") {
+      return await handleApiMode(apiKey, msg, fileStats);
+    } else {
+      return await handleLocalMode(fileStats);
+    }
 
+  } catch (e) {
+    console.error("❌ Error in stopRecording:", e);
+    
+    // エラー時もクリーンアップ
+    if (fs.existsSync(outputFile)) {
+      fs.unlinkSync(outputFile);
+    }
+    
+    return null;
+  }
+}
+
+// APIモード専用処理
+async function handleApiMode(apiKey, msg, fileStats) {
+  if (!apiKey || !msg) {
+    console.error("⚠️ API key or msg is missing for API mode");
+    return null;
+  }
+
+  console.log(`📝 Sending WAV to OpenAI API (${fileStats.size} bytes)`);
+
+  try {
     const openai = new OpenAI({ apiKey });
 
     const res = await openai.audio.transcriptions.create({
@@ -272,7 +252,7 @@ async function stopRecording(apiKey, msg) {
       else console.log(`🗑️ Deleted voice file: ${outputFile}`);
     });
 
-    return res.text;
+    return res.text; // テキストを返す
   } catch (e) {
     console.error("❌ Whisper API error:", e);
 
@@ -299,128 +279,19 @@ async function stopRecording(apiKey, msg) {
   }
 }
 
-// 🎧 録音停止(ローカルモード用:WAVファイルのパスを返す)
-async function stopRecordingLocal() {
-  if (!micInstance) {
-    console.warn("⚠️ No active recording to stop");
-    return null;
-  }
-
-  try {
-    // 録音を停止(ストリームのクローズを待つ)
-    await stopRecordingInternal();
-
-    // ファイルが作成されるまでポーリング(最大3秒、100ms間隔)
-    let fileFound = false;
-    for (let i = 0; i < 30; i++) {
-      if (fs.existsSync(soxOutputFile)) {
-        fileFound = true;
-        break;
-      }
-      await new Promise((resolve) => setTimeout(resolve, 100));
-    }
-
-    if (!fileFound) {
-      console.error("⚠️ SOX WAV file not found:", soxOutputFile);
-      return null;
-    }
-
-    // SOXファイルサイズをチェック
-    const soxFileStats = fs.statSync(soxOutputFile);
-    console.log(`📊 SOX file size: ${soxFileStats.size} bytes`);
-
-    if (soxFileStats.size === 0) {
-      console.warn("⚠️ Empty SOX WAV file (0 bytes)");
-      fs.unlinkSync(soxOutputFile); // 空ファイルを削除
-      return null;
-    }
-
-    console.log(
-      `📝 Converting SOX WAV to standard WAV (${soxFileStats.size} bytes)`
-    );
-
-    // SOXコマンドでraw PCMに変換 + 音量を増幅
-    const { execSync } = require("child_process");
-    try {
-      // 古いPCMファイルを削除
-      if (fs.existsSync(rawOutputFile)) {
-        fs.unlinkSync(rawOutputFile);
-      }
-
-      // gainオプションで音量増幅（+8dB）
-      execSync(
-        `sox "${soxOutputFile}" -t raw -r 16000 -c 1 -b 16 -e signed-integer "${rawOutputFile}" gain 8`
-      );
-      console.log(`✅ Converted to raw PCM with gain boost: ${rawOutputFile}`);
-    } catch (soxError) {
-      console.error(`❌ SOX conversion failed: ${soxError.message}`);
-
-      // 失敗時はPCMファイルを削除
-      if (fs.existsSync(rawOutputFile)) {
-        fs.unlinkSync(rawOutputFile);
-      }
-
-      throw new Error("SOX conversion failed");
-    }
-
-    // PCMファイルサイズをチェック
-    const pcmStats = fs.statSync(rawOutputFile);
-    console.log(`📊 Raw PCM size: ${pcmStats.size} bytes`);
-
-    if (pcmStats.size === 0) {
-      console.warn("⚠️ Empty PCM file");
-      fs.unlinkSync(rawOutputFile);
-      fs.unlinkSync(soxOutputFile);
-      return null;
-    }
-
-    // 古いWAVファイルを削除
-    if (fs.existsSync(outputFile)) {
-      fs.unlinkSync(outputFile);
-      console.log(`🗑️ Deleted old WAV file: ${outputFile}`);
-    }
-
-    // PCMをWAVに変換（標準的なWAVヘッダーを追加）
-    convertPcmToWav(rawOutputFile, outputFile);
-
-    // WAVファイルの検証（最初の50バイトを確認）
-    const buffer = fs.readFileSync(outputFile);
-    console.log(
-      `✅ WAV first 50 bytes (hex): ${buffer.slice(0, 50).toString("hex")}`
-    );
-
-    // SOXファイルを削除（もう不要）
-    if (fs.existsSync(soxOutputFile)) {
-      fs.unlinkSync(soxOutputFile);
-      console.log(`🗑️ Deleted SOX file: ${soxOutputFile}`);
-    }
-
-    console.log(`✅ Converted to WAV: ${outputFile}`);
-
-    return outputFile;
-  } catch (e) {
-    console.error("❌ Error stopping recording:", e);
-
-    // エラー時もクリーンアップ
-    if (fs.existsSync(soxOutputFile)) {
-      fs.unlinkSync(soxOutputFile);
-    }
-    if (fs.existsSync(rawOutputFile)) {
-      fs.unlinkSync(rawOutputFile);
-    }
-
-    return null;
-  }
+// ローカルモード専用処理
+async function handleLocalMode(fileStats) {
+  console.log(`✅ Using original recording file directly: ${outputFile}`);
+  return outputFile; // ファイルパスを返す
 }
 
 // 🧹 録音状態をチェックする関数
 function isCurrentlyRecording() {
-  return micInstance !== null;
+  return soxProcess !== null;
 }
 
 module.exports = {
   startRecording,
   stopRecording,
-  stopRecordingLocal,
   isCurrentlyRecording,
 };

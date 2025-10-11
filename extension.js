@@ -1,7 +1,7 @@
 /**
  * Voice to Text (also for Copilot Chat) Extension for VS Code
  * Author: aleaf
- * Version: 1.4.4
+ * Version: 1.5.1
  */
 "use strict";
 
@@ -13,7 +13,6 @@ const https = require("https");
 const {
   startRecording,
   stopRecording,
-  stopRecordingLocal,
   isCurrentlyRecording,
 } = require("./whisper.js");
 const { execFile } = require("child_process");
@@ -322,7 +321,7 @@ function updateStatusBar(state = "idle", elapsed = 0, max = 0) {
       break;
     }
     case "success": {
-      statusBarItemStatus.text = `✅${msg("pasteDone")}`;
+      statusBarItemStatus.text = `${msg("pasteDone")}`;
       statusBarItemStatus.tooltip = msg("pasteDone");
       statusBarItemStatus.backgroundColor = new vscode.ThemeColor(
         "statusBarItem.prominentBackground"
@@ -1176,11 +1175,15 @@ function deactivate() {
 // ================== 追加: コマンド登録関連ユーティリティ ==================
 
 /**
- * 録音停止後の音声処理（共通処理）
+ * 録音停止～音声認識～テキスト貼り付けまでの全工程（共通処理）
  * @param {vscode.ExtensionContext} context
  */
-async function processRecordedVoice(context) {
+async function stopRecordingAndProcessVoice(context) {
   try {
+    // 📍 録音状態をリセット
+    isRecording = false;
+    stopRecordingTimer(); // タイマー停止
+    
     isProcessing = true;
     updateStatusBar("processing");
     systemLog(msg("sendingToWhisper"), "INFO");
@@ -1199,10 +1202,11 @@ async function processRecordedVoice(context) {
         );
       } else {
         systemLog(
-          "⚠ アクティブなエディタがありません - Copilot Chatにフォールバックします",
-          "WARNING"
+          "📍 エディタ位置が保存できませんでした - 現在のフォーカス位置に貼り付けます",
+          "INFO"
         );
-        pasteTarget = "chat";
+        // アクティブなエディタがない場合でも現在のフォーカス位置に貼り付け
+        // （Copilotチャットなど、フォーカスがある場所に貼り付けられる）
       }
     }
 
@@ -1214,7 +1218,8 @@ async function processRecordedVoice(context) {
     if (mode === "local") {
       const localModel = currentConfig.get("localModel") || "small";
       systemLog(`Using local whisper.cpp (model: ${localModel})`, "INFO");
-      const outputFile = await stopRecordingLocal();
+      // 統合関数を使用（ローカルモード）
+      const outputFile = await stopRecording("local");
       if (!outputFile) throw new Error("Failed to convert audio file");
       text = await executeLocalWhisper(outputFile, msg);
     } else {
@@ -1227,7 +1232,8 @@ async function processRecordedVoice(context) {
         updateStatusBar("idle");
         return;
       }
-      text = await stopRecording(apiKey, msg);
+      // 統合関数を使用（APIモード）
+      text = await stopRecording("api", apiKey, msg);
     }
 
     if (text && text.trim()) {
@@ -1273,6 +1279,8 @@ async function processRecordedVoice(context) {
   }
 }
 
+
+
 /**
  * トグル処理（録音開始/停止と結果貼り付け）
  * 以前のインライン実装を関数化
@@ -1302,15 +1310,7 @@ async function handleToggleCommand(context) {
         context,
         maxSec,
         msg,
-        async () => {
-          // タイムアウト時の処理: 手動停止時と同じ処理を実行
-          systemLog("⏰ Recording timeout - starting voice processing", "INFO");
-          isRecording = false;
-          stopRecordingTimer(); // タイマー停止
-          
-          // 共通の音声処理を呼び出し
-          await processRecordedVoice(context);
-        },
+        stopRecordingAndProcessVoice,  // 関数を直接渡す
         mode
       );
     } catch (error) {
@@ -1327,12 +1327,8 @@ async function handleToggleCommand(context) {
       vscode.window.showErrorMessage(errorMessage);
     }
   } else {
-    // 録音停止～処理
-    isRecording = false;
-    stopRecordingTimer(); // タイマー停止
-    
-    // 共通の音声処理を呼び出し
-    await processRecordedVoice(context);
+    // 録音停止～処理（タイムアウト時と全く同じ処理）
+    await stopRecordingAndProcessVoice(context);
   }
 }
 
