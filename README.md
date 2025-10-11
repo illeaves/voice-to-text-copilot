@@ -13,7 +13,7 @@ _(日本語 / English)_
 
 > 💡 この拡張機能は **2 つのモード** から選択できます：
 
-### 🌐 **API モード（推奨）** - クラウドで高精度
+### 🌐 **API モード** - クラウドで高精度
 
 - 🔑 **OpenAI の API キー**が必要（有料・従量課金制）
   - 1 分あたり約 0.006 ドル（≒ 1 円未満）
@@ -220,48 +220,76 @@ Whisper は**100 以上の言語**を自動認識できます。
 
 #### 📦 同梱されているバイナリ
 
-この拡張機能には、各プラットフォーム用に最適化されたバイナリが同梱されています:
+この拡張機能には、各プラットフォーム用のバイナリが同梱されています:
 
-- **Windows**: DirectML 版（NVIDIA/AMD/Intel GPU に対応）
-- **macOS**: Metal 版（M1/M2/M3/M4 および Intel Mac に対応）
-- **Linux**: Vulkan 版（NVIDIA/AMD GPU に対応）
+- **Windows**: CPU 版（すべての PC で動作）
+- **macOS**: Metal 版（すべての Mac で GPU 高速化）
+- **Linux**: CPU 版（すべての Linux で動作）
 
-これらのバイナリは、追加セットアップなしでほとんどのシステムで動作します。
+**処理速度の目安** (Medium モデル使用時):
 
-#### ⚡ 最高のパフォーマンスを得るには（オプション）
+- CPU 版は実時間より遅めですが、短めのメモ取り用途なら十分実用的です ✅
+- モデルサイズを小さくすると処理は速くなり、精度は下がります（Tiny/Base < Small < Medium < Large）
 
-ほとんどのユーザーは同梱バイナリで優れたパフォーマンスを得られますが、さらに高速化したい場合:
+#### ⚡ GPU 高速化（オプション - 上級者向け）
 
-**再ビルドが必要な場合:**
+お使いの PC（特に NVIDIA / AMD / Apple Silicon GPU）によっては、自分で GPU 対応版をビルドすることで**大幅な高速化**が期待できます:
 
-- **Windows（NVIDIA ユーザー）**: CUDA 版をビルドすると、DirectML 版より 2-3 倍高速
-- **特定の GPU 最適化**: ハードウェア固有の機能を使用
-- **最新の GPU 機能**: 最先端の GPU 機能を利用
+**高速化のイメージ:**
 
-**再ビルド不要な場合:**
+- GPU 版ではエンコード工程が劇的に短縮され、体感で _数倍〜桁違い_ に速くなることがあります
+- ハイエンド GPU ほど効果が高く、CPU 版との差は環境により大きく変動します
 
-- ✅ Metal 版はすべての M シリーズ Mac（M1-M4）で最適動作
-- ✅ DirectML 版は Windows 上のあらゆる GPU で自動最適化
-- ✅ ほとんどのユーザーは同梱バイナリで優れたパフォーマンスを実現
+**対応 GPU:**
 
-#### 🔧 自分でビルドする方法（上級者向け）
+- **NVIDIA GPU (RTX/GTX シリーズ)**: CUDA 版をビルド
+- **AMD GPU (Radeon シリーズ)**: ROCm 版をビルド (Linux のみ)
+- **macOS**: すでに Metal 版が同梱されています ✅
+
+#### 🔧 GPU 版のビルド方法（NVIDIA GPU の例）
+
+**必要なもの:**
+
+1. [CUDA Toolkit 12.6](https://developer.nvidia.com/cuda-downloads) (~2-3GB)
+2. Visual Studio 2022 Build Tools (C++ ワークロード)
+
+**ビルド手順:**
 
 ```bash
+# 1. whisper.cppをクリーンビルド
 cd whisper.cpp
+rm -rf build
 mkdir build && cd build
 
-# Windows（CUDA版 - NVIDIAユーザー）
+# 2. CUDA対応でビルド
 cmake .. -DGGML_CUDA=ON -DCMAKE_BUILD_TYPE=Release
 cmake --build . --config Release
 
-# macOS（すでにMetal対応済み）
-cmake .. -DGGML_METAL=ON -DCMAKE_BUILD_TYPE=Release
-make
+# 3. ビルドしたファイルをコピー
+# Windows: build/bin/Release/* → bin/windows-custom/
+# ※ bin/windows-custom/ に配置すると、自動的に優先使用されます
+```
 
-# Linux（Vulkan版）
+**必要なファイル (CUDA 版の場合):**
+
+- ビルドした全ファイル (`build/bin/Release/*`)
+- CUDA DLL (`C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v12.6\bin\*.dll`)
+  - `cudart64_12.dll`, `cublas64_12.dll`, `cublasLt64_12.dll` など
+  - 詳細は `bin/windows-custom/README.md` を参照
+
+**配置場所:**
+
+- **カスタムビルド**: `bin/windows-custom/` ← **優先使用**
+- デフォルト: `bin/windows/` ← カスタム版がない場合に使用
+
+詳細な手順は [`bin/windows-custom/README.md`](bin/windows-custom/README.md) をご覧ください
+
+# Linux（Vulkan 版）
+
 cmake .. -DGGML_VULKAN=ON -DCMAKE_BUILD_TYPE=Release
 make
-```
+
+````
 
 ビルドした `whisper-cli` を以下にコピー:
 
@@ -296,7 +324,7 @@ The extension UI supports **9 languages** (Japanese, English, French, Spanish, C
 
 > 💡 Choose between **two modes**:
 
-#### 🌐 **API Mode (Recommended)** - Cloud, High Accuracy
+#### 🌐 **API Mode** - Cloud, High Accuracy
 
 - 🔑 Requires **OpenAI API Key** (paid, pay-as-you-go)
   - ~$0.006 per minute (~¥1/min)
@@ -504,54 +532,65 @@ Voice input results are automatically saved to history (up to 10 items).
 
 #### 📦 Pre-built Binaries
 
-This extension includes optimized binaries for each platform:
+This extension includes binaries for each platform:
 
-- **Windows**: DirectML version (compatible with NVIDIA/AMD/Intel GPUs)
-- **macOS**: Metal version (compatible with M1/M2/M3/M4 and Intel Macs)
-- **Linux**: Vulkan version (compatible with NVIDIA/AMD GPUs)
+- **Windows**: CPU version (works on all PCs)
+- **macOS**: Metal version (GPU-accelerated on all Macs)
+- **Linux**: CPU version (works on all Linux systems)
 
-These binaries work on most systems without additional setup.
+**Processing Characteristics** (Medium model):
+- CPU build processes slower than real-time, but is fine for short notes and typical editor workflows ✅
+- Smaller models trade accuracy for speed (Tiny/Base < Small < Medium < Large)
 
-#### ⚡ Maximum Performance (Optional)
+#### ⚡ GPU Acceleration (Optional - Advanced Users)
 
-Most users get excellent performance with the pre-built binaries, but for even faster processing:
+Depending on your hardware, you can build a GPU-accelerated version for a **significant speedup**:
 
-**When to rebuild:**
+**What to expect:**
+- GPU builds dramatically reduce the encoder phase; the overall speedup can range from a few times faster to an order of magnitude faster
+- Higher‑end GPUs see larger gains; exact numbers vary widely by GPU, driver, model size, and system load
 
-- **Windows (NVIDIA users)**: Build CUDA version for 2-3x faster than DirectML
-- **Specific GPU optimization**: Use hardware-specific features
-- **Latest GPU features**: Leverage cutting-edge GPU capabilities
+**Supported GPUs:**
+- **NVIDIA GPU (RTX/GTX series)**: Build CUDA version
+- **AMD GPU (Radeon series)**: Build ROCm version (Linux only)
+- **macOS**: Metal version already included ✅
 
-**When NOT needed:**
+#### 🔧 Building GPU Version (NVIDIA GPU Example)
 
-- ✅ Metal version works optimally on all M-series Macs (M1-M4)
-- ✅ DirectML version auto-optimizes for your GPU on Windows
-- ✅ Most users get excellent performance with pre-built binaries
+**Requirements:**
+1. [CUDA Toolkit 12.6](https://developer.nvidia.com/cuda-downloads) (~2-3GB)
+2. Visual Studio 2022 Build Tools (C++ workload)
 
-#### 🔧 How to Build (Advanced Users)
+**Build Steps:**
 
 ```bash
+# 1. Clean build whisper.cpp
 cd whisper.cpp
+rm -rf build
 mkdir build && cd build
 
-# Windows (CUDA version - NVIDIA users)
+# 2. Build with CUDA support
 cmake .. -DGGML_CUDA=ON -DCMAKE_BUILD_TYPE=Release
 cmake --build . --config Release
 
-# macOS (already optimal with Metal)
-cmake .. -DGGML_METAL=ON -DCMAKE_BUILD_TYPE=Release
-make
+# 3. Copy built files
+# Windows: build/bin/Release/* → bin/windows-custom/
+# Files in bin/windows-custom/ are automatically prioritized
+````
 
-# Linux (Vulkan version)
-cmake .. -DGGML_VULKAN=ON -DCMAKE_BUILD_TYPE=Release
-make
-```
+**Required Files (CUDA version):**
 
-Copy the built `whisper-cli` to:
+- All built files (`build/bin/Release/*`)
+- CUDA DLLs (`C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v12.6\bin\*.dll`)
+  - `cudart64_12.dll`, `cublas64_12.dll`, `cublasLt64_12.dll`, etc.
+  - See `bin/windows-custom/README.md` for details
 
-- Windows: `bin/windows/whisper-cli.exe`
-- macOS: `bin/macos/whisper-cli`
-- Linux: `bin/linux/whisper-cli`
+**File Locations:**
+
+- **Custom build**: `bin/windows-custom/` ← **Used first**
+- Default: `bin/windows/` ← Used when custom version not available
+
+For detailed instructions, see [`bin/windows-custom/README.md`](bin/windows-custom/README.md)
 
 ---
 

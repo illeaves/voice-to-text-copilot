@@ -5,3 +5,11 @@ whisper.cpp/models/
 whisper.cpp/.vscode/
 .DS_Store
 *.log
+
+# Custom built binaries (user-specific GPU builds)
+bin/windows-custom/*
+!bin/windows-custom/README.md
+bin/macos-custom/*
+!bin/macos-custom/README.md
+bin/linux-custom/*
+!bin/linux-custom/README.md

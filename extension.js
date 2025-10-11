@@ -518,10 +518,15 @@ async function executeLocalWhisper(outputFile, msg) {
   const possibleExePaths = [];
 
   if (isWindows) {
-    // Windows用パス(bin/フォルダを優先、次にwhisper.cpp/build/)
+    // Windows用パス(カスタムビルドを最優先、次にデフォルトのbin/、次にwhisper.cpp/build/)
     possibleExePaths.push(
+      // カスタムビルド (CUDA版など、ユーザーが自分でビルドしたもの)
+      path.join(__dirname, "bin", "windows-custom", "whisper-cli.exe"),
+      path.join(__dirname, "bin", "windows-custom", "main.exe"),
+      // デフォルトのCPU版
       path.join(__dirname, "bin", "windows", "whisper-cli.exe"),
       path.join(__dirname, "bin", "windows", "main.exe"),
+      // 開発用 (whisper.cpp/build/)
       path.join(
         __dirname,
         "whisper.cpp",
@@ -542,9 +547,13 @@ async function executeLocalWhisper(outputFile, msg) {
       path.join(__dirname, "whisper.cpp", "build", "bin", "main.exe")
     );
   } else if (isMac) {
-    // macOS用パス(bin/フォルダを優先、次にwhisper.cpp/build/)
+    // macOS用パス(カスタムビルドを最優先、次にデフォルトのbin/、次にwhisper.cpp/build/)
     possibleExePaths.push(
+      // カスタムビルド (ユーザーが自分でビルドしたもの)
+      path.join(__dirname, "bin", "macos-custom", "whisper-cli"),
+      // デフォルトのMetal版
       path.join(__dirname, "bin", "macos", "whisper-cli"),
+      // 開発用 (whisper.cpp/build/)
       path.join(
         __dirname,
         "whisper.cpp",
@@ -558,9 +567,13 @@ async function executeLocalWhisper(outputFile, msg) {
       path.join(__dirname, "whisper.cpp", "whisper-cli")
     );
   } else if (isLinux) {
-    // Linux用パス(bin/フォルダを優先、次にwhisper.cpp/build/)
+    // Linux用パス(カスタムビルドを最優先、次にデフォルトのbin/、次にwhisper.cpp/build/)
     possibleExePaths.push(
+      // カスタムビルド (ユーザーが自分でビルドしたもの)
+      path.join(__dirname, "bin", "linux-custom", "whisper-cli"),
+      // デフォルトのCPU版
       path.join(__dirname, "bin", "linux", "whisper-cli"),
+      // 開発用 (whisper.cpp/build/)
       path.join(
         __dirname,
         "whisper.cpp",
