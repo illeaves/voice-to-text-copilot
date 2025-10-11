@@ -2,7 +2,7 @@
 
 _(日本語 / English)_
 
-![Version](https://img.shields.io/badge/version-1.2.0-blue.svg)\
+![Version](https://img.shields.io/badge/version-1.4.0-blue.svg)\
 ![VSCode](https://img.shields.io/badge/VS_Code-Extension-007ACC.svg)\
 ![License](https://img.shields.io/badge/license-MIT-green.svg)\
 ![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Mac%20%7C%20Linux-lightgrey.svg)
@@ -287,7 +287,8 @@ cmake --build . --config Release
 
 以下のファイルを上記ディレクトリにコピーしてください:
 
-**Windows (CUDA版):**
+**Windows (CUDA 版):**
+
 ```bash
 # whisper.cpp/build/bin/Release/ から以下をコピー
 whisper-cli.exe
@@ -301,6 +302,7 @@ whisper.dll
 > **💡 重要**: 以前のバージョンでは 700MB 以上の CUDA DLL (`cublas64_12.dll` など) のコピーが必要でしたが、**現在のビルド方法では不要です**。システムにインストール済みの NVIDIA ドライバーから自動的に CUDA 機能が利用されます。
 
 **macOS/Linux:**
+
 ```bash
 whisper-cli
 libggml.so (または .dylib)
@@ -351,16 +353,6 @@ whisper_backend_init_gpu: found 1 CUDA devices  ← GPU検出成功!
 Found whisper executable: <パス>
 whisper_backend_init_gpu: found 1 CUDA devices  ← GPU検出成功!
 ```
-
-**検出の優先順位:**
-
-**検出の優先順位:**
-
-1. **bin/\*-custom/** (GPU 版) ← ユーザーがビルドした版
-2. **bin/\*/** (CPU 版) ← デフォルト(拡張機能に同梱)
-3. **whisper.cpp/build/** (開発用)
-
-詳細な手順は [`bin/windows-custom/README.md`](bin/windows-custom/README.md) をご覧ください
 
 ---
 

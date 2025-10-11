@@ -16,11 +16,6 @@ All notable changes to the "Voice to Text + Copilot Chat" extension will be docu
 
 ### ✨ New Features
 
-- **自動データ移行** / **Automatic Data Migration**
-
-  - 初回起動時に旧バージョンからモデルとカスタムビルドを自動移行
-  - Automatically migrates models and custom builds from old version on first launch
-
 - **クリーンアップコマンド** / **Clean Up Command**
 
   - `Voice to Text: Clean Up` コマンドを追加
@@ -51,10 +46,13 @@ All notable changes to the "Voice to Text + Copilot Chat" extension will be docu
 
 ### 🔄 Breaking Changes
 
-- モデルファイルとカスタムビルドの保存場所が変更されました
-- Model files and custom builds storage location has changed
-- 旧バージョンからのアップデート時は自動移行されます
-- Automatic migration occurs when updating from older versions
+- **データ保存場所の変更** / **Storage Location Changed**
+  - モデルファイルとカスタムビルドの保存場所が変更されました
+  - Model files and custom builds storage location has changed
+  - **旧バージョンからのアップデート時**: モデルを再ダウンロードしてください
+  - **When updating from older versions**: Please re-download models
+  - Setup Wizard を実行するか、既存のモデルを手動で `~/.vscode/voice-to-text-copilot/models/` にコピーしてください
+  - Run Setup Wizard or manually copy existing models to `~/.vscode/voice-to-text-copilot/models/`
 
 ---
 
