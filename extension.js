@@ -1,5 +1,5 @@
 /**
- * Whisper Voice Input Extension for VS Code
+ * Voice to Text + Copilot Chat Extension for VS Code
  * Author: aleaf
  * Version: 1.1.0
  */
@@ -601,11 +601,13 @@ async function executeLocalWhisper(outputFile, msg) {
  * 🎬 拡張アクティベーション
  */
 async function activate(context) {
-  console.log("🟢 Whisper Voice Input: Activation started");
+  console.log("🟢 Voice to Text + Copilot Chat: Activation started");
 
   try {
     // --- アウトプットチャンネル作成 ---
-    outputChannel = vscode.window.createOutputChannel("Whisper Voice Input");
+    outputChannel = vscode.window.createOutputChannel(
+      "Voice to Text + Copilot Chat"
+    );
     context.subscriptions.push(outputChannel);
 
     // --- 設定を取得 ---
@@ -696,7 +698,7 @@ function deactivate() {
   if (outputChannel) {
     outputChannel.dispose();
   }
-  console.log("🧹 Whisper Voice Input: deactivated");
+  console.log("🧹 Voice to Text + Copilot Chat: deactivated");
 }
 
 module.exports = { activate, deactivate };

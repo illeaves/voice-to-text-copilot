@@ -95,14 +95,24 @@ function startRecording(context, maxRecordSec, msg, onTimeout, mode = "api") {
       console.log(`🗑️ Deleted old recording file: ${recordingFile}`);
     }
 
-    // micモジュールで録音
-    micInstance = micModule({
+    // プラットフォーム検出
+    const isMac = process.platform === "darwin";
+
+    // micモジュールで録音（Macの場合はデバイス指定）
+    const micConfig = {
       rate: "16000",
       channels: "1",
-      debug: false,
+      debug: true, // デバッグモード有効化
       bitwidth: "16",
       encoding: "signed-integer",
-    });
+    };
+
+    // Macの場合、デフォルトデバイスを明示的に指定
+    if (isMac) {
+      micConfig.device = "default";
+    }
+
+    micInstance = micModule(micConfig);
     micInputStream = micInstance.getAudioStream();
 
     // モードに応じたファイルに保存
@@ -180,12 +190,22 @@ async function stopRecording(apiKey, msg) {
     // 録音を停止
     stopRecordingInternal();
 
-    // ファイルが作成されるまで少し待つ
-    await new Promise((resolve) => setTimeout(resolve, 500));
+    // ファイルが作成されるまで少し待つ（Macは少し長めに）
+    const waitTime = process.platform === "darwin" ? 1000 : 500;
+    await new Promise((resolve) => setTimeout(resolve, waitTime));
 
     // ファイルの存在確認
     if (!fs.existsSync(outputFile)) {
       console.error("⚠️ Voice file not found");
+      return null;
+    }
+
+    // ファイルサイズをログ出力
+    const fileStats = fs.statSync(outputFile);
+    console.log(`📊 Voice file size: ${fileStats.size} bytes`);
+
+    if (fileStats.size === 0) {
+      console.error("⚠️ Voice file is empty (0 bytes)");
       return null;
     }
 
@@ -250,8 +270,9 @@ async function stopRecordingLocal() {
     // 録音を停止
     stopRecordingInternal();
 
-    // ファイルが作成されるまで少し待つ
-    await new Promise((resolve) => setTimeout(resolve, 500));
+    // ファイルが作成されるまで少し待つ（Macは少し長めに）
+    const waitTime = process.platform === "darwin" ? 1000 : 500;
+    await new Promise((resolve) => setTimeout(resolve, waitTime));
 
     if (!fs.existsSync(soxOutputFile)) {
       console.error("⚠️ SOX WAV file not found:", soxOutputFile);
@@ -259,14 +280,18 @@ async function stopRecordingLocal() {
     }
 
     // SOXファイルサイズをチェック
-    const stats = fs.statSync(soxOutputFile);
-    if (stats.size === 0) {
-      console.warn("⚠️ Empty SOX WAV file");
+    const soxFileStats = fs.statSync(soxOutputFile);
+    console.log(`📊 SOX file size: ${soxFileStats.size} bytes`);
+
+    if (soxFileStats.size === 0) {
+      console.warn("⚠️ Empty SOX WAV file (0 bytes)");
       fs.unlinkSync(soxOutputFile); // 空ファイルを削除
       return null;
     }
 
-    console.log(`📝 Converting SOX WAV to standard WAV (${stats.size} bytes)`);
+    console.log(
+      `📝 Converting SOX WAV to standard WAV (${soxFileStats.size} bytes)`
+    );
 
     // SOXコマンドでraw PCMに変換 + 音量を増幅
     const { execSync } = require("child_process");

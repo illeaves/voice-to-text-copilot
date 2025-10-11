@@ -52,11 +52,11 @@
   "downloadComplete": "¡Descarga del modelo completada!",
   "downloadFailed": "Error al descargar el modelo: {{error}}",
   "setupComplete": "¡Configuración completa! Ahora puede comenzar la entrada de voz.",
-  "activationFailed": "Error al activar Whisper Voice Input: {{error}}",
+  "activationFailed": "Error al activar Voice to Text: {{error}}",
   "recordingError": "Error de grabación ocurrido: {{error}}",
   "historyEmpty": "No hay historial disponible",
-  "historySelectPlaceholder": "Seleccionar del historial de Whisper para copiar al portapapeles",
+  "historySelectPlaceholder": "Seleccionar del historial de Voice to Text para copiar al portapapeles",
   "voiceFileEmpty": "El archivo de voz está vacío. Por favor verifique si su micrófono funciona correctamente.",
-  "whisperExecutionFailed": "Error de ejecución de Whisper: {{error}}",
+  "whisperExecutionFailed": "Error de ejecución de whisper: {{error}}",
   "modelDownloadFailed": "Error al descargar el modelo: {{error}}"
 }

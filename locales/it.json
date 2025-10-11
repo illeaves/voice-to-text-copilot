@@ -52,10 +52,10 @@
   "downloadComplete": "Download del modello completato!",
   "downloadFailed": "Download del modello fallito: {{error}}",
   "setupComplete": "Configurazione completata! Puoi iniziare l'input vocale.",
-  "activationFailed": "Attivazione di Whisper Voice Input fallita: {{error}}",
+  "activationFailed": "Attivazione di Voice to Text fallita: {{error}}",
   "recordingError": "Si è verificato un errore di registrazione: {{error}}",
   "historyEmpty": "Nessuna cronologia disponibile",
-  "historySelectPlaceholder": "Seleziona dalla cronologia Whisper per copiare negli appunti",
+  "historySelectPlaceholder": "Seleziona dalla cronologia Voice to Text per copiare negli appunti",
   "voiceFileEmpty": "Il file vocale è vuoto. Verificare che il microfono funzioni correttamente.",
   "whisperExecutionFailed": "Esecuzione di Whisper fallita: {{error}}",
   "modelDownloadFailed": "Download del modello fallito: {{error}}"

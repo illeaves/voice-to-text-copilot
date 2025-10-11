@@ -52,11 +52,11 @@
   "downloadComplete": "Загрузка модели завершена!",
   "downloadFailed": "Ошибка загрузки модели: {{error}}",
   "setupComplete": "Настройка завершена! Вы можете начать голосовой ввод.",
-  "activationFailed": "Не удалось активировать Whisper Voice Input: {{error}}",
+  "activationFailed": "Не удалось активировать Voice to Text: {{error}}",
   "recordingError": "Произошла ошибка записи: {{error}}",
   "historyEmpty": "История недоступна",
-  "historySelectPlaceholder": "Выбрать из истории Whisper для копирования в буфер обмена",
+  "historySelectPlaceholder": "Выбрать из истории Voice to Text для копирования в буфер обмена",
   "voiceFileEmpty": "Голосовой файл пуст. Пожалуйста, проверьте, правильно ли работает ваш микрофон.",
-  "whisperExecutionFailed": "Ошибка выполнения Whisper: {{error}}",
+  "whisperExecutionFailed": "Ошибка выполнения Voice to Text: {{error}}",
   "modelDownloadFailed": "Ошибка загрузки модели: {{error}}"
 }

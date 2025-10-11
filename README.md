@@ -74,7 +74,7 @@ UI の言語は**9 言語対応**（日本語、英語、フランス語、ス�
 ### ⚙️ 録音時間を変更する
 
 1.  VS Code の設定（`Ctrl + ,`）を開く
-2.  「Whisper Voice Input」で検索
+2.  「Voice to Text」で検索
 3.  「録音の最大時間（秒）」を変更（10〜600 秒まで設定可）
 
 ---
@@ -121,7 +121,7 @@ Whisper は**100 以上の言語**を自動認識できます。
 #### ⚙️ モード切り替え
 
 1.  VS Code の設定（`Ctrl + ,`）を開く
-2.  「Whisper Voice Input」で検索
+2.  「Voice to Text」で検索
 3.  **「Mode」** で `api` または `local` を選択
 4.  **ローカルモード**の場合、**「Local Model」**でモデルサイズを選択
     - **Tiny** (~75MB) - 最速、低精度（テスト用）
@@ -304,7 +304,7 @@ The extension UI supports **9 languages** (Japanese, English, French, Spanish, C
 ### ⚙️ Adjust Recording Limit
 
 1.  Open VS Code settings (`Ctrl + ,`)
-2.  Search for "Whisper Voice Input"
+2.  Search for "Voice to Text"
 3.  Change the **Max Record Seconds** setting (range: 10--600 seconds)
 
 ---
@@ -350,7 +350,7 @@ Now you can start/stop recording with just your assigned key combination!
 #### ⚙️ Switching Modes
 
 1.  Open VS Code settings (`Ctrl + ,`)
-2.  Search for "Whisper Voice Input"
+2.  Search for "Voice to Text"
 3.  Change **"Mode"** to `api` or `local`
 4.  For **Local Mode**, select **"Local Model"** size:
     - **Tiny** (~75MB) - Fastest, lowest accuracy (for testing)
@@ -460,7 +460,7 @@ Copyright (c) 2025 aleaf
 
 **English:**
 
-> 🎙️ Whisper Voice Input - Choose between API mode (cloud, high-accuracy) or Local mode (offline, free). 100+ language support for speech recognition. Direct input to editor and Copilot Chat. UI in 9 languages.
+> 🎙️ Voice to Text - Choose between API mode (cloud, high-accuracy) or Local mode (offline, free). 100+ language support for speech recognition. Direct input to editor and Copilot Chat. UI in 9 languages.
 
 ```json
 "description": "🎙️ Voice input for VS Code using OpenAI Whisper API (9 UI languages, 100+ speech languages, Copilot compatible)",

@@ -52,11 +52,11 @@
   "downloadComplete": "Model download complete!",
   "downloadFailed": "Model download failed: {{error}}",
   "setupComplete": "Setup complete! You can start voice input.",
-  "activationFailed": "Whisper Voice Input failed to activate: {{error}}",
+  "activationFailed": "Voice to Text failed to activate: {{error}}",
   "recordingError": "Recording error occurred: {{error}}",
   "historyEmpty": "No history available",
-  "historySelectPlaceholder": "Select from Whisper history to copy to clipboard",
+  "historySelectPlaceholder": "Select from Voice to Text history to copy to clipboard",
   "voiceFileEmpty": "Voice file is empty. Please check if your microphone is working properly.",
-  "whisperExecutionFailed": "Whisper execution failed: {{error}}",
+  "whisperExecutionFailed": "whisper execution failed: {{error}}",
   "modelDownloadFailed": "Model download failed: {{error}}"
 }

@@ -52,11 +52,11 @@
   "downloadComplete": "モデルのダウンロードが完了しました！",
   "downloadFailed": "モデルのダウンロードに失敗しました: {{error}}",
   "setupComplete": "セットアップが完了しました！音声入力を開始できます。",
-  "activationFailed": "Whisper音声入力の起動に失敗しました: {{error}}",
+  "activationFailed": "Voice to Text音声入力の起動に失敗しました: {{error}}",
   "recordingError": "録音エラーが発生しました: {{error}}",
   "historyEmpty": "履歴がありません",
-  "historySelectPlaceholder": "Whisper履歴から選択してクリップボードにコピー",
+  "historySelectPlaceholder": "Voice to Text履歴から選択してクリップボードにコピー",
   "voiceFileEmpty": "音声ファイルが空です。マイクが正しく動作しているか確認してください。",
-  "whisperExecutionFailed": "Whisperの実行に失敗しました: {{error}}",
+  "whisperExecutionFailed": "whisperの実行に失敗しました: {{error}}",
   "modelDownloadFailed": "モデルのダウンロードに失敗しました: {{error}}"
 }
