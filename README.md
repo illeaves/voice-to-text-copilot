@@ -7,6 +7,13 @@ _(日本語 / English)_
 ![License](https://img.shields.io/badge/license-MIT-green.svg)\
 ![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Mac%20%7C%20Linux-lightgrey.svg)
 
+<video width="800" autoplay muted loop>
+  <source src="mov_chat.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
+
+> 🎤 **音声でCopilot Chatに質問 & コード編集** - 100以上の言語に対応した音声入力でVS Codeの生産性を向上
+
 ---
 
 ## 🚀 まず最初に（重要）
@@ -95,6 +102,22 @@ Whisper は**100 以上の言語**を自動認識できます。
 3. 「+」ボタンをクリックして、お好みのキー（例：`Ctrl + Alt + V`）を設定
 
 これで、設定したキーを押すだけで録音を開始/停止できます！
+
+---
+
+### 🎬 デモ動画
+
+#### 📍 Focus モード - エディタに直接貼り付け
+<video width="800" autoplay muted loop>
+  <source src="mov_focus.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
+
+#### 💬 Chat モード - Copilot チャットに貼り付け
+<video width="800" autoplay muted loop>
+  <source src="mov_chat.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
 
 ---
 
