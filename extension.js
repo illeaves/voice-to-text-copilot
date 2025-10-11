@@ -19,6 +19,7 @@ const {
 const { execFile } = require("child_process");
 const util = require("util");
 const execFilePromise = util.promisify(execFile);
+const os = require("os");
 
 // ====== Global State ======
 let isRecording = false; // 録音中か
@@ -56,6 +57,53 @@ function msg(key, vars = {}) {
     text = text.replace(`{{${k}}}`, v);
   }
   return text;
+}
+
+// ====== User Directory Helpers ======
+/**
+ * ユーザーディレクトリのベースパスを取得
+ * ~/.vscode/voice-to-text-copilot/
+ */
+function getUserDataDir() {
+  const homeDir = os.homedir();
+  return path.join(homeDir, ".vscode", "voice-to-text-copilot");
+}
+
+/**
+ * モデルファイル保存ディレクトリを取得
+ * ~/.vscode/voice-to-text-copilot/models/
+ */
+function getModelDir() {
+  return path.join(getUserDataDir(), "models");
+}
+
+/**
+ * カスタムビルド保存ディレクトリを取得 (プラットフォーム別)
+ * ~/.vscode/voice-to-text-copilot/custom-builds/windows/
+ */
+function getCustomBuildDir() {
+  const platform = process.platform;
+  let platformDir;
+
+  if (platform === "win32") {
+    platformDir = "windows";
+  } else if (platform === "darwin") {
+    platformDir = "macos";
+  } else {
+    platformDir = "linux";
+  }
+
+  return path.join(getUserDataDir(), "custom-builds", platformDir);
+}
+
+/**
+ * ディレクトリが存在しない場合は作成
+ */
+function ensureDirectoryExists(dirPath) {
+  if (!fs.existsSync(dirPath)) {
+    fs.mkdirSync(dirPath, { recursive: true });
+    systemLog(`Created directory: ${dirPath}`, "INFO");
+  }
 }
 
 // ====== Logging ======
@@ -283,13 +331,11 @@ function getHistory(context) {
  */
 async function downloadModel(modelName, msg, onProgress = null) {
   const modelUrl = `https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-${modelName}.bin`;
-  const modelDir = path.join(__dirname, "whisper.cpp", "models");
+  const modelDir = getModelDir(); // ユーザーディレクトリに変更
   const modelPath = path.join(modelDir, `ggml-${modelName}.bin`);
 
   // modelsディレクトリ作成
-  if (!fs.existsSync(modelDir)) {
-    fs.mkdirSync(modelDir, { recursive: true });
-  }
+  ensureDirectoryExists(modelDir);
 
   return new Promise((resolve, reject) => {
     const downloadFromUrl = (url, redirectCount = 0) => {
@@ -517,10 +563,24 @@ async function executeLocalWhisper(outputFile, msg) {
   // プラットフォーム別の実行ファイルパス
   const possibleExePaths = [];
 
+  // ユーザーディレクトリのカスタムビルド (最優先)
+  const customBuildDir = getCustomBuildDir();
   if (isWindows) {
-    // Windows用パス(カスタムビルドを最優先、次にデフォルトのbin/、次にwhisper.cpp/build/)
     possibleExePaths.push(
-      // カスタムビルド (CUDA版など、ユーザーが自分でビルドしたもの)
+      path.join(customBuildDir, "whisper-cli.exe"),
+      path.join(customBuildDir, "main.exe")
+    );
+  } else {
+    possibleExePaths.push(
+      path.join(customBuildDir, "whisper-cli"),
+      path.join(customBuildDir, "main")
+    );
+  }
+
+  if (isWindows) {
+    // Windows用パス(拡張機能ディレクトリのカスタムビルド → デフォルトのbin/ → whisper.cpp/build/)
+    possibleExePaths.push(
+      // 拡張機能ディレクトリのカスタムビルド (後方互換)
       path.join(__dirname, "bin", "windows-custom", "whisper-cli.exe"),
       path.join(__dirname, "bin", "windows-custom", "main.exe"),
       // デフォルトのCPU版
@@ -547,9 +607,9 @@ async function executeLocalWhisper(outputFile, msg) {
       path.join(__dirname, "whisper.cpp", "build", "bin", "main.exe")
     );
   } else if (isMac) {
-    // macOS用パス(カスタムビルドを最優先、次にデフォルトのbin/、次にwhisper.cpp/build/)
+    // macOS用パス(拡張機能ディレクトリのカスタムビルド → デフォルトのbin/ → whisper.cpp/build/)
     possibleExePaths.push(
-      // カスタムビルド (ユーザーが自分でビルドしたもの)
+      // 拡張機能ディレクトリのカスタムビルド (後方互換)
       path.join(__dirname, "bin", "macos-custom", "whisper-cli"),
       // デフォルトのMetal版
       path.join(__dirname, "bin", "macos", "whisper-cli"),
@@ -567,9 +627,9 @@ async function executeLocalWhisper(outputFile, msg) {
       path.join(__dirname, "whisper.cpp", "whisper-cli")
     );
   } else if (isLinux) {
-    // Linux用パス(カスタムビルドを最優先、次にデフォルトのbin/、次にwhisper.cpp/build/)
+    // Linux用パス(拡張機能ディレクトリのカスタムビルド → デフォルトのbin/ → whisper.cpp/build/)
     possibleExePaths.push(
-      // カスタムビルド (ユーザーが自分でビルドしたもの)
+      // 拡張機能ディレクトリのカスタムビルド (後方互換)
       path.join(__dirname, "bin", "linux-custom", "whisper-cli"),
       // デフォルトのCPU版
       path.join(__dirname, "bin", "linux", "whisper-cli"),
@@ -606,16 +666,34 @@ async function executeLocalWhisper(outputFile, msg) {
     throw new Error("whisperNotFound");
   }
 
-  const modelPath = path.join(
+  // モデルパス: ユーザーディレクトリ → 拡張機能ディレクトリ (後方互換)
+  const modelDir = getModelDir();
+  const modelPath = path.join(modelDir, `ggml-${selectedModel}.bin`);
+  const fallbackModelPath = path.join(
     __dirname,
     "whisper.cpp",
     "models",
     `ggml-${selectedModel}.bin`
   );
 
+  let finalModelPath = null;
+  if (fs.existsSync(modelPath)) {
+    finalModelPath = modelPath;
+    systemLog(`Using model from user directory: ${modelPath}`, "INFO");
+  } else if (fs.existsSync(fallbackModelPath)) {
+    finalModelPath = fallbackModelPath;
+    systemLog(
+      `Using model from extension directory: ${fallbackModelPath}`,
+      "INFO"
+    );
+  }
+
   // モデル・音声ファイルの存在確認
-  if (!fs.existsSync(modelPath)) {
-    systemLog(`Model file not found: ${modelPath}`, "ERROR");
+  if (!finalModelPath) {
+    systemLog(
+      `Model file not found: ${modelPath} (or ${fallbackModelPath})`,
+      "ERROR"
+    );
     vscode.window.showErrorMessage(
       msg("modelNotFound", { model: selectedModel })
     );
@@ -640,7 +718,7 @@ async function executeLocalWhisper(outputFile, msg) {
     // 言語は自動検出して、検出した言語で出力（翻訳しない）
     const args = [
       "-m",
-      modelPath,
+      finalModelPath,
       "-f",
       outputFile,
       "--output-txt",
@@ -1064,30 +1142,20 @@ function registerCommands(context) {
     vscode.commands.registerCommand(
       "whisperVoiceInput.openCustomBuildFolder",
       async () => {
+        const customDir = getCustomBuildDir(); // ユーザーディレクトリに変更
         const platform = process.platform;
-        let customDir;
         let platformName;
 
         if (platform === "win32") {
-          customDir = path.join(__dirname, "bin", "windows-custom");
           platformName = "Windows";
         } else if (platform === "darwin") {
-          customDir = path.join(__dirname, "bin", "macos-custom");
           platformName = "macOS";
         } else {
-          customDir = path.join(__dirname, "bin", "linux-custom");
           platformName = "Linux";
         }
 
         // ディレクトリが存在しない場合は作成
-        if (!fs.existsSync(customDir)) {
-          fs.mkdirSync(customDir, { recursive: true });
-          systemLog(`Created custom build directory: ${customDir}`, "INFO");
-        }
-
-        // README.mdのパス
-        const readmePath = path.join(customDir, "README.md");
-        const readmeExists = fs.existsSync(readmePath);
+        ensureDirectoryExists(customDir);
 
         // エクスプローラー/Finderで開く
         try {
@@ -1095,25 +1163,10 @@ function registerCommands(context) {
           await vscode.commands.executeCommand("revealFileInOS", uri);
 
           // 情報メッセージ
-          const message = readmeExists
-            ? `${platformName} GPU版ビルドをこのフォルダーに配置してください。詳細はREADME.mdをご覧ください。`
-            : `${platformName} GPU版ビルドをこのフォルダーに配置してください: ${customDir}`;
+          const message = `${platformName} GPU版ビルドをこのフォルダーに配置してください:\n${customDir}`;
 
           vscode.window.showInformationMessage(message);
           systemLog(`Opened custom build folder: ${customDir}`, "INFO");
-
-          // README.mdが存在する場合は開くか尋ねる
-          if (readmeExists) {
-            const choice = await vscode.window.showInformationMessage(
-              "GPU版ビルド手順を表示しますか?",
-              "はい",
-              "いいえ"
-            );
-            if (choice === "はい") {
-              const doc = await vscode.workspace.openTextDocument(readmePath);
-              await vscode.window.showTextDocument(doc, { preview: false });
-            }
-          }
         } catch (error) {
           vscode.window.showErrorMessage(
             `フォルダーを開けませんでした: ${customDir}`
@@ -1124,5 +1177,90 @@ function registerCommands(context) {
     )
   );
 
+  // クリーンアップコマンド (モデルとカスタムビルドを削除)
+  disposables.push(
+    vscode.commands.registerCommand("whisperVoiceInput.cleanUp", async () => {
+      const userDataDir = getUserDataDir();
+
+      // ディレクトリが存在しない場合
+      if (!fs.existsSync(userDataDir)) {
+        vscode.window.showInformationMessage("削除するデータがありません。");
+        return;
+      }
+
+      // ディレクトリサイズを計算
+      let totalSize = 0;
+      const calculateSize = (dirPath) => {
+        if (!fs.existsSync(dirPath)) return;
+        const files = fs.readdirSync(dirPath);
+        files.forEach((file) => {
+          const filePath = path.join(dirPath, file);
+          const stats = fs.statSync(filePath);
+          if (stats.isDirectory()) {
+            calculateSize(filePath);
+          } else {
+            totalSize += stats.size;
+          }
+        });
+      };
+      calculateSize(userDataDir);
+      const sizeMB = (totalSize / 1024 / 1024).toFixed(1);
+
+      // 確認ダイアログ
+      const choice = await vscode.window.showWarningMessage(
+        `以下のデータを削除しますか?\n` +
+          `フォルダー: ${userDataDir}\n` +
+          `サイズ: 約 ${sizeMB} MB\n\n` +
+          `含まれるもの:\n` +
+          `- モデルファイル\n` +
+          `- GPU版カスタムビルド\n\n` +
+          `この操作は取り消せません。`,
+        { modal: true },
+        "削除する",
+        "キャンセル"
+      );
+
+      if (choice !== "削除する") {
+        return;
+      }
+
+      // 削除実行
+      try {
+        fs.rmSync(userDataDir, { recursive: true, force: true });
+        vscode.window.showInformationMessage(
+          `データを削除しました (${sizeMB} MB 解放)`
+        );
+        systemLog(`Cleaned up user data: ${userDataDir}`, "INFO");
+      } catch (error) {
+        vscode.window.showErrorMessage(
+          `データの削除に失敗しました: ${error.message}`
+        );
+        systemLog(`Failed to clean up user data: ${error}`, "ERROR");
+      }
+    })
+  );
+
   disposables.forEach((d) => context.subscriptions.push(d));
 }
+
+/**
+ * 拡張機能の非アクティブ化
+ */
+function deactivate() {
+  const userDataDir = getUserDataDir();
+
+  // ユーザーデータが存在する場合は通知
+  if (fs.existsSync(userDataDir)) {
+    vscode.window.showInformationMessage(
+      "Voice to Text をアンインストールしました。\n" +
+        "モデルファイルとカスタムビルド(約1GB)を削除する場合は、\n" +
+        "再インストール後に「Voice to Text: Clean Up」コマンドを実行してください。",
+      "OK"
+    );
+  }
+}
+
+module.exports = {
+  activate,
+  deactivate,
+};

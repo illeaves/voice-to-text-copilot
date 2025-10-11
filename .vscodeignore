@@ -20,15 +20,6 @@ whisper.cpp/Testing/
 # Node modules - バンドルしない場合は含める必要がある
 # (警告が出ているがバンドル化は今回スキップ)
 
-# Exclude custom build (user local GPU builds)
-# But keep the README guides
-bin/windows-custom/**
-!bin/windows-custom/README.md
-bin/macos-custom/**
-!bin/macos-custom/README.md
-bin/linux-custom/**
-!bin/linux-custom/README.md
-
 # Keep only minimal runtime binaries; exclude auxiliary executables
 bin/windows/bench.exe
 bin/windows/main.exe

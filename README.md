@@ -264,59 +264,69 @@ mkdir build && cd build
 # 2. CUDA対応でビルド
 cmake .. -DGGML_CUDA=ON -DCMAKE_BUILD_TYPE=Release
 cmake --build . --config Release
-
-# 3. ビルドしたファイルをコピー
-# Windows: build/bin/Release/* → bin/windows-custom/
-# ※ bin/windows-custom/ に配置すると、自動的に優先使用されます
 ```
+
+**ビルドしたファイルの配置:**
+
+1. **コマンドでフォルダーを開く** (推奨):
+
+   ```
+   Ctrl+Shift+P → "Voice to Text: Open Custom Build Folder"
+   ```
+
+   開いたフォルダーに `build/bin/Release/*` をコピー
+
+2. **手動で配置する場合**:
+   ```
+   Windows: %USERPROFILE%\.vscode\voice-to-text-copilot\custom-builds\windows\
+   macOS:   ~/.vscode/voice-to-text-copilot/custom-builds/macos/
+   Linux:   ~/.vscode/voice-to-text-copilot/custom-builds/linux/
+   ```
 
 **必要なファイル (CUDA 版の場合):**
 
 - ビルドした全ファイル (`build/bin/Release/*`)
 - CUDA DLL (`C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v12.6\bin\*.dll`)
   - `cudart64_12.dll`, `cublas64_12.dll`, `cublasLt64_12.dll` など
-  - 詳細は `bin/windows-custom/README.md` を参照
+  - 合計約 740MB
 
-**配置場所の見つけ方:**
+**配置後の確認:**
 
-**🎯 最も簡単な方法:**
-
-1. VS Code で `Ctrl+Shift+P` (macOS: `Cmd+Shift+P`)
-2. **「Voice to Text: Open Custom Build Folder」** を選択
-3. フォルダーが自動的に開きます
-4. GPU 版ビルドをここにコピーしてください
-
-**手動でアクセスする場合:**
-
-拡張機能のインストールディレクトリは以下の場所にあります:
+音声入力を実行すると、ログに以下のように表示されます:
 
 ```
-Windows:
-C:\Users\<ユーザー名>\.vscode\extensions\aleaf.voice-to-text-copilot-<バージョン>\bin\windows-custom\
-
-macOS:
-~/.vscode/extensions/aleaf.voice-to-text-copilot-<バージョン>/bin/macos-custom/
-
-Linux:
-~/.vscode/extensions/aleaf.voice-to-text-copilot-<バージョン>/bin/linux-custom/
+Found whisper executable: ~/.vscode/voice-to-text-copilot/custom-builds/windows/whisper-cli.exe
+whisper_backend_init_gpu: found 1 CUDA devices  ← GPU検出成功!
 ```
 
-**ターミナルから開く:**
+**検出の優先順位:**
 
-```powershell
-# Windows (PowerShell)
-explorer $env:USERPROFILE\.vscode\extensions\aleaf.voice-to-text-copilot-*\bin\windows-custom
-
-# macOS
-open ~/.vscode/extensions/aleaf.voice-to-text-copilot-*/bin/macos-custom
-
-# Linux
-xdg-open ~/.vscode/extensions/aleaf.voice-to-text-copilot-*/bin/linux-custom
-```
+1. **ユーザーディレクトリのカスタムビルド** (GPU 版) ← 最優先
+   - `~/.vscode/voice-to-text-copilot/custom-builds/<platform>/`
+2. **拡張機能ディレクトリ** (CPU 版) ← デフォルト
+   - 拡張機能に同梱されたバイナリ
 
 ---
 
-**ファイル配置後の確認:**
+### 🗑️ アンインストール
+
+拡張機能をアンインストールしても、モデルファイルとカスタムビルド(約 1GB)はユーザーディレクトリに残ります。
+
+**完全に削除する場合:**
+
+1. **コマンドで削除** (推奨):
+
+   ```
+   Ctrl+Shift+P → "Voice to Text: Clean Up (Remove Models & Custom Builds)"
+   ```
+
+2. **手動で削除**:
+   ```
+   Windows: %USERPROFILE%\.vscode\voice-to-text-copilot フォルダーを削除
+   macOS/Linux: ~/.vscode/voice-to-text-copilot フォルダーを削除
+   ```
+
+---
 
 音声入力を実行すると、ログに以下のように表示されます:
 

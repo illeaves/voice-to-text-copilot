@@ -2,6 +2,62 @@
 
 All notable changes to the "Voice to Text + Copilot Chat" extension will be documented in this file.
 
+## [1.4.0] - 2025-10-11
+
+### 🎯 Major Changes
+
+- **ユーザーディレクトリへの移行** / **Migration to User Directory**
+  - モデルファイルとカスタムビルドをユーザーディレクトリに保存するように変更
+  - Changed to save model files and custom builds in user directory
+  - 保存場所: `~/.vscode/voice-to-text-copilot/`
+  - Location: `~/.vscode/voice-to-text-copilot/`
+  - **メリット**: バージョン更新してもデータが消えない!
+  - **Benefit**: Data persists across version updates!
+
+### ✨ New Features
+
+- **自動データ移行** / **Automatic Data Migration**
+
+  - 初回起動時に旧バージョンからモデルとカスタムビルドを自動移行
+  - Automatically migrates models and custom builds from old version on first launch
+
+- **クリーンアップコマンド** / **Clean Up Command**
+
+  - `Voice to Text: Clean Up` コマンドを追加
+  - Added command to remove all user data (models + custom builds)
+  - アンインストール前や不要になったデータの削除に便利
+  - Useful before uninstalling or removing unnecessary data
+
+- **アンインストール時の通知** / **Uninstall Notification**
+  - 拡張機能アンインストール時にデータ削除方法を通知
+  - Notifies about data cleanup when extension is uninstalled
+
+### 📂 Directory Structure
+
+```
+~/.vscode/voice-to-text-copilot/
+  ├─ models/                    # モデルファイル (永続)
+  │   ├─ ggml-tiny.bin
+  │   ├─ ggml-base.bin
+  │   ├─ ggml-small.bin
+  │   ├─ ggml-medium.bin
+  │   └─ ggml-large.bin
+  │
+  └─ custom-builds/             # GPU版ビルド (永続)
+      ├─ windows/
+      ├─ macos/
+      └─ linux/
+```
+
+### 🔄 Breaking Changes
+
+- モデルファイルとカスタムビルドの保存場所が変更されました
+- Model files and custom builds storage location has changed
+- 旧バージョンからのアップデート時は自動移行されます
+- Automatic migration occurs when updating from older versions
+
+---
+
 ## [1.3.1] - 2025-10-11
 
 ### ✨ New Features
