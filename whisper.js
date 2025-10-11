@@ -98,7 +98,7 @@ function startRecording(context, maxRecordSec, msg, onTimeout, mode = "api") {
     // プラットフォーム検出
     const isMac = process.platform === "darwin";
 
-    // micモジュールで録音（Macの場合はデバイス指定）
+    // micモジュールで録音(Macの場合はデバイス指定)
     const micConfig = {
       rate: "16000",
       channels: "1",
@@ -110,6 +110,8 @@ function startRecording(context, maxRecordSec, msg, onTimeout, mode = "api") {
     // Macの場合、デフォルトデバイスを明示的に指定
     if (isMac) {
       micConfig.device = "default";
+      // 注: Macのハードウェアは16kHzをサポートしないため、
+      // SOXは自動的に48kHzで録音し、後で16kHzに変換します
     }
 
     micInstance = micModule(micConfig);
@@ -209,11 +211,50 @@ async function stopRecording(apiKey, msg) {
       return null;
     }
 
+    // Macの場合、OpenAI API用に16kHz WAVに変換
+    const isMac = process.platform === "darwin";
+    let apiFile = outputFile;
+
+    if (isMac) {
+      const convertedFile = path.join(
+        path.dirname(outputFile),
+        "voice_converted.wav"
+      );
+
+      console.log(`🔄 Converting audio file for OpenAI API...`);
+
+      // SOXで16kHz, mono, 16-bit WAVに変換
+      const soxPath = "/opt/homebrew/bin/sox"; // Homebrewのデフォルトパス
+      const soxArgs = [
+        outputFile,
+        "-r",
+        "16000", // サンプルレート: 16kHz
+        "-c",
+        "1", // チャンネル: mono
+        "-b",
+        "16", // ビット深度: 16-bit
+        convertedFile,
+      ];
+
+      try {
+        const { execFileSync } = require("child_process");
+        execFileSync(soxPath, soxArgs);
+
+        const convertedStats = fs.statSync(convertedFile);
+        console.log(`✅ Converted file size: ${convertedStats.size} bytes`);
+
+        apiFile = convertedFile;
+      } catch (error) {
+        console.error("❌ SOX conversion failed:", error.message);
+        // 変換失敗時は元のファイルを使用
+      }
+    }
+
     // ファイルサイズをチェック
-    const stats = fs.statSync(outputFile);
+    const stats = fs.statSync(apiFile);
     if (stats.size === 0) {
       console.warn("⚠️ Empty voice file");
-      fs.unlink(outputFile, () => {}); // 空ファイルを削除
+      fs.unlink(apiFile, () => {}); // 空ファイルを削除
       return null;
     }
 
@@ -222,7 +263,7 @@ async function stopRecording(apiKey, msg) {
     const openai = new OpenAI({ apiKey });
 
     const res = await openai.audio.transcriptions.create({
-      file: fs.createReadStream(outputFile),
+      file: fs.createReadStream(apiFile),
       model: "whisper-1",
     });
 
@@ -231,6 +272,14 @@ async function stopRecording(apiKey, msg) {
       if (err) console.error("⚠️ Failed to delete voice file:", err);
       else console.log(`🗑️ Deleted voice file: ${outputFile}`);
     });
+
+    // 変換ファイルも削除(Macの場合)
+    if (isMac && apiFile !== outputFile) {
+      fs.unlink(apiFile, (err) => {
+        if (err) console.error("⚠️ Failed to delete converted file:", err);
+        else console.log(`🗑️ Deleted converted file: ${apiFile}`);
+      });
+    }
 
     return res.text;
   } catch (e) {
