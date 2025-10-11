@@ -2,6 +2,26 @@
 
 All notable changes to the "Voice to Text (also for Copilot Chat)" extension will be documented in this file.
 
+## [1.5.2] - 2025-10-12
+
+### 📹 Media Enhancements
+
+- **デモ動画追加** / **Added Demo Videos**
+  - READMEにFocus/Chatモードのデモ動画を追加
+  - Added demo videos for Focus/Chat modes in README
+  - ヒーロー動画でCopilot Chat連携をアピール
+  - Hero video showcasing Copilot Chat integration
+  - 超軽量化（458KB + 549KB）でfast loading
+  - Ultra-optimized file sizes (458KB + 549KB) for fast loading
+
+### 🎨 Documentation Improvements
+
+- **視覚的説明の強化** / **Enhanced Visual Documentation**
+  - 一目で機能が分かるヒーロー動画配置
+  - Hero video placement for instant feature understanding
+  - Focus/Chatモードの違いを動画で明確化
+  - Clear demonstration of Focus/Chat mode differences
+
 ## [1.5.1] - 2025-10-12
 
 ### 🚀 New Features

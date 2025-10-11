@@ -2,7 +2,7 @@
 
 _(日本語 / English)_
 
-![Version](https://img.shields.io/badge/version-1.5.1-blue.svg)\
+![Version](https://img.shields.io/badge/version-1.5.2-blue.svg)\
 ![VSCode](https://img.shields.io/badge/VS_Code-Extension-007ACC.svg)\
 ![License](https://img.shields.io/badge/license-MIT-green.svg)\
 ![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Mac%20%7C%20Linux-lightgrey.svg)
