@@ -41,6 +41,9 @@ dist/
 # Documentation (development only)
 CHANGELOG.md
 
+# Explicitly include docs folder for README images
+!docs/
+
 # Testing
 test/
 tests/
