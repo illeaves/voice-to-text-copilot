@@ -256,12 +256,10 @@ function updateStatusBar(state = "idle", elapsed = 0, max = 0) {
         statusBarItemFocus.text = "�Focus";
         statusBarItemFocus.tooltip = `${msg("statusRecording")} - クリックで停止 [${modeLabel}]`;
         statusBarItemFocus.backgroundColor = new vscode.ThemeColor(
-          "statusBarItem.errorBackground"
+          "statusBarItem.warningBackground"
         );
         statusBarItemFocus.command = "voiceToText.toggle"; // 停止可能
-        statusBarItemFocus.color = new vscode.ThemeColor(
-          "statusBarItem.errorForeground"
-        );
+        statusBarItemFocus.color = undefined;
 
         // 非アクティブなボタン（無効化）
         statusBarItemChat.text = "💬Chat";
@@ -276,12 +274,10 @@ function updateStatusBar(state = "idle", elapsed = 0, max = 0) {
         statusBarItemChat.text = "�Chat";
         statusBarItemChat.tooltip = `${msg("statusRecording")} - クリックで停止 [${modeLabel}]`;
         statusBarItemChat.backgroundColor = new vscode.ThemeColor(
-          "statusBarItem.errorBackground"
+          "statusBarItem.warningBackground"
         );
         statusBarItemChat.command = "voiceToText.toggleForChat"; // 停止可能
-        statusBarItemChat.color = new vscode.ThemeColor(
-          "statusBarItem.errorForeground"
-        );
+        statusBarItemChat.color = undefined;
 
         // 非アクティブなボタン（無効化）
         statusBarItemFocus.text = "📍Focus";
@@ -293,17 +289,9 @@ function updateStatusBar(state = "idle", elapsed = 0, max = 0) {
         );
       }
       
-      // 強制的に再表示して状態を確実に適用
-      statusBarItemStatus.hide();
-      statusBarItemFocus.hide();
-      statusBarItemChat.hide();
-      
-      // 少し遅延させて再表示（VSCodeの内部処理を待つ）
-      setTimeout(() => {
-        statusBarItemStatus.show();
-        statusBarItemFocus.show();
-        statusBarItemChat.show();
-      }, 50);
+      statusBarItemStatus.show();
+      statusBarItemFocus.show();
+      statusBarItemChat.show();
       break;
     }
     case "processing": {
