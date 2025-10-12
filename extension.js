@@ -4,57 +4,93 @@
  */
 "use strict";
 
-// ====== Imports ======
+// =====================================================================================================
+// 📦 Imports
+// =====================================================================================================
 const vscode = require("vscode");
 const fs = require("fs");
 const path = require("path");
 const https = require("https");
-const {
-  startRecording,
-  stopRecording,
-  isCurrentlyRecording,
-} = require("./whisper.js");
-const { execFile } = require("child_process");
+const OpenAI = require("openai");
+const { execFile, spawn } = require("child_process");
 const util = require("util");
 const execFilePromise = util.promisify(execFile);
 const os = require("os");
+const { PROMPT_PRESETS } = require("./promptPresets");
 
-// ====== Global State ======
+// =====================================================================================================
+// 🌐 グローバル変数
+// =====================================================================================================
+
+// UI状態管理
 let isRecording = false; // 録音中か
 let isProcessing = false; // 音声→テキスト処理中か
-let messages = {}; // ローカライズメッセージ
 let statusBarItemStatus; // ステータスバー項目 (ステータス表示)
 let statusBarItemFocus; // ステータスバー項目 (Focus)
 let statusBarItemChat; // ステータスバー項目 (Chat)
+let statusBarItemTranslate; // ステータスバー項目 (Translation toggle)
 let outputChannel; // アウトプットチャンネル
+
+// 録音タイマー管理
 let recordingTimer = null; // 録音時間表示用タイマー
 let recordingStartTime = null; // 録音開始時刻
 let recordingMaxSeconds = 180; // 最大録音時間
 let activeRecordingButton = null; // 'focus' or 'chat' - どちらのボタンで録音開始したか
 
-// 📍 貼り付け先情報の保存
+// 貼り付け先情報
 let pasteTarget = null; // 'auto' or 'chat'
 let savedEditor = null; // 録音開始時のエディタ
 let savedPosition = null; // 録音開始時のカーソル位置
 
-// ====== History Constants ======
+// 録音制御 (SOX)
+let soxProcess = null; // SOXプロセス
+let recordingTimeout = null; // 録音タイムアウト
+let currentRecordingFile = null; // 現在録音中のファイルパス
+const outputFile = path.join(__dirname, "voice.wav"); // 録音ファイルパス
+
+// ローカライゼーション
+let messages = {}; // ローカライズメッセージ
+
+// 履歴管理
 const WHISPER_HISTORY_KEY = "whisperHistory"; // 履歴保存キー
 const MAX_HISTORY_SIZE = 10; // 最大履歴件数
 
-// ====== Binary Permissions ======
+// 拡張機能コンテキスト
+let extensionContext = null; // VS Code拡張機能のコンテキスト（secrets APIなどで使用）
+
+// =====================================================================================================
+// 🔧 ユーティリティ関数
+// =====================================================================================================
+
 /**
  * バイナリファイルの実行権限を確保
+ * @returns {Promise<void>}
  */
-async function ensureBinaryPermissions(context) {
+async function ensureBinaryPermissions() {
   const platform = process.platform;
   let binaryPath;
 
   if (platform === "darwin") {
-    binaryPath = path.join(context.extensionPath, "bin", "macos", "whisper-cli");
+    binaryPath = path.join(
+      extensionContext.extensionPath,
+      "bin",
+      "macos",
+      "whisper-cli"
+    );
   } else if (platform === "linux") {
-    binaryPath = path.join(context.extensionPath, "bin", "linux", "whisper-cli");
+    binaryPath = path.join(
+      extensionContext.extensionPath,
+      "bin",
+      "linux",
+      "whisper-cli"
+    );
   } else if (platform === "win32") {
-    binaryPath = path.join(context.extensionPath, "bin", "windows", "whisper-cli.exe");
+    binaryPath = path.join(
+      extensionContext.extensionPath,
+      "bin",
+      "windows",
+      "whisper-cli.exe"
+    );
   } else {
     console.log(`⚠️ Unsupported platform: ${platform}`);
     return;
@@ -69,31 +105,35 @@ async function ensureBinaryPermissions(context) {
 
     // プラットフォーム別の権限チェック・設定
     const stats = fs.statSync(binaryPath);
-    
+
     if (platform === "win32") {
       // Windows: ファイル属性をチェック（読み取り専用でないことを確認）
       try {
-        const isReadOnly = (stats.mode & parseInt('200', 8)) === 0;
+        const isReadOnly = (stats.mode & parseInt("200", 8)) === 0;
         if (isReadOnly) {
           console.log(`🔧 Removing read-only attribute from: ${binaryPath}`);
-          fs.chmodSync(binaryPath, stats.mode | parseInt('666', 8));
+          fs.chmodSync(binaryPath, stats.mode | parseInt("666", 8));
           console.log(`✅ Read-only attribute removed successfully`);
         } else {
           console.log(`✅ Windows binary has proper attributes: ${binaryPath}`);
         }
       } catch (winError) {
-        console.error(`⚠️ Failed to modify Windows file attributes: ${winError.message}`);
+        console.error(
+          `⚠️ Failed to modify Windows file attributes: ${winError.message}`
+        );
       }
     } else {
       // Unix系 (macOS/Linux): 実行権限をチェック
-      const hasExecutePermission = (stats.mode & parseInt('111', 8)) !== 0;
-      
+      const hasExecutePermission = (stats.mode & parseInt("111", 8)) !== 0;
+
       if (!hasExecutePermission) {
         console.log(`🔧 Adding execute permission to: ${binaryPath}`);
-        fs.chmodSync(binaryPath, stats.mode | parseInt('755', 8));
+        fs.chmodSync(binaryPath, stats.mode | parseInt("755", 8));
         console.log(`✅ Execute permission added successfully`);
       } else {
-        console.log(`✅ Unix binary already has execute permission: ${binaryPath}`);
+        console.log(
+          `✅ Unix binary already has execute permission: ${binaryPath}`
+        );
       }
     }
     // 実行可能性テスト（簡易チェック）
@@ -102,7 +142,9 @@ async function ensureBinaryPermissions(context) {
       const testExecution = new Promise((resolve) => {
         execFile(binaryPath, ["--help"], { timeout: 3000 }, (error) => {
           if (error && error.code === "EACCES") {
-            console.error(`❌ Binary still not executable after permission fix: ${binaryPath}`);
+            console.error(
+              `❌ Binary still not executable after permission fix: ${binaryPath}`
+            );
             resolve(false);
           } else {
             console.log(`✅ Binary execution test passed: ${binaryPath}`);
@@ -110,19 +152,26 @@ async function ensureBinaryPermissions(context) {
           }
         });
       });
-      
+
       await testExecution;
     } catch (testError) {
-      console.warn(`⚠️ Binary execution test failed (non-critical): ${testError.message}`);
+      console.warn(
+        `⚠️ Binary execution test failed (non-critical): ${testError.message}`
+      );
     }
-
   } catch (error) {
     console.error(`⚠️ Failed to set binary permissions: ${error.message}`);
     // 権限エラーは致命的ではないので続行
   }
 }
 
-// ====== Localization ======
+// ------ ローカライゼーション ------
+
+/**
+ * 指定された言語のロケールファイルを読み込み
+ * @param {string} lang - 言語コード（例: 'ja', 'en'）
+ * @returns {Object} ローカライズされたメッセージオブジェクト
+ */
 function loadLocale(lang) {
   try {
     const localeFile = path.join(__dirname, "locales", `${lang}.json`);
@@ -138,6 +187,12 @@ function loadLocale(lang) {
   }
 }
 
+/**
+ * ローカライズされたメッセージを取得し、変数を置換
+ * @param {string} key - メッセージキー
+ * @param {Object} vars - 置換する変数のオブジェクト
+ * @returns {string} ローカライズされたメッセージ
+ */
 function msg(key, vars = {}) {
   let text = messages[key] || key;
   for (const [k, v] of Object.entries(vars)) {
@@ -146,10 +201,11 @@ function msg(key, vars = {}) {
   return text;
 }
 
-// ====== User Directory Helpers ======
+// ------ ユーザーディレクトリヘルパー ------
+
 /**
  * ユーザーディレクトリのベースパスを取得
- * ~/.vscode/voice-to-text-copilot/
+ * @returns {string} ~/.vscode/voice-to-text-copilot/
  */
 function getUserDataDir() {
   const homeDir = os.homedir();
@@ -158,15 +214,15 @@ function getUserDataDir() {
 
 /**
  * モデルファイル保存ディレクトリを取得
- * ~/.vscode/voice-to-text-copilot/models/
+ * @returns {string} ~/.vscode/voice-to-text-copilot/models/
  */
 function getModelDir() {
   return path.join(getUserDataDir(), "models");
 }
 
 /**
- * カスタムビルド保存ディレクトリを取得 (プラットフォーム別)
- * ~/.vscode/voice-to-text-copilot/custom-builds/windows/
+ * カスタムビルド保存ディレクトリを取得（プラットフォーム別）
+ * @returns {string} ~/.vscode/voice-to-text-copilot/custom-builds/{platform}/
  */
 function getCustomBuildDir() {
   const platform = process.platform;
@@ -185,6 +241,8 @@ function getCustomBuildDir() {
 
 /**
  * ディレクトリが存在しない場合は作成
+ * @param {string} dirPath - 作成するディレクトリパス
+ * @returns {void}
  */
 function ensureDirectoryExists(dirPath) {
   if (!fs.existsSync(dirPath)) {
@@ -193,7 +251,14 @@ function ensureDirectoryExists(dirPath) {
   }
 }
 
-// ====== Logging ======
+// ------ ロギング ------
+
+/**
+ * システムログを出力チャネルに記録
+ * @param {string} message - ログメッセージ
+ * @param {string} level - ログレベル（例: "INFO", "WARNING", "ERROR"）
+ * @returns {void}
+ */
 function systemLog(message, level = "INFO") {
   const timestamp = new Date().toLocaleTimeString();
   const logMessage = `[${timestamp}] ${level}: ${message}`;
@@ -201,7 +266,12 @@ function systemLog(message, level = "INFO") {
   if (outputChannel) outputChannel.appendLine(logMessage);
 }
 
-// ====== SOX Installation Check ======
+// ------ SOXインストールチェック ------
+
+/**
+ * SOXのインストール状態を確認
+ * @returns {Promise<boolean>} SOXが利用可能な場合true
+ */
 async function checkSoxInstallation() {
   const platform = process.platform;
 
@@ -223,6 +293,11 @@ async function checkSoxInstallation() {
   }
 }
 
+/**
+ * SOXのインストールを促すダイアログを表示
+ * @param {string} platform - プラットフォーム識別子
+ * @returns {Promise<void>}
+ */
 async function promptSoxInstallation(platform) {
   // プラットフォームに応じたメッセージとインストール手順を選択
   let messageKey, instructionsKey;
@@ -292,12 +367,43 @@ async function promptSoxInstallation(platform) {
   }
 }
 
-// ====== Status Bar Helper ======
+// ------ ステータスバー更新 ------
+
 /**
- * 📝 ステータスバー更新（状態に応じて）
- * @param {string} state - idle, recording, processing, success
+ * 翻訳ボタンの表示を更新
+ * @returns {void}
+ */
+function updateTranslateButton() {
+  if (!statusBarItemTranslate) return;
+
+  const config = vscode.workspace.getConfiguration("voiceToText");
+  const enableTranslation = config.get("enableTranslation", false);
+
+  if (enableTranslation) {
+    statusBarItemTranslate.tooltip =
+      "Translation: ON (to English) - Click to disable";
+    // ONの時は録音中と同じ背景色
+    statusBarItemTranslate.backgroundColor = new vscode.ThemeColor(
+      "statusBarItem.warningBackground"
+    );
+    statusBarItemTranslate.color = undefined; // 通常の文字色
+  } else {
+    statusBarItemTranslate.tooltip = "Translation: OFF - Click to enable";
+    // OFFの時は背景色なし、文字色も通常
+    statusBarItemTranslate.backgroundColor = undefined;
+    statusBarItemTranslate.color = undefined;
+  }
+
+  // 常に表示（APIモードでもローカルモードでも）
+  statusBarItemTranslate.show();
+}
+
+/**
+ * ステータスバー更新（状態に応じて表示を変更）
+ * @param {string} state - 状態（"idle", "recording", "processing", "success"）
  * @param {number} elapsed - 経過秒数（recording時のみ）
  * @param {number} max - 最大秒数（recording時のみ）
+ * @returns {void}
  */
 function updateStatusBar(state = "idle", elapsed = 0, max = 0) {
   if (!statusBarItemStatus || !statusBarItemFocus || !statusBarItemChat) return;
@@ -306,6 +412,9 @@ function updateStatusBar(state = "idle", elapsed = 0, max = 0) {
   const config = vscode.workspace.getConfiguration("voiceToText");
   const mode = config.get("mode", "api");
   const localModel = config.get("localModel", "small");
+
+  // 翻訳ボタンの表示を更新
+  updateTranslateButton();
 
   // モデル名を大文字に変換（Tiny, Base, Small, Medium, Large）
   const modelName = localModel.charAt(0).toUpperCase() + localModel.slice(1);
@@ -469,9 +578,12 @@ function updateStatusBar(state = "idle", elapsed = 0, max = 0) {
   }
 }
 
-// ====== 貼り付け処理関数 ======
+// ------ 貼り付け処理 ------
+
 /**
- * 💬 Copilot Chatに貼り付け
+ * Copilot Chatに文字起こしテキストを貼り付け
+ * @param {string} text - 貼り付けるテキスト
+ * @returns {Promise<void>}
  */
 async function pasteToChat(text) {
   systemLog("📍 Copilot Chatに貼り付けます", "INFO");
@@ -493,7 +605,9 @@ async function pasteToChat(text) {
 }
 
 /**
- * 📍 保存された位置に貼り付け
+ * 保存された位置に文字起こしテキストを貼り付け
+ * @param {string} text - 貼り付けるテキスト
+ * @returns {Promise<void>}
  */
 async function pasteToSavedPosition(text) {
   // エディタがまだ存在するか確認
@@ -533,7 +647,9 @@ async function pasteToSavedPosition(text) {
 }
 
 /**
- * 🔄 現在のフォーカス位置に貼り付け (従来の動作)
+ * 現在のフォーカス位置に文字起こしテキストを貼り付け
+ * @param {string} text - 貼り付けるテキスト
+ * @returns {Promise<void>}
  */
 async function pasteToCurrentFocus(text) {
   systemLog("📍 現在のフォーカス位置に貼り付けます", "INFO");
@@ -551,7 +667,9 @@ async function pasteToCurrentFocus(text) {
 }
 
 /**
- * ⏱️ 録音時間表示タイマーを開始
+ * 録音時間表示タイマーを開始
+ * @param {number} maxSeconds - 最大録音秒数
+ * @returns {void}
  */
 function startRecordingTimer(maxSeconds) {
   stopRecordingTimer(); // 既存のタイマーをクリア
@@ -565,7 +683,8 @@ function startRecordingTimer(maxSeconds) {
 }
 
 /**
- * 🟦 録音時間表示タイマーを停止
+ * 録音時間表示タイマーを停止
+ * @returns {void}
  */
 function stopRecordingTimer() {
   if (recordingTimer) {
@@ -576,10 +695,13 @@ function stopRecordingTimer() {
 }
 
 /**
- * 📥 Whisper履歴に追加
+ * Whisper履歴に新しいエントリを追加
+ * @param {string} text - 文字起こしされたテキスト
+ * @param {string} mode - 使用したモード（"api" または "local"）
+ * @returns {void}
  */
-function addToHistory(context, text, mode) {
-  const history = context.globalState.get(WHISPER_HISTORY_KEY, []);
+function addToHistory(text, mode) {
+  const history = extensionContext.globalState.get(WHISPER_HISTORY_KEY, []);
 
   // 新しいエントリを先頭に追加
   history.unshift({
@@ -593,22 +715,24 @@ function addToHistory(context, text, mode) {
     history.length = MAX_HISTORY_SIZE;
   }
 
-  context.globalState.update(WHISPER_HISTORY_KEY, history);
+  extensionContext.globalState.update(WHISPER_HISTORY_KEY, history);
   systemLog(`📚 Added to history (total: ${history.length})`, "INFO");
 }
 
 /**
- * 📜 Whisper履歴を取得
+ * Whisper履歴を取得
+ * @returns {Array<Object>} 履歴エントリの配列
  */
-function getHistory(context) {
-  return context.globalState.get(WHISPER_HISTORY_KEY, []);
+function getHistory() {
+  return extensionContext.globalState.get(WHISPER_HISTORY_KEY, []);
 }
 
 /**
- * 📥 モデルダウンロード(リダイレクト対応)
- * @param {string} modelName - モデル名
- * @param {object} msg - ローカライズメッセージ
- * @param {function} onProgress - 進捗コールバック(percent, downloadedMB, totalMB)
+ * モデルファイルをダウンロード（リダイレクト対応）
+ * @param {string} modelName - モデル名（例: "small", "medium"）
+ * @param {Object} msg - ローカライズメッセージ関数
+ * @param {Function} onProgress - 進捗コールバック(percent, downloadedMB, totalMB)
+ * @returns {Promise<void>}
  */
 async function downloadModel(modelName, msg, onProgress = null) {
   const modelUrl = `https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-${modelName}.bin`;
@@ -701,9 +825,12 @@ async function downloadModel(modelName, msg, onProgress = null) {
 }
 
 /**
- * 🎨 初回セットアップウィザード
+ * 初回セットアップウィザードを実行
+ * @param {Object} config - VS Code設定オブジェクト
+ * @param {Function} msg - ローカライズメッセージ関数
+ * @returns {Promise<void>}
  */
-async function runInitialSetup(context, config, msg) {
+async function runInitialSetup(config, msg) {
   // モード選択
   const modeChoice = await vscode.window.showQuickPick(
     [
@@ -813,7 +940,7 @@ async function runInitialSetup(context, config, msg) {
           msg("modelAlreadyExists", { model: modelChoice.value })
         );
         vscode.window.showInformationMessage(msg("setupComplete"));
-        await context.globalState.update("hasConfiguredMode", true);
+        await extensionContext.globalState.update("hasConfiguredMode", true);
         return;
       } else if (overwriteChoice !== msg("overwriteModel")) {
         // キャンセルされた場合
@@ -866,13 +993,14 @@ async function runInitialSetup(context, config, msg) {
   }
 
   // セットアップ完了フラグ
-  await context.globalState.update("hasConfiguredMode", true);
+  await extensionContext.globalState.update("hasConfiguredMode", true);
 }
 
 /**
- * 🔄 モード変更時の処理
+ * モード変更時の処理（API/ローカル切り替え）
+ * @returns {Promise<void>}
  */
-async function handleModeChange(context) {
+async function handleModeChange() {
   const config = vscode.workspace.getConfiguration("voiceToText");
   const newMode = config.get("mode");
 
@@ -910,57 +1038,59 @@ async function handleModeChange(context) {
 }
 
 /**
- * 🔄 ローカルモデル変更時の処理
+ * ローカルモデル変更時の処理（モデルダウンロード確認）
+ * @returns {Promise<void>}
  */
-async function handleLocalModelChange(context) {
+async function handleLocalModelChange() {
   const config = vscode.workspace.getConfiguration("voiceToText");
   const newModel = config.get("localModel");
   const currentMode = config.get("mode");
 
   systemLog(`Local model changed to: ${newModel}`, "INFO");
 
-  // ローカルモードの場合のみチェック
-  if (currentMode === "local") {
-    const modelDir = getModelDir();
-    const modelPath = path.join(modelDir, `ggml-${newModel}.bin`);
+  const modelDir = getModelDir();
+  const modelPath = path.join(modelDir, `ggml-${newModel}.bin`);
 
-    if (!fs.existsSync(modelPath)) {
-      systemLog(`Model ${newModel} not found, prompting for download`, "INFO");
+  if (!fs.existsSync(modelPath)) {
+    systemLog(`Model ${newModel} not found, prompting for download`, "INFO");
 
-      const response = await vscode.window.showInformationMessage(
-        msg("modelNotFoundPrompt", { model: newModel }),
-        msg("downloadNow"),
-        msg("revertSelection")
-      );
+    const response = await vscode.window.showInformationMessage(
+      msg("modelNotFoundPrompt", { model: newModel }),
+      msg("downloadNow"),
+      msg("revertSelection")
+    );
 
-      if (response === msg("downloadNow")) {
-        // モデルをダウンロード
-        try {
-          await downloadSingleModel(newModel, msg);
-          vscode.window.showInformationMessage(
-            msg("modelDownloadComplete", { model: newModel })
-          );
-        } catch (error) {
-          systemLog(`Model download failed: ${error.message}`, "ERROR");
-          vscode.window.showErrorMessage(
-            msg("downloadFailed", { error: error.message })
-          );
-          // ダウンロード失敗時も設定を戻す
-          await revertModelSelection(context);
-        }
-      } else {
-        // 設定を元に戻す
-        await revertModelSelection(context);
+    if (response === msg("downloadNow")) {
+      // モデルをダウンロード
+      try {
+        await downloadSingleModel(newModel, msg);
+        vscode.window.showInformationMessage(
+          msg("modelDownloadComplete", { model: newModel })
+        );
+      } catch (error) {
+        systemLog(`Model download failed: ${error.message}`, "ERROR");
+        vscode.window.showErrorMessage(
+          msg("downloadFailed", { error: error.message })
+        );
+        // ダウンロード失敗時も設定を戻す
+        await revertModelSelection();
       }
+    } else {
+      // 設定を元に戻す
+      await revertModelSelection();
     }
   }
 }
 
 /**
- * 🔙 モデル選択を元に戻す
+ * モデル選択を元に戻す（ダウンロード失敗時など）
+ * @returns {Promise<void>}
  */
-async function revertModelSelection(context) {
-  const previousModel = context.globalState.get("previousLocalModel", "small");
+async function revertModelSelection() {
+  const previousModel = extensionContext.globalState.get(
+    "previousLocalModel",
+    "small"
+  );
   const config = vscode.workspace.getConfiguration("voiceToText");
 
   systemLog(`Reverting model selection to: ${previousModel}`, "INFO");
@@ -976,7 +1106,10 @@ async function revertModelSelection(context) {
 }
 
 /**
- * 📥 単一モデルのダウンロード
+ * 単一モデルのダウンロード（進捗表示付き）
+ * @param {string} modelName - ダウンロードするモデル名
+ * @param {Function} msg - ローカライズメッセージ関数
+ * @returns {Promise<void>}
  */
 async function downloadSingleModel(modelName, msg) {
   return new Promise((resolve, reject) => {
@@ -1007,151 +1140,302 @@ async function downloadSingleModel(modelName, msg) {
   });
 }
 
+// =====================================================================================================
+// 🎙️ 録音制御 (SOX)
+// =====================================================================================================
+
 /**
- * 🤖 ローカルWhisper実行（whisper.cpp）
+ * 録音を開始（SOXを使用）
+ * @param {number} maxRecordSec - 最大録音秒数
+ * @returns {void}
  */
-async function executeLocalWhisper(outputFile, msg) {
-  const config = vscode.workspace.getConfiguration("voiceToText");
-  const selectedModel = config.get("localModel") || "small";
+function startRecording(maxRecordSec) {
+  try {
+    const MAX_RECORD_TIME = maxRecordSec * 1000;
 
-  // プラットフォーム判定
-  const platform = process.platform; // 'win32', 'darwin', 'linux'
-  const isWindows = platform === "win32";
-  const isMac = platform === "darwin";
-  const isLinux = platform === "linux";
+    // 既存の録音をクリーンアップ
+    if (soxProcess) {
+      if (recordingTimeout) {
+        clearTimeout(recordingTimeout);
+        recordingTimeout = null;
+      }
+      try {
+        soxProcess.kill("SIGINT");
+      } catch (error) {
+        console.error("⚠️ Error stopping previous recording:", error);
+      }
+      soxProcess = null;
+    }
 
-  // プラットフォーム別の実行ファイルパス
-  const possibleExePaths = [];
+    // 両モード共通でvoice.wavに録音
+    const recordingFile = outputFile;
+    currentRecordingFile = recordingFile;
 
-  // ユーザーディレクトリのカスタムビルド (最優先)
-  const customBuildDir = getCustomBuildDir();
-  if (isWindows) {
-    possibleExePaths.push(
-      path.join(customBuildDir, "whisper-cli.exe"),
-      path.join(customBuildDir, "main.exe")
+    console.log(`📝 Recording file: ${recordingFile}`);
+
+    // 古いファイルを削除
+    if (fs.existsSync(recordingFile)) {
+      fs.unlinkSync(recordingFile);
+      console.log(`🗑️ Deleted old recording file: ${recordingFile}`);
+    }
+
+    // プラットフォームごとのSOXパス
+    const platform = process.platform;
+    let soxPath;
+    if (platform === "darwin") {
+      soxPath = "/opt/homebrew/bin/sox"; // Mac (Homebrew)
+    } else {
+      soxPath = "sox"; // Windows/Linux (PATH内)
+    }
+
+    // SOXで直接16kHz WAVを録音
+    let soxArgs;
+    if (platform === "win32") {
+      soxArgs = [
+        "-t",
+        "waveaudio",
+        "default",
+        "-r",
+        "16000",
+        "-c",
+        "1",
+        "-b",
+        "16",
+        "-e",
+        "signed-integer",
+        recordingFile,
+      ];
+    } else {
+      soxArgs = ["-d", "-r", "16000", "-c", "1", "-b", "16", recordingFile];
+    }
+
+    console.log(
+      `🎤 Starting SOX recording (${platform}): ${soxPath} ${soxArgs.join(" ")}`
     );
-  } else {
-    possibleExePaths.push(
-      path.join(customBuildDir, "whisper-cli"),
-      path.join(customBuildDir, "main")
+    systemLog(`録音開始: ${soxPath} ${soxArgs.join(" ")}`, "INFO");
+    soxProcess = spawn(soxPath, soxArgs);
+
+    let soxErrorOutput = "";
+
+    soxProcess.stdout.on("data", (data) => {
+      console.log(`SOX stdout: ${data}`);
+      systemLog(`SOX stdout: ${data}`, "INFO");
+    });
+
+    soxProcess.stderr.on("data", (data) => {
+      const message = data.toString();
+      console.log(`SOX info: ${message}`);
+      systemLog(`SOX stderr: ${message}`, "INFO");
+
+      if (message.includes("FAIL") || message.includes("error")) {
+        soxErrorOutput += message;
+      }
+    });
+
+    soxProcess.on("error", (err) => {
+      console.error("⚠️ SOX process error:", err);
+      systemLog(`SOXプロセスエラー: ${err.message}`, "ERROR");
+      vscode.window.showErrorMessage(
+        msg("microphoneError", { error: err.message })
+      );
+    });
+
+    soxProcess.on("exit", (code) => {
+      console.log(`SOX process exited with code ${code}`);
+      systemLog(`SOXプロセス終了: コード ${code}`, "INFO");
+
+      if (code !== 0 && code !== null && soxErrorOutput) {
+        console.error(`⚠️ SOX failed: ${soxErrorOutput}`);
+        systemLog(`SOX失敗: ${soxErrorOutput.trim()}`, "ERROR");
+        vscode.window.showErrorMessage(
+          msg("soxRecordingError", { error: soxErrorOutput.trim() })
+        );
+      }
+    });
+
+    console.log(msg("recordingStart", { seconds: maxRecordSec }));
+
+    // ⏱ 上限時間を超えたら自動停止
+    recordingTimeout = setTimeout(() => {
+      if (soxProcess) {
+        console.log(
+          "⏰ Recording timeout reached, executing timeout callback..."
+        );
+        vscode.window.showWarningMessage(
+          msg("recordingStopAuto", { seconds: maxRecordSec })
+        );
+
+        console.log("⏰ Executing timeout processing - same as manual stop");
+        stopRecordingAndProcessVoice();
+      }
+    }, MAX_RECORD_TIME);
+  } catch (error) {
+    console.error("⚠️ Recording start error:", error);
+    vscode.window.showErrorMessage(
+      msg("recordingError", { error: error.message })
     );
+    throw error;
   }
+}
 
-  if (isWindows) {
-    // Windows用パス(デフォルトのbin/ → whisper.cpp/build/)
-    possibleExePaths.push(
-      // デフォルトのCPU版
-      path.join(__dirname, "bin", "windows", "whisper-cli.exe"),
-      path.join(__dirname, "bin", "windows", "main.exe"),
-      // 開発用 (whisper.cpp/build/)
-      path.join(
-        __dirname,
-        "whisper.cpp",
-        "build",
-        "bin",
-        "Release",
-        "whisper-cli.exe"
-      ),
-      path.join(
-        __dirname,
-        "whisper.cpp",
-        "build",
-        "bin",
-        "Release",
-        "main.exe"
-      ),
-      path.join(__dirname, "whisper.cpp", "build", "bin", "whisper-cli.exe"),
-      path.join(__dirname, "whisper.cpp", "build", "bin", "main.exe")
-    );
-  } else if (isMac) {
-    // macOS用パス(デフォルトのbin/ → whisper.cpp/build/)
-    possibleExePaths.push(
-      // デフォルトのMetal版
-      path.join(__dirname, "bin", "macos", "whisper-cli"),
-      // 開発用 (whisper.cpp/build/)
-      path.join(
-        __dirname,
-        "whisper.cpp",
-        "build",
-        "bin",
-        "macos",
-        "whisper-cli"
-      ),
-      path.join(__dirname, "whisper.cpp", "build", "bin", "whisper-cli"),
-      path.join(__dirname, "whisper.cpp", "main"), // Makefileでビルドした場合
-      path.join(__dirname, "whisper.cpp", "whisper-cli")
-    );
-  } else if (isLinux) {
-    // Linux用パス(デフォルトのbin/ → whisper.cpp/build/)
-    possibleExePaths.push(
-      // デフォルトのCPU版
-      path.join(__dirname, "bin", "linux", "whisper-cli"),
-      // 開発用 (whisper.cpp/build/)
-      path.join(
-        __dirname,
-        "whisper.cpp",
-        "build",
-        "bin",
-        "linux",
-        "whisper-cli"
-      ),
-      path.join(__dirname, "whisper.cpp", "build", "bin", "whisper-cli"),
-      path.join(__dirname, "whisper.cpp", "main"), // Makefileでビルドした場合
-      path.join(__dirname, "whisper.cpp", "whisper-cli")
-    );
-  }
+/**
+ * WAVヘッダーを修正（whisper.cpp互換性のため）
+ * @returns {Promise<void>}
+ */
+async function fixWavHeader() {
+  console.log("🔧 Fixing WAV header for whisper.cpp compatibility...");
+  systemLog("WAVヘッダーを修正中（whisper.cpp互換性のため）...", "INFO");
 
-  let whisperPath = null;
-  for (const exePath of possibleExePaths) {
-    if (fs.existsSync(exePath)) {
-      whisperPath = exePath;
-      systemLog(`Found whisper executable: ${exePath}`, "INFO");
-      break;
+  const platform = process.platform;
+  const tempOutputFile = outputFile.replace(".wav", "_fixed.wav");
+
+  try {
+    // SOXでWAVファイルを読み込んで正しいヘッダーで書き直す
+    const soxPath = platform === "darwin" ? "/opt/homebrew/bin/sox" : "sox";
+    const fixArgs = [outputFile, tempOutputFile];
+
+    console.log(`🔧 Executing: ${soxPath} ${fixArgs.join(" ")}`);
+    systemLog(`SOX実行: ${soxPath} ${fixArgs.join(" ")}`, "INFO");
+
+    await new Promise((resolve, reject) => {
+      const fixProcess = spawn(soxPath, fixArgs);
+
+      fixProcess.on("close", (code) => {
+        if (code === 0) {
+          console.log("✅ WAV header fixed successfully");
+          systemLog("WAVヘッダー修正成功", "INFO");
+          // 元のファイルを削除して、修正版をリネーム
+          fs.unlinkSync(outputFile);
+          fs.renameSync(tempOutputFile, outputFile);
+          resolve();
+        } else {
+          console.error(`⚠️ SOX fix failed with code ${code}`);
+          systemLog(`SOX修正失敗: コード ${code}`, "ERROR");
+          reject(new Error(`SOX fix failed with code ${code}`));
+        }
+      });
+
+      fixProcess.on("error", (err) => {
+        console.error("⚠️ SOX fix error:", err);
+        systemLog(`SOX修正エラー: ${err.message}`, "ERROR");
+        reject(err);
+      });
+    });
+
+    console.log(`✅ Using fixed WAV file: ${outputFile}`);
+    systemLog("修正済みWAVファイルを使用", "INFO");
+  } catch (error) {
+    console.error("⚠️ WAV header fix failed, using original file:", error);
+    systemLog("WAVヘッダー修正失敗、元のファイルを使用", "WARNING");
+    // エラー時は元のファイルをそのまま使う
+    if (fs.existsSync(tempOutputFile)) {
+      fs.unlinkSync(tempOutputFile);
     }
   }
+}
 
-  if (!whisperPath) {
-    const errorMsg = `Whisper executable not found. Tried: ${possibleExePaths.join(
-      ", "
-    )}`;
-    systemLog(errorMsg, "ERROR");
-    vscode.window.showErrorMessage(msg("whisperNotFound"));
-    throw new Error("whisperNotFound");
+/**
+ * 録音を停止してWAVファイルのパスを返す
+ * @returns {Promise<string|null>} 録音されたWAVファイルのパス、またはnull
+ */
+async function stopRecording() {
+  if (!soxProcess) {
+    console.warn("⚠️ No active recording to stop");
+    return null;
   }
 
-  // モデルパス: ユーザーディレクトリ → 拡張機能ディレクトリ (後方互換)
-  const modelDir = getModelDir();
-  const modelPath = path.join(modelDir, `ggml-${selectedModel}.bin`);
-  const fallbackModelPath = path.join(
-    __dirname,
-    "whisper.cpp",
-    "models",
-    `ggml-${selectedModel}.bin`
-  );
+  try {
+    console.log("🛑 Stopping recording");
 
-  let finalModelPath = null;
-  if (fs.existsSync(modelPath)) {
-    finalModelPath = modelPath;
-    systemLog(`Using model from user directory: ${modelPath}`, "INFO");
-  } else if (fs.existsSync(fallbackModelPath)) {
-    finalModelPath = fallbackModelPath;
-    systemLog(
-      `Using model from extension directory: ${fallbackModelPath}`,
-      "INFO"
-    );
-  }
+    // 共通処理：録音を停止
+    if (recordingTimeout) {
+      clearTimeout(recordingTimeout);
+      recordingTimeout = null;
+    }
 
-  // モデル・音声ファイルの存在確認
-  if (!finalModelPath) {
-    systemLog(
-      `Model file not found: ${modelPath} (or ${fallbackModelPath})`,
-      "ERROR"
-    );
-    vscode.window.showErrorMessage(
-      msg("modelNotFound", { model: selectedModel })
-    );
-    throw new Error("modelNotFound");
+    if (soxProcess) {
+      try {
+        soxProcess.kill("SIGINT");
+        await new Promise((resolve) => {
+          soxProcess.on("exit", () => {
+            console.log("✅ SOX process terminated successfully");
+            resolve();
+          });
+          setTimeout(resolve, 2000);
+        });
+      } catch (error) {
+        console.error("⚠️ Error stopping SOX process:", error);
+      }
+    }
+
+    soxProcess = null;
+
+    // 共通処理：ファイルが作成されるまでポーリング
+    let fileFound = false;
+    for (let i = 0; i < 30; i++) {
+      if (fs.existsSync(outputFile)) {
+        fileFound = true;
+        break;
+      }
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    }
+
+    if (!fileFound) {
+      console.error("⚠️ Voice file not found:", outputFile);
+      systemLog(`録音ファイルが見つかりません: ${outputFile}`, "ERROR");
+      return null;
+    }
+
+    const fileStats = fs.statSync(outputFile);
+    console.log(`📊 Voice file size: ${fileStats.size} bytes`);
+    systemLog(`録音ファイルサイズ: ${fileStats.size} bytes`, "INFO");
+
+    if (fileStats.size === 0) {
+      console.warn("⚠️ Empty WAV file (0 bytes)");
+      systemLog("空のWAVファイル（0バイト）", "WARNING");
+      fs.unlinkSync(outputFile);
+      return null;
+    }
+
+    // ローカルモード用: WAVヘッダーを修正（whisper.cpp互換性のため）
+    await fixWavHeader();
+
+    // WAVファイルパスを返す
+    systemLog(`録音完了: ${outputFile}`, "INFO");
+    return outputFile;
+  } catch (e) {
+    console.error("❌ Error in stopRecording:", e);
+
+    fs.unlink(outputFile, (err) => {
+      if (err) {
+        systemLog(`Failed to delete voice file: ${err.message}`, "WARNING");
+      } else {
+        systemLog(`Deleted voice file: ${outputFile}`, "INFO");
+      }
+    });
+
+    return null;
   }
+}
+
+/**
+ * 録音状態をチェック
+ * @returns {boolean} 録音中の場合true
+ */
+function isCurrentlyRecording() {
+  return soxProcess !== null;
+}
+
+// =====================================================================================================
+// 🤖 Whisper実行
+// =====================================================================================================
+
+/**
+ * Whisper実行（APIモード・ローカルモード両対応）
+ * @param {string} outputFile - 録音されたWAVファイルのパス
+ * @returns {Promise<string>} 文字起こし結果のテキスト
+ */
+async function executeWhisper(outputFile) {
   if (!fs.existsSync(outputFile)) {
     systemLog(`Voice file not found: ${outputFile}`, "ERROR");
     throw new Error("voiceFileNotFound");
@@ -1167,120 +1451,364 @@ async function executeLocalWhisper(outputFile, msg) {
     throw new Error("voiceFileNotFound");
   }
 
-  try {
-    // 言語は自動検出して、検出した言語で出力（翻訳しない）
-    const args = [
-      "-m",
-      finalModelPath,
-      "-f",
-      outputFile,
-      "--output-txt",
-      "--language",
-      "auto",
-    ];
+  const config = vscode.workspace.getConfiguration("voiceToText");
 
-    systemLog("Language: auto-detect (no translation)", "INFO");
-    systemLog(`Executing: ${whisperPath} ${args.join(" ")}`, "INFO");
-    const { stdout, stderr } = await execFilePromise(whisperPath, args);
+  // ========== モード判定 ==========
+  const mode = config.get("mode") || "api";
+  systemLog(`Current mode: ${mode}`, "INFO");
 
-    // stderrにログがあれば記録（whisper.cppは多くの情報をstderrに出力）
-    if (stderr) {
-      systemLog(`Whisper stderr: ${stderr}`, "INFO");
+  // ========== 共通設定取得 ==========
+  // 翻訳機能
+  const enableTranslation = config.get("enableTranslation", false);
+
+  // プロンプト機能: プリセット + カスタムの併用
+  const promptPreset = config.get("promptPreset", "none");
+  const customPrompt = config.get("customPrompt", "");
+
+  let prompt = "";
+
+  // プリセットプロンプトを追加
+  if (promptPreset !== "none" && PROMPT_PRESETS[promptPreset]) {
+    prompt = PROMPT_PRESETS[promptPreset];
+  }
+
+  // カスタムプロンプトを追加
+  if (customPrompt && customPrompt.trim()) {
+    if (prompt) {
+      // プリセット + カスタム
+      prompt = `${prompt}, ${customPrompt.trim()}`;
+    } else {
+      // カスタムのみ
+      prompt = customPrompt.trim();
+    }
+  }
+
+  if (prompt) {
+    console.log(
+      `🎯 Using prompt (${promptPreset}${
+        customPrompt ? " + custom" : ""
+      }): ${prompt.substring(0, 50)}${prompt.length > 50 ? "..." : ""}`
+    );
+  }
+  // ========== APIモード ==========
+  if (mode === "api") {
+    systemLog("Using OpenAI API", "INFO");
+    const apiKey = await extensionContext.secrets.get("openaiApiKey");
+
+    if (!apiKey) {
+      vscode.window.showWarningMessage(msg("apiKeyMissing"));
+      systemLog("Missing API key", "WARNING");
+      throw new Error("apiKeyMissing");
     }
 
-    systemLog(`Whisper stdout length: ${stdout.length}`, "INFO");
-    systemLog(`Whisper output: ${stdout}`, "INFO");
+    console.log(`📝 Sending WAV to OpenAI API (${fileStats.size} bytes)`);
 
-    // whisper.cppは結果を .txt ファイルに出力する
-    const txtOutputFile = `${outputFile}.txt`;
-    let result = "";
+    try {
+      const openai = new OpenAI({ apiKey });
 
-    // .txtファイルが生成されている場合はそれを読み取る
-    if (fs.existsSync(txtOutputFile)) {
-      result = fs.readFileSync(txtOutputFile, "utf8").trim();
-      systemLog(`Read from txt file: "${result}"`, "INFO");
-      // .txtファイルを削除
-      fs.unlinkSync(txtOutputFile);
-      systemLog(`Deleted txt file: ${txtOutputFile}`, "INFO");
+      const options = {
+        file: fs.createReadStream(outputFile),
+        model: "whisper-1",
+        prompt: prompt || undefined,
+      };
+      let res;
+      if (enableTranslation) {
+        console.log("🌍 Using translation API (to English)");
+
+        res = await openai.audio.translations.create(options);
+      } else {
+        console.log("📝 Using transcription API (original language)");
+
+        res = await openai.audio.transcriptions.create(options);
+      }
+
+      return res.text;
+    } catch (e) {
+      console.error("❌ Whisper API error:", e);
+
+      if (e.code === "ENOENT") {
+        vscode.window.showErrorMessage(msg("voiceFileNotFound"));
+      } else if (e.status === 401) {
+        vscode.window.showErrorMessage(msg("invalidApiKey"));
+      } else if (e.status === 429) {
+        vscode.window.showErrorMessage(msg("apiRateLimit"));
+      } else {
+        vscode.window.showErrorMessage(msg("whisperApiError"));
+      }
+
+      throw new Error("apiWhisperError");
+    } finally {
+      // WAVファイルを削除
+      fs.unlink(outputFile, (err) => {
+        if (err) {
+          systemLog(`Failed to delete voice file: ${err.message}`, "WARNING");
+        } else {
+          systemLog(`Deleted voice file: ${outputFile}`, "INFO");
+        }
+      });
+    }
+  } else {
+    // ========== ローカルモード ==========
+    systemLog("Using local whisper.cpp", "INFO");
+    const selectedModel = config.get("localModel") || "small";
+    systemLog(`Model: ${selectedModel}`, "INFO");
+
+    // プラットフォーム判定
+    const platform = process.platform; // 'win32', 'darwin', 'linux'
+    const isWindows = platform === "win32";
+    const isMac = platform === "darwin";
+    const isLinux = platform === "linux";
+
+    // プラットフォーム別の実行ファイルパス
+    const possibleExePaths = [];
+
+    // ユーザーディレクトリのカスタムビルド (最優先)
+    const customBuildDir = getCustomBuildDir();
+    if (isWindows) {
+      possibleExePaths.push(
+        path.join(customBuildDir, "whisper-cli.exe"),
+        path.join(customBuildDir, "main.exe")
+      );
     } else {
-      // .txtファイルがない場合はstdoutから抽出（フォールバック）
+      possibleExePaths.push(
+        path.join(customBuildDir, "whisper-cli"),
+        path.join(customBuildDir, "main")
+      );
+    }
+
+    if (isWindows) {
+      // Windows用パス(デフォルトのbin/ → whisper.cpp/build/)
+      possibleExePaths.push(
+        // デフォルトのCPU版
+        path.join(__dirname, "bin", "windows", "whisper-cli.exe"),
+        path.join(__dirname, "bin", "windows", "main.exe"),
+        // 開発用 (whisper.cpp/build/)
+        path.join(
+          __dirname,
+          "whisper.cpp",
+          "build",
+          "bin",
+          "Release",
+          "whisper-cli.exe"
+        ),
+        path.join(
+          __dirname,
+          "whisper.cpp",
+          "build",
+          "bin",
+          "Release",
+          "main.exe"
+        ),
+        path.join(__dirname, "whisper.cpp", "build", "bin", "whisper-cli.exe"),
+        path.join(__dirname, "whisper.cpp", "build", "bin", "main.exe")
+      );
+    } else if (isMac) {
+      // macOS用パス(デフォルトのbin/ → whisper.cpp/build/)
+      possibleExePaths.push(
+        // デフォルトのMetal版
+        path.join(__dirname, "bin", "macos", "whisper-cli"),
+        // 開発用 (whisper.cpp/build/)
+        path.join(
+          __dirname,
+          "whisper.cpp",
+          "build",
+          "bin",
+          "macos",
+          "whisper-cli"
+        ),
+        path.join(__dirname, "whisper.cpp", "build", "bin", "whisper-cli"),
+        path.join(__dirname, "whisper.cpp", "main"), // Makefileでビルドした場合
+        path.join(__dirname, "whisper.cpp", "whisper-cli")
+      );
+    } else if (isLinux) {
+      // Linux用パス(デフォルトのbin/ → whisper.cpp/build/)
+      possibleExePaths.push(
+        // デフォルトのCPU版
+        path.join(__dirname, "bin", "linux", "whisper-cli"),
+        // 開発用 (whisper.cpp/build/)
+        path.join(
+          __dirname,
+          "whisper.cpp",
+          "build",
+          "bin",
+          "linux",
+          "whisper-cli"
+        ),
+        path.join(__dirname, "whisper.cpp", "build", "bin", "whisper-cli"),
+        path.join(__dirname, "whisper.cpp", "main"), // Makefileでビルドした場合
+        path.join(__dirname, "whisper.cpp", "whisper-cli")
+      );
+    }
+
+    let whisperPath = null;
+    for (const exePath of possibleExePaths) {
+      if (fs.existsSync(exePath)) {
+        whisperPath = exePath;
+        systemLog(`Found whisper executable: ${exePath}`, "INFO");
+        break;
+      }
+    }
+
+    if (!whisperPath) {
+      const errorMsg = `Whisper executable not found. Tried: ${possibleExePaths.join(
+        ", "
+      )}`;
+      systemLog(errorMsg, "ERROR");
+      vscode.window.showErrorMessage(msg("whisperNotFound"));
+      throw new Error("whisperNotFound");
+    }
+
+    // モデルパス: ユーザーディレクトリ → 拡張機能ディレクトリ (後方互換)
+    const modelDir = getModelDir();
+    const modelPath = path.join(modelDir, `ggml-${selectedModel}.bin`);
+    const fallbackModelPath = path.join(
+      __dirname,
+      "whisper.cpp",
+      "models",
+      `ggml-${selectedModel}.bin`
+    );
+
+    let finalModelPath = null;
+    if (fs.existsSync(modelPath)) {
+      finalModelPath = modelPath;
+      systemLog(`Using model from user directory: ${modelPath}`, "INFO");
+    } else if (fs.existsSync(fallbackModelPath)) {
+      finalModelPath = fallbackModelPath;
+      systemLog(
+        `Using model from extension directory: ${fallbackModelPath}`,
+        "INFO"
+      );
+    }
+
+    // モデル存在確認
+    if (!finalModelPath) {
+      systemLog(
+        `Model file not found: ${modelPath} (or ${fallbackModelPath})`,
+        "ERROR"
+      );
+      vscode.window.showErrorMessage(
+        msg("modelNotFound", { model: selectedModel })
+      );
+      throw new Error("modelNotFound");
+    }
+
+    try {
+      // 基本引数
+      const args = [
+        "-m",
+        finalModelPath,
+        "-f",
+        outputFile,
+        "--no-timestamps", // タイムスタンプなしで純粋なテキストを出力
+        "--language",
+        "auto",
+      ];
+
+      // 🌍 翻訳機能
+      if (enableTranslation) {
+        args.push("--translate");
+        systemLog(
+          "Translation enabled: speech will be translated to English",
+          "INFO"
+        );
+      } else {
+        systemLog("Language: auto-detect (no translation)", "INFO");
+      }
+
+      // 🎯 プロンプト機能
+      if (prompt && prompt.trim()) {
+        args.push("--prompt", prompt);
+      }
+
+      systemLog(`Executing: ${whisperPath} ${args.join(" ")}`, "INFO");
+      const { stdout, stderr } = await execFilePromise(whisperPath, args);
+
+      // stderrにログがあれば記録（whisper.cppは多くの情報をstderrに出力）
+      if (stderr) {
+        systemLog(`Whisper stderr: ${stderr}`, "INFO");
+      }
+
+      systemLog(`Whisper stdout length: ${stdout.length}`, "INFO");
+
+      // stdoutから純粋なテキストを抽出（ログ行を除外）
       const lines = stdout.split("\n");
       const textLines = lines.filter((line) => {
         const trimmed = line.trim();
-        // whisper_print_timings などのログ行を除外
+        // whisper_ や main: などのログ行を除外
         return (
           trimmed &&
           !trimmed.startsWith("whisper_") &&
           !trimmed.startsWith("output_txt:") &&
           !trimmed.startsWith("main:") &&
           !trimmed.startsWith("system_info:") &&
-          !line.includes("WARNING:")
+          !trimmed.startsWith("sampling") &&
+          !line.includes("WARNING:") &&
+          !line.includes("processing") &&
+          !line.includes("samples,")
         );
       });
-      result = textLines.join(" ").trim();
-      systemLog(`Extracted from stdout: "${result}"`, "INFO");
-    }
+      const result = textLines.join(" ").trim();
+      systemLog(`Extracted text: "${result}"`, "INFO");
 
-    // WAVファイルを削除
-    fs.unlink(outputFile, (err) => {
-      if (err) {
-        systemLog(`Failed to delete voice file: ${err.message}`, "WARNING");
-      } else {
-        systemLog(`Deleted voice file: ${outputFile}`, "INFO");
+      return result;
+    } catch (error) {
+      console.error("❌ Local Whisper error:", error);
+      systemLog(`Whisper execution failed: ${error.message}`, "ERROR");
+
+      // ユーザーに通知
+      vscode.window.showErrorMessage(
+        msg("whisperExecutionFailed", { error: error.message })
+      );
+
+      // エラー詳細をログに記録
+      if (error.stderr) {
+        systemLog(`Stderr: ${error.stderr}`, "ERROR");
       }
-    });
+      if (error.stdout) {
+        systemLog(`Stdout: ${error.stdout}`, "ERROR");
+      }
+      if (error.code) {
+        systemLog(`Error code: ${error.code}`, "ERROR");
+      }
 
-    return result;
-  } catch (error) {
-    console.error("❌ Local Whisper error:", error);
-    systemLog(`Whisper execution failed: ${error.message}`, "ERROR");
-
-    // ユーザーに通知
-    vscode.window.showErrorMessage(
-      msg("whisperExecutionFailed", { error: error.message })
-    );
-
-    // エラー詳細をログに記録
-    if (error.stderr) {
-      systemLog(`Stderr: ${error.stderr}`, "ERROR");
-    }
-    if (error.stdout) {
-      systemLog(`Stdout: ${error.stdout}`, "ERROR");
-    }
-    if (error.code) {
-      systemLog(`Error code: ${error.code}`, "ERROR");
-    }
-
-    // エラー時もWAVファイルを削除
-    if (fs.existsSync(outputFile)) {
+      throw new Error("localWhisperError");
+    } finally {
+      // WAVファイルを削除
       fs.unlink(outputFile, (err) => {
         if (err) {
           systemLog(`Failed to delete voice file: ${err.message}`, "WARNING");
         } else {
-          systemLog(`Deleted voice file after error: ${outputFile}`, "INFO");
+          systemLog(`Deleted voice file: ${outputFile}`, "INFO");
         }
       });
     }
-
-    throw new Error("localWhisperError");
   }
 }
 
+// =====================================================================================================
+// 🎬 VS Code拡張機能のエントリーポイント
+// =====================================================================================================
+
 /**
- * 🎬 拡張アクティベーション
+ * 拡張機能のアクティベーション（VS Code起動時に呼ばれる）
+ * @param {vscode.ExtensionContext} context - 拡張機能のコンテキスト
+ * @returns {Promise<void>}
  */
 async function activate(context) {
   console.log("🟢 Voice to Text (also for Copilot Chat): Activation started");
+
+  // グローバル変数に保存
+  extensionContext = context;
 
   try {
     // --- アウトプットチャンネル作成 ---
     outputChannel = vscode.window.createOutputChannel(
       "Voice to Text (also for Copilot Chat)"
     );
-    context.subscriptions.push(outputChannel);
+    extensionContext.subscriptions.push(outputChannel);
 
     // --- バイナリファイルの実行権限を確保 ---
-    await ensureBinaryPermissions(context);
+    await ensureBinaryPermissions();
 
     // --- 設定を取得 ---
     const config = vscode.workspace.getConfiguration("voiceToText");
@@ -1307,15 +1835,15 @@ async function activate(context) {
 
     // --- ロケールをロード ---
     messages = loadLocale(lang);
-    console.log("🈶 Locale loaded:", lang);
+    console.log("Locale loaded:", lang);
 
     // システムログに初期化完了を記録
     systemLog(msg("activated"), "INFO");
 
     // --- 初回セットアップチェック ---
-    const hasConfigured = context.globalState.get("hasConfiguredMode");
+    const hasConfigured = extensionContext.globalState.get("hasConfiguredMode");
     if (!hasConfigured) {
-      await runInitialSetup(context, config, msg);
+      await runInitialSetup(config, msg);
     }
 
     // --- SOXインストールチェック（Mac/Linuxのみ） ---
@@ -1330,7 +1858,7 @@ async function activate(context) {
       systemLog(`✅ SOX is installed (${soxCheck.platform})`, "INFO");
     }
 
-    // --- ステータスバーアイテム作成 (3つ) - 右寄せ ---
+    // --- ステータスバーアイテム作成 (4つ) - 右寄せ ---
     // 区切り記号＋ステータス表示
     statusBarItemStatus = vscode.window.createStatusBarItem(
       vscode.StatusBarAlignment.Right,
@@ -1339,29 +1867,39 @@ async function activate(context) {
     statusBarItemStatus.text = msg("statusWaiting");
     statusBarItemStatus.tooltip = "Voice to Text (also for Copilot Chat)";
     statusBarItemStatus.show();
-    context.subscriptions.push(statusBarItemStatus);
+    extensionContext.subscriptions.push(statusBarItemStatus);
 
-    // Focusボタン
-    statusBarItemFocus = vscode.window.createStatusBarItem(
+    // 翻訳トグルボタン (ステータス表示の右隣)
+    statusBarItemTranslate = vscode.window.createStatusBarItem(
       vscode.StatusBarAlignment.Right,
       999 // ステータス表示の右隣
+    );
+    statusBarItemTranslate.text = "🔤";
+    statusBarItemTranslate.command = "voiceToText.toggleTranslation";
+    statusBarItemTranslate.tooltip = "Translation: OFF - Click to enable";
+    extensionContext.subscriptions.push(statusBarItemTranslate);
+
+    // Focusボタン (翻訳ボタンの右隣)
+    statusBarItemFocus = vscode.window.createStatusBarItem(
+      vscode.StatusBarAlignment.Right,
+      998 // 翻訳ボタンの右隣
     );
     statusBarItemFocus.command = "voiceToText.toggle";
     statusBarItemFocus.text = "📍Focus";
     statusBarItemFocus.tooltip = msg("recordToEditor");
     statusBarItemFocus.show();
-    context.subscriptions.push(statusBarItemFocus);
+    extensionContext.subscriptions.push(statusBarItemFocus);
 
-    // Chatボタン
+    // Chatボタン (Focusボタンの右隣)
     statusBarItemChat = vscode.window.createStatusBarItem(
       vscode.StatusBarAlignment.Right,
-      998 // フォーカスボタンの右隣
+      997 // Focusボタンの右隣
     );
     statusBarItemChat.command = "voiceToText.toggleForChat";
     statusBarItemChat.text = "💬Chat";
     statusBarItemChat.tooltip = msg("recordToChat");
     statusBarItemChat.show();
-    context.subscriptions.push(statusBarItemChat);
+    extensionContext.subscriptions.push(statusBarItemChat);
 
     // 初期状態でステータスバーを更新
     updateStatusBar("idle");
@@ -1369,39 +1907,45 @@ async function activate(context) {
     // --- 設定変更イベントリスナー ---
     // 現在の設定値を保存（変更前の値として使用）
     const initialConfig = vscode.workspace.getConfiguration("voiceToText");
-    await context.globalState.update(
+    await extensionContext.globalState.update(
       "previousLocalModel",
       initialConfig.get("localModel", "small")
     );
 
-    context.subscriptions.push(
+    extensionContext.subscriptions.push(
       vscode.workspace.onDidChangeConfiguration(async (e) => {
         if (e.affectsConfiguration("voiceToText.mode")) {
           systemLog("Mode configuration changed", "INFO");
-          await handleModeChange(context);
+          await handleModeChange();
           updateStatusBar("idle");
         } else if (e.affectsConfiguration("voiceToText.localModel")) {
           systemLog("Local model configuration changed", "INFO");
           // 変更前の値を保存してからハンドル
           const currentConfig =
             vscode.workspace.getConfiguration("voiceToText");
-          const previousModel = context.globalState.get(
+          const previousModel = extensionContext.globalState.get(
             "previousLocalModel",
             "small"
           );
-          await handleLocalModelChange(context);
+          await handleLocalModelChange();
           // 新しい値を保存（成功した場合のみ）
           const newModel = currentConfig.get("localModel");
           if (newModel !== previousModel) {
-            await context.globalState.update("previousLocalModel", newModel);
+            await extensionContext.globalState.update(
+              "previousLocalModel",
+              newModel
+            );
           }
           updateStatusBar("idle");
+        } else if (e.affectsConfiguration("voiceToText.enableTranslation")) {
+          systemLog("Translation configuration changed", "INFO");
+          updateTranslateButton();
         }
       })
     );
 
     // コマンド登録
-    registerCommands(context);
+    registerCommands();
     console.log("✅ Commands registered successfully (refactored)");
   } catch (err) {
     console.error("💥 Activation failed:", err);
@@ -1411,8 +1955,13 @@ async function activate(context) {
   }
 }
 
+// =====================================================================================================
+// 🧹 拡張機能の終了処理
+// =====================================================================================================
+
 /**
- * 🧹 終了処理
+ * 拡張機能の非アクティブ化（VS Code終了時に呼ばれる）
+ * @returns {void}
  */
 function deactivate() {
   stopRecordingTimer(); // タイマー停止
@@ -1425,19 +1974,24 @@ function deactivate() {
   if (statusBarItemChat) {
     statusBarItemChat.dispose();
   }
+  if (statusBarItemTranslate) {
+    statusBarItemTranslate.dispose();
+  }
   if (outputChannel) {
     outputChannel.dispose();
   }
   console.log("🧹 Voice to Text (also for Copilot Chat): deactivated");
 }
 
-// ================== 追加: コマンド登録関連ユーティリティ ==================
+// =====================================================================================================
+// 🎯 コマンド実行関数
+// =====================================================================================================
 
 /**
- * 録音停止～音声認識～テキスト貼り付けまでの全工程（共通処理）
- * @param {vscode.ExtensionContext} context
+ * 録音停止～音声認識～テキスト貼り付けまでの全工程を実行
+ * @returns {Promise<void>}
  */
-async function stopRecordingAndProcessVoice(context) {
+async function stopRecordingAndProcessVoice() {
   try {
     // 📍 録音状態をリセット
     isRecording = false;
@@ -1469,34 +2023,19 @@ async function stopRecordingAndProcessVoice(context) {
       }
     }
 
-    const currentConfig = vscode.workspace.getConfiguration("voiceToText");
-    const mode = currentConfig.get("mode") || "api";
-    systemLog(`Current mode: ${mode}`, "INFO");
-    let text;
-
-    if (mode === "local") {
-      const localModel = currentConfig.get("localModel") || "small";
-      systemLog(`Using local whisper.cpp (model: ${localModel})`, "INFO");
-      // 統合関数を使用（ローカルモード）
-      const outputFile = await stopRecording("local");
-      if (!outputFile) throw new Error("Failed to convert audio file");
-      text = await executeLocalWhisper(outputFile, msg);
-    } else {
-      systemLog("Using OpenAI API", "INFO");
-      const apiKey = await context.secrets.get("openaiApiKey");
-      if (!apiKey) {
-        vscode.window.showWarningMessage(msg("apiKeyMissing"));
-        systemLog("Missing API key", "WARNING");
-        isProcessing = false;
-        updateStatusBar("idle");
-        return;
-      }
-      // 統合関数を使用（APIモード）
-      text = await stopRecording("api", apiKey, msg);
+    // 録音停止してWAVファイルを取得
+    const outputFile = await stopRecording();
+    if (!outputFile) {
+      systemLog("録音ファイルの取得に失敗しました", "ERROR");
+      throw new Error("Failed to get audio file");
     }
 
+    // Whisper実行
+    const text = await executeWhisper(outputFile);
+
     if (text && text.trim()) {
-      addToHistory(context, text, currentConfig.get("mode", "api"));
+      const currentConfig = vscode.workspace.getConfiguration("voiceToText");
+      addToHistory(text, currentConfig.get("mode", "api"));
 
       // 📍 保存された貼り付け先に応じて処理を分岐
       if (pasteTarget === "chat") {
@@ -1539,11 +2078,10 @@ async function stopRecordingAndProcessVoice(context) {
 }
 
 /**
- * トグル処理（録音開始/停止と結果貼り付け）
- * 以前のインライン実装を関数化
- * @param {vscode.ExtensionContext} context
+ * トグルコマンドの処理（録音開始/停止と結果貼り付け）
+ * @returns {Promise<void>}
  */
-async function handleToggleCommand(context) {
+async function handleToggleCommand() {
   console.log("🎙️ Command executed: voiceToText.toggle");
 
   if (isProcessing) {
@@ -1557,19 +2095,11 @@ async function handleToggleCommand(context) {
   if (!isRecording || !isCurrentlyRecording()) {
     // 録音開始
     try {
-      const mode = currentConfig.get("mode") || "api";
       isRecording = true;
       startRecordingTimer(maxSec); // タイマー開始
       updateStatusBar("recording", 0, maxSec);
       systemLog(msg("recordingStart", { seconds: maxSec }), "INFO");
-      systemLog(`Recording mode: ${mode}`, "INFO");
-      await startRecording(
-        context,
-        maxSec,
-        msg,
-        stopRecordingAndProcessVoice, // 関数を直接渡す
-        mode
-      );
+      startRecording(maxSec);
     } catch (error) {
       isRecording = false;
       stopRecordingTimer(); // タイマー停止
@@ -1584,16 +2114,16 @@ async function handleToggleCommand(context) {
       vscode.window.showErrorMessage(errorMessage);
     }
   } else {
-    // 録音停止～処理（タイムアウト時と全く同じ処理）
-    await stopRecordingAndProcessVoice(context);
+    // 録音停止～処理
+    await stopRecordingAndProcessVoice();
   }
 }
 
 /**
- * コマンド登録を一括実行
- * @param {vscode.ExtensionContext} context
+ * すべてのコマンドを登録
+ * @returns {vscode.Disposable[]} 登録されたコマンドのDisposable配列
  */
-function registerCommands(context) {
+function registerCommands() {
   const disposables = [];
 
   disposables.push(
@@ -1601,7 +2131,7 @@ function registerCommands(context) {
       // 現在のフォーカス位置に貼り付け (従来の動作)
       pasteTarget = "auto";
       activeRecordingButton = "focus";
-      handleToggleCommand(context);
+      handleToggleCommand();
     })
   );
 
@@ -1611,7 +2141,7 @@ function registerCommands(context) {
       pasteTarget = "chat";
       activeRecordingButton = "chat";
       systemLog("📍 Copilot Chatに貼り付けます", "INFO");
-      handleToggleCommand(context);
+      handleToggleCommand();
     })
   );
 
@@ -1678,7 +2208,7 @@ function registerCommands(context) {
 
         if (isRecording) {
           // 録音中の場合は停止処理を実行（ただし音声処理はスキップ）
-          handleToggleCommand(context);
+          handleToggleCommand();
         } else if (isProcessing) {
           // 処理中の場合は強制的に状態をリセット
           isProcessing = false;
@@ -1693,6 +2223,33 @@ function registerCommands(context) {
   );
 
   disposables.push(
+    vscode.commands.registerCommand(
+      "voiceToText.toggleTranslation",
+      async () => {
+        const config = vscode.workspace.getConfiguration("voiceToText");
+        const currentValue = config.get("enableTranslation", false);
+
+        await config.update(
+          "enableTranslation",
+          !currentValue,
+          vscode.ConfigurationTarget.Global
+        );
+
+        const newValue = !currentValue;
+        const statusMsg = newValue
+          ? "🌍 Translation enabled (to English)"
+          : "🌍 Translation disabled";
+
+        vscode.window.showInformationMessage(statusMsg);
+        systemLog(statusMsg, "INFO");
+
+        // ステータスバーを更新
+        updateTranslateButton();
+      }
+    )
+  );
+
+  disposables.push(
     vscode.commands.registerCommand("voiceToText.setApiKey", async () => {
       const key = await vscode.window.showInputBox({
         prompt: msg("promptApiKey"),
@@ -1700,7 +2257,7 @@ function registerCommands(context) {
         password: true,
       });
       if (key) {
-        await context.secrets.store("openaiApiKey", key);
+        await extensionContext.secrets.store("openaiApiKey", key);
         systemLog(msg("apiKeySaved"), "SUCCESS");
       }
     })
@@ -1710,13 +2267,13 @@ function registerCommands(context) {
     vscode.commands.registerCommand("voiceToText.setupWizard", async () => {
       systemLog("Running setup wizard manually", "INFO");
       const config = vscode.workspace.getConfiguration("voiceToText");
-      await runInitialSetup(context, config, msg);
+      await runInitialSetup(config, msg);
     })
   );
 
   disposables.push(
     vscode.commands.registerCommand("voiceToText.showHistory", async () => {
-      const history = getHistory(context);
+      const history = getHistory();
       if (history.length === 0) {
         vscode.window.showInformationMessage(
           msg("historyEmpty") || "履歴がありません"
@@ -1857,7 +2414,7 @@ function registerCommands(context) {
     })
   );
 
-  disposables.forEach((d) => context.subscriptions.push(d));
+  extensionContext.subscriptions.push(...disposables);
 }
 
 module.exports = {

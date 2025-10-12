@@ -13,6 +13,60 @@ _(日本語 / English)_
 
 ---
 
+## 🌟 VS Code Speech にはない独自機能
+
+### 🎯 **プロンプトプリセット機能** ✨NEW
+
+技術用語の認識精度を大幅向上！12 種類のプリセット + カスタムプロンプト対応
+
+```diff
+❌ プロンプトなし: "ジッドにプッシュしたら..."
+✅ Gitプリセット:   "Gitにプッシュしたら..."
+
+❌ プロンプトなし: "リアクトのユーズステートで..."
+✅ Webプリセット:   "ReactのuseStateで..."
+```
+
+**プリセット一覧:**
+
+- 🌐 **Web 開発** - React, Vue, TypeScript, API など
+- ⚙️ **Backend 開発** - REST, GraphQL, Database, 認証 など
+- 📱 **Mobile 開発** - iOS, Android, React Native など
+- 🤖 **AI/ML** - PyTorch, TensorFlow, 機械学習 など
+- ☁️ **Cloud** - AWS, Azure, Kubernetes など
+- 🔧 **DevOps** - Docker, CI/CD, Jenkins など
+- 📦 **Git** - commit, push, pull, merge など
+- 🔤 **言語別** - JavaScript, TypeScript, Python
+
+**組み合わせ可能:**
+
+- プリセット単体使用: 「Web プリセット」のみ
+- カスタム単体使用: 「MyApp, CustomAPI」のみ
+- **併用で最大効果**: 「Web プリセット + MyApp, CustomAPI」
+
+### 🌍 **翻訳機能**
+
+音声を自動的に英語に翻訳（Whisper 標準機能）
+
+- グローバルチームとのコミュニケーションに最適
+- 日本語で話して英語で入力
+
+### 📚 **履歴機能**
+
+過去 10 件の音声入力履歴を保存・再利用可能
+
+- よく使うフレーズをワンクリックで再入力
+- 履歴から編集して再利用
+
+### 🔒 **クリップボード保護**
+
+貼り付け後、元のクリップボード内容を自動復元
+
+- 重要なコピー内容を失わない
+- 安心して音声入力を使える
+
+---
+
 ## 🚀 まず最初に（重要）
 
 > 💡 この拡張機能は **2 つのモード** から選択できます：
@@ -426,6 +480,60 @@ A VS Code extension for **voice input** with **two operating modes**:
 
 Supports over **100 languages** for speech recognition with automatic detection.
 The extension UI supports **9 languages** (Japanese, English, French, Spanish, Chinese, Korean, German, Italian, Russian) and automatically follows your VS Code display language setting.
+
+---
+
+## 🌟 Unique Features Not in VS Code Speech
+
+### 🎯 **Prompt Preset Feature** ✨NEW
+
+Dramatically improve technical term recognition accuracy! 12 preset types + custom prompt support
+
+```diff
+❌ Without prompt: "I pushed to jit..."
+✅ Git preset:     "I pushed to Git..."
+
+❌ Without prompt: "Using use state in react..."
+✅ Web preset:     "Using useState in React..."
+```
+
+**Preset List:**
+
+- 🌐 **Web Development** - React, Vue, TypeScript, API, etc.
+- ⚙️ **Backend Development** - REST, GraphQL, Database, Auth, etc.
+- 📱 **Mobile Development** - iOS, Android, React Native, etc.
+- 🤖 **AI/ML** - PyTorch, TensorFlow, Machine Learning, etc.
+- ☁️ **Cloud** - AWS, Azure, Kubernetes, etc.
+- 🔧 **DevOps** - Docker, CI/CD, Jenkins, etc.
+- 📦 **Git** - commit, push, pull, merge, etc.
+- 🔤 **Language-specific** - JavaScript, TypeScript, Python
+
+**Combinable:**
+
+- Preset only: "Web preset" alone
+- Custom only: "MyApp, CustomAPI" alone
+- **Best results**: "Web preset + MyApp, CustomAPI"
+
+### 🌍 **Translation Feature**
+
+Automatically translate speech to English (Whisper standard feature)
+
+- Perfect for global team communication
+- Speak in Japanese, input in English
+
+### 📚 **History Feature**
+
+Save and reuse last 10 voice input results
+
+- One-click re-input of frequently used phrases
+- Edit and reuse from history
+
+### 🔒 **Clipboard Protection**
+
+Automatically restore original clipboard content after pasting
+
+- Never lose important copied content
+- Safe to use voice input anytime
 
 ---
 

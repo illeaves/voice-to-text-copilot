@@ -2,16 +2,79 @@
 
 All notable changes to the "Voice to Text (also for Copilot Chat)" extension will be documented in this file.
 
+## [1.6.6] - 2025-10-13
+
+### ✨ Major Features
+
+- **🎯 プロンプトプリセット機能** / **Prompt Preset Feature**
+
+  - 技術用語の認識精度を大幅向上する 12 種類のプリセット
+  - 12 preset types to dramatically improve technical term recognition accuracy
+  - プリセット: Web 開発, Backend 開発, Mobile 開発, AI/ML, Cloud, DevOps, Git, JavaScript, TypeScript, Python, VS Code
+  - Presets: Web, Backend, Mobile, AI/ML, Cloud, DevOps, Git, JavaScript, TypeScript, Python, VS Code
+  - カスタムプロンプトとの併用で最大効果を発揮
+  - Best results when combined with custom prompts
+  - 例: "ジッド" → "Git", "リアクト" → "React" と正確に認識
+  - Example: "jit" → "Git", "react" → "React" with accurate recognition
+
+- **📝 カスタムプロンプト機能** / **Custom Prompt Feature**
+
+  - プロジェクト固有の用語を追加可能
+  - Add project-specific terminology
+  - プリセット + カスタムの組み合わせで最高精度
+  - Maximum accuracy with preset + custom combination
+
+- **🌍 設定項目の多言語対応** / **Multilingual Settings UI**
+  - 設定画面を 9 言語で表示（日本語、英語、中国語、韓国語、フランス語、スペイン語、ドイツ語、イタリア語、ロシア語）
+  - Settings UI in 9 languages (Japanese, English, Chinese, Korean, French, Spanish, German, Italian, Russian)
+  - VS Code の言語設定に自動連動
+  - Automatically follows VS Code language settings
+
+### 🔧 Refactoring & Improvements
+
+- **コードベースの大幅改善** / **Major Codebase Improvements**
+
+  - whisper.js を extension.js に統合し、ファイル構成を簡素化
+  - Consolidated whisper.js into extension.js for simplified file structure
+  - 18 個の不要なパラメータを削除
+  - Removed 18 redundant parameters
+  - 全 34 関数に JSDoc コメントを追加
+  - Added JSDoc comments to all 34 functions
+  - グローバル変数 extensionContext で状態管理を統一
+  - Unified state management with global extensionContext variable
+
+- **設定項目の最適化** / **Settings Optimization**
+  - 設定項目の表示順序を論理的に整理（order プロパティ使用）
+  - Optimized settings display order with logical arrangement (using order property)
+  - 7 個の設定項目を使いやすい順序に配置
+  - Arranged 7 settings in user-friendly order
+
+### 📝 Documentation
+
+- **README.md 更新** / **README.md Updates**
+  - 「VS Code Speech にはない独自機能」セクションを追加（日英両方）
+  - Added "Unique Features Not in VS Code Speech" section (Japanese & English)
+  - プロンプトプリセット機能の詳細説明と使用例
+  - Detailed explanation and usage examples of prompt preset feature
+  - 差別化ポイントを明確に提示
+  - Clear presentation of differentiation points
+
+### 🐛 Bug Fixes
+
+- **context is not defined エラー修正** / **Fixed "context is not defined" Error**
+  - 12 箇所の `context.` を `extensionContext.` に修正
+  - Fixed 12 instances of `context.` to `extensionContext.`
+
 ## [1.6.5] - 2025-10-13
 
 ### 🔧 Critical Bug Fixes
 
 - **バイナリ実行権限問題の修正** / **Binary Execute Permission Fix**
-  - macOS/Linux環境でwhisper-cliの実行権限エラー(EACCES)を修正
+  - macOS/Linux 環境で whisper-cli の実行権限エラー(EACCES)を修正
   - Fixed whisper-cli execute permission error (EACCES) on macOS/Linux
   - 拡張機能アクティベーション時に自動で実行権限を付与
   - Auto-grant execute permissions during extension activation
-  - Windows環境でのファイル属性問題にも対応
+  - Windows 環境でのファイル属性問題にも対応
   - Added support for Windows file attribute issues
 
 ### ✨ Improvements

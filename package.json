@@ -3,7 +3,7 @@
   "displayName": "Voice to Text (also for Copilot Chat)",
   "description": "Whisperを利用した音声入力拡張。APIモード(クラウド・高精度)とローカルモード(オフライン・無料)から選択可能。(Voice input extension with API mode [cloud, accurate] or Local mode [offline, free] using Whisper.)",
   "publisher": "aleaf",
-  "version": "1.6.5",
+  "version": "1.6.6",
   "engines": {
     "vscode": "^1.80.0"
   },
@@ -47,14 +47,85 @@
   "main": "./extension.js",
   "contributes": {
     "configuration": {
-      "title": "Voice to Text (also for Copilot Chat)",
+      "title": "%title%",
       "properties": {
+        "voiceToText.mode": {
+          "type": "string",
+          "enum": [
+            "api",
+            "local"
+          ],
+          "default": "api",
+          "description": "%config.mode.description%",
+          "order": 1
+        },
+        "voiceToText.localModel": {
+          "type": "string",
+          "enum": [
+            "tiny",
+            "base",
+            "small",
+            "medium",
+            "large"
+          ],
+          "default": "base",
+          "description": "%config.localModel.description%",
+          "order": 2
+        },
         "voiceToText.maxRecordSeconds": {
           "type": "number",
           "default": 180,
           "minimum": 10,
           "maximum": 600,
-          "description": "Maximum recording time in seconds (default: 180)"
+          "description": "%config.maxRecordSeconds%",
+          "order": 3
+        },
+        "voiceToText.enableTranslation": {
+          "type": "boolean",
+          "default": false,
+          "description": "%config.enableTranslation.description%",
+          "order": 4
+        },
+        "voiceToText.promptPreset": {
+          "type": "string",
+          "enum": [
+            "none",
+            "web",
+            "backend",
+            "mobile",
+            "ai",
+            "cloud",
+            "devops",
+            "javascript",
+            "typescript",
+            "python",
+            "git",
+            "vscode"
+          ],
+          "enumDescriptions": [
+            "%config.promptPreset.none%",
+            "%config.promptPreset.web%",
+            "%config.promptPreset.backend%",
+            "%config.promptPreset.mobile%",
+            "%config.promptPreset.ai%",
+            "%config.promptPreset.cloud%",
+            "%config.promptPreset.devops%",
+            "%config.promptPreset.javascript%",
+            "%config.promptPreset.typescript%",
+            "%config.promptPreset.python%",
+            "%config.promptPreset.git%",
+            "%config.promptPreset.vscode%"
+          ],
+          "default": "none",
+          "description": "%config.promptPreset.description%",
+          "order": 5
+        },
+        "voiceToText.customPrompt": {
+          "type": "string",
+          "default": "",
+          "editPresentation": "multilineText",
+          "markdownDescription": "%config.customPrompt.description%",
+          "order": 6
         },
         "voiceToText.language": {
           "type": "string",
@@ -81,28 +152,8 @@
             "Русский"
           ],
           "default": "",
-          "description": "Interface language for messages"
-        },
-        "voiceToText.mode": {
-          "type": "string",
-          "enum": [
-            "api",
-            "local"
-          ],
-          "default": "api",
-          "description": "Select whether to use OpenAI API (requires key) or local whisper.cpp model"
-        },
-        "voiceToText.localModel": {
-          "type": "string",
-          "enum": [
-            "tiny",
-            "base",
-            "small",
-            "medium",
-            "large"
-          ],
-          "default": "base",
-          "description": "Whisper model for local mode (base recommended for daily use)"
+          "description": "%config.language%",
+          "order": 7
         }
       }
     },
@@ -152,6 +203,10 @@
     "type": "git",
     "url": "https://github.com/illeaves/voice-to-text-copilot"
   },
+  "bugs": {
+    "url": "https://github.com/illeaves/voice-to-text-copilot/issues"
+  },
+  "homepage": "https://github.com/illeaves/voice-to-text-copilot#readme",
   "license": "MIT",
   "vsce": {
     "dependencies": true,
