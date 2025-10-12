@@ -41,6 +41,47 @@ let savedPosition = null; // 録音開始時のカーソル位置
 const WHISPER_HISTORY_KEY = "whisperHistory"; // 履歴保存キー
 const MAX_HISTORY_SIZE = 10; // 最大履歴件数
 
+// ====== Binary Permissions ======
+/**
+ * バイナリファイルの実行権限を確保
+ */
+async function ensureBinaryPermissions(context) {
+  const platform = process.platform;
+  let binaryPath;
+
+  if (platform === "darwin") {
+    binaryPath = path.join(context.extensionPath, "bin", "macos", "whisper-cli");
+  } else if (platform === "linux") {
+    binaryPath = path.join(context.extensionPath, "bin", "linux", "whisper-cli");
+  } else {
+    // Windows は権限設定不要
+    return;
+  }
+
+  try {
+    // ファイルの存在確認
+    if (!fs.existsSync(binaryPath)) {
+      console.log(`⚠️ Binary not found: ${binaryPath}`);
+      return;
+    }
+
+    // 実行権限をチェック
+    const stats = fs.statSync(binaryPath);
+    const hasExecutePermission = (stats.mode & parseInt('111', 8)) !== 0;
+
+    if (!hasExecutePermission) {
+      console.log(`🔧 Adding execute permission to: ${binaryPath}`);
+      fs.chmodSync(binaryPath, stats.mode | parseInt('755', 8));
+      console.log(`✅ Execute permission added successfully`);
+    } else {
+      console.log(`✅ Binary already has execute permission: ${binaryPath}`);
+    }
+  } catch (error) {
+    console.error(`⚠️ Failed to set binary permissions: ${error.message}`);
+    // 権限エラーは致命的ではないので続行
+  }
+}
+
 // ====== Localization ======
 function loadLocale(lang) {
   try {
@@ -1197,6 +1238,9 @@ async function activate(context) {
       "Voice to Text (also for Copilot Chat)"
     );
     context.subscriptions.push(outputChannel);
+
+    // --- バイナリファイルの実行権限を確保 ---
+    await ensureBinaryPermissions(context);
 
     // --- 設定を取得 ---
     const config = vscode.workspace.getConfiguration("voiceToText");
