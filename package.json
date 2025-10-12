@@ -116,6 +116,10 @@
         "title": "Voice to Text: Start / Stop Recording (Paste to Copilot Chat)"
       },
       {
+        "command": "voiceToText.cancelRecording",
+        "title": "Voice to Text: Cancel Recording / Processing"
+      },
+      {
         "command": "voiceToText.setApiKey",
         "title": "Voice to Text: Set OpenAI API Key"
       },
@@ -134,6 +138,13 @@
       {
         "command": "voiceToText.cleanUp",
         "title": "Voice to Text: Clean Up (Remove Models & Custom Builds)"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "voiceToText.cancelRecording",
+        "key": "escape",
+        "when": "!terminalFocus && !findInputFocussed && !renameInputVisible"
       }
     ]
   },

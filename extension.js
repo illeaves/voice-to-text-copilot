@@ -252,14 +252,18 @@ function updateStatusBar(state = "idle", elapsed = 0, max = 0) {
 
       // ボタンは両方表示、録音開始した方のみenabled（停止可能）、もう一方はdisabled
       if (activeRecordingButton === "focus") {
-        statusBarItemFocus.text = "🟦Focus";
-        statusBarItemFocus.tooltip = msg("statusRecording") + ` [${modeLabel}]`;
+        // アクティブなボタン（録音中・停止可能）
+        statusBarItemFocus.text = "�Focus";
+        statusBarItemFocus.tooltip = `${msg("statusRecording")} - クリックで停止 [${modeLabel}]`;
         statusBarItemFocus.backgroundColor = new vscode.ThemeColor(
-          "statusBarItem.warningBackground"
+          "statusBarItem.errorBackground"
         );
         statusBarItemFocus.command = "voiceToText.toggle"; // 停止可能
-        statusBarItemFocus.color = undefined;
+        statusBarItemFocus.color = new vscode.ThemeColor(
+          "statusBarItem.errorForeground"
+        );
 
+        // 非アクティブなボタン（無効化）
         statusBarItemChat.text = "💬Chat";
         statusBarItemChat.tooltip = msg("recordingDisabled");
         statusBarItemChat.backgroundColor = undefined;
@@ -268,14 +272,18 @@ function updateStatusBar(state = "idle", elapsed = 0, max = 0) {
           "statusBarItem.inactiveForeground"
         );
       } else if (activeRecordingButton === "chat") {
-        statusBarItemChat.text = "🟦Chat";
-        statusBarItemChat.tooltip = msg("statusRecording") + ` [${modeLabel}]`;
+        // アクティブなボタン（録音中・停止可能）
+        statusBarItemChat.text = "�Chat";
+        statusBarItemChat.tooltip = `${msg("statusRecording")} - クリックで停止 [${modeLabel}]`;
         statusBarItemChat.backgroundColor = new vscode.ThemeColor(
-          "statusBarItem.warningBackground"
+          "statusBarItem.errorBackground"
         );
         statusBarItemChat.command = "voiceToText.toggleForChat"; // 停止可能
-        statusBarItemChat.color = undefined;
+        statusBarItemChat.color = new vscode.ThemeColor(
+          "statusBarItem.errorForeground"
+        );
 
+        // 非アクティブなボタン（無効化）
         statusBarItemFocus.text = "📍Focus";
         statusBarItemFocus.tooltip = msg("recordingDisabled");
         statusBarItemFocus.backgroundColor = undefined;
@@ -284,9 +292,18 @@ function updateStatusBar(state = "idle", elapsed = 0, max = 0) {
           "statusBarItem.inactiveForeground"
         );
       }
-      statusBarItemStatus.show();
-      statusBarItemFocus.show();
-      statusBarItemChat.show();
+      
+      // 強制的に再表示して状態を確実に適用
+      statusBarItemStatus.hide();
+      statusBarItemFocus.hide();
+      statusBarItemChat.hide();
+      
+      // 少し遅延させて再表示（VSCodeの内部処理を待つ）
+      setTimeout(() => {
+        statusBarItemStatus.show();
+        statusBarItemFocus.show();
+        statusBarItemChat.show();
+      }, 50);
       break;
     }
     case "processing": {
@@ -349,22 +366,26 @@ function updateStatusBar(state = "idle", elapsed = 0, max = 0) {
       statusBarItemStatus.text = msg("statusWaiting");
       statusBarItemStatus.tooltip = `Voice to Text (also for Copilot Chat) [${modeLabel}]`;
       statusBarItemStatus.backgroundColor = undefined;
+      statusBarItemStatus.command = undefined;
 
+      // 両ボタンを通常状態に戻す
       statusBarItemFocus.text = "📍Focus";
       statusBarItemFocus.tooltip = `${msg("recordToEditor")} [${modeLabel}]`;
       statusBarItemFocus.backgroundColor = undefined;
       statusBarItemFocus.command = "voiceToText.toggle";
       statusBarItemFocus.color = undefined;
-      statusBarItemFocus.show();
 
       statusBarItemChat.text = "💬Chat";
       statusBarItemChat.tooltip = `${msg("recordToChat")} [${modeLabel}]`;
       statusBarItemChat.backgroundColor = undefined;
       statusBarItemChat.command = "voiceToText.toggleForChat";
       statusBarItemChat.color = undefined;
-      statusBarItemChat.show();
 
+      // 強制的に表示状態をリセット
       statusBarItemStatus.show();
+      statusBarItemFocus.show();
+      statusBarItemChat.show();
+      
       activeRecordingButton = null;
       break;
     }
@@ -1499,6 +1520,28 @@ function registerCommands(context) {
       activeRecordingButton = "chat";
       systemLog("📍 Copilot Chatに貼り付けます", "INFO");
       handleToggleCommand(context);
+    })
+  );
+
+  disposables.push(
+    vscode.commands.registerCommand("voiceToText.cancelRecording", () => {
+      // 録音・処理をキャンセル
+      if (isRecording || isProcessing) {
+        const action = isRecording ? "録音" : "処理";
+        systemLog(`🔴 ${action}をキャンセルしました`, "INFO");
+        vscode.window.showInformationMessage(`🔴 ${action}をキャンセルしました`);
+        
+        if (isRecording) {
+          // 録音中の場合は停止処理を実行（ただし音声処理はスキップ）
+          handleToggleCommand(context);
+        } else if (isProcessing) {
+          // 処理中の場合は強制的に状態をリセット
+          isProcessing = false;
+          updateStatusBar("idle");
+        }
+      } else {
+        vscode.window.showInformationMessage("現在、録音または処理は実行されていません");
+      }
     })
   );
 
