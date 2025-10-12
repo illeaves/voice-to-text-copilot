@@ -254,7 +254,9 @@ function updateStatusBar(state = "idle", elapsed = 0, max = 0) {
       if (activeRecordingButton === "focus") {
         // アクティブなボタン（録音中・停止可能）
         statusBarItemFocus.text = "🟦Focus";
-        statusBarItemFocus.tooltip = `${msg("statusRecording")} - クリックで停止 [${modeLabel}]`;
+        statusBarItemFocus.tooltip = `${msg(
+          "statusRecording"
+        )} - クリックで停止 [${modeLabel}]`;
         statusBarItemFocus.backgroundColor = new vscode.ThemeColor(
           "statusBarItem.warningBackground"
         );
@@ -272,7 +274,9 @@ function updateStatusBar(state = "idle", elapsed = 0, max = 0) {
       } else if (activeRecordingButton === "chat") {
         // アクティブなボタン（録音中・停止可能）
         statusBarItemChat.text = "🟦Chat";
-        statusBarItemChat.tooltip = `${msg("statusRecording")} - クリックで停止 [${modeLabel}]`;
+        statusBarItemChat.tooltip = `${msg(
+          "statusRecording"
+        )} - クリックで停止 [${modeLabel}]`;
         statusBarItemChat.backgroundColor = new vscode.ThemeColor(
           "statusBarItem.warningBackground"
         );
@@ -288,19 +292,23 @@ function updateStatusBar(state = "idle", elapsed = 0, max = 0) {
           "statusBarItem.inactiveForeground"
         );
       }
-      
+
       statusBarItemStatus.show();
       statusBarItemFocus.show();
       statusBarItemChat.show();
       break;
     }
     case "processing": {
-      const processingText = `$(sync~spin) ${msg("statusProcessing")} [${modeLabel}]`;
+      const processingText = `$(sync~spin) ${msg(
+        "statusProcessing"
+      )} [${modeLabel}]`;
       statusBarItemStatus.text = `${processingText}`;
-      statusBarItemStatus.tooltip = msg("statusProcessing") + ` [${modeLabel}]`;
+      statusBarItemStatus.tooltip =
+        msg("clickToCancelProcessing") || "クリックして処理を中止";
       statusBarItemStatus.backgroundColor = new vscode.ThemeColor(
         "statusBarItem.warningBackground"
       );
+      statusBarItemStatus.command = "voiceToText.confirmCancelProcessing"; // クリック時に確認ダイアログを表示
 
       // 両方disabled
       statusBarItemFocus.text = "📍Focus";
@@ -373,7 +381,7 @@ function updateStatusBar(state = "idle", elapsed = 0, max = 0) {
       statusBarItemStatus.show();
       statusBarItemFocus.show();
       statusBarItemChat.show();
-      
+
       activeRecordingButton = null;
       break;
     }
@@ -707,17 +715,17 @@ async function runInitialSetup(context, config, msg) {
     // モデルファイルの存在確認
     const modelDir = getModelDir();
     const modelPath = path.join(modelDir, `ggml-${modelChoice.value}.bin`);
-    
+
     if (fs.existsSync(modelPath)) {
       // 既にモデルファイルが存在する場合、上書きするか確認
       systemLog(`Model already exists: ${modelPath}`, "INFO");
-      
+
       const overwriteChoice = await vscode.window.showInformationMessage(
         msg("modelExistsOverwrite", { model: modelChoice.value }),
         msg("overwriteModel"),
         msg("useExistingModel")
       );
-      
+
       if (overwriteChoice === msg("useExistingModel")) {
         // 既存のモデルを使用
         vscode.window.showInformationMessage(
@@ -742,7 +750,7 @@ async function runInitialSetup(context, config, msg) {
         return;
       }
     }
-    
+
     // モデルダウンロード処理
     try {
       await vscode.window.withProgress(
@@ -786,24 +794,27 @@ async function runInitialSetup(context, config, msg) {
 async function handleModeChange(context) {
   const config = vscode.workspace.getConfiguration("voiceToText");
   const newMode = config.get("mode");
-  
+
   systemLog(`Mode changed to: ${newMode}`, "INFO");
-  
+
   // ローカルモードに変更された場合、モデルの存在確認
   if (newMode === "local") {
     const localModel = config.get("localModel", "small");
     const modelDir = getModelDir();
     const modelPath = path.join(modelDir, `ggml-${localModel}.bin`);
-    
+
     if (!fs.existsSync(modelPath)) {
-      systemLog(`Model ${localModel} not found, prompting for download`, "INFO");
-      
+      systemLog(
+        `Model ${localModel} not found, prompting for download`,
+        "INFO"
+      );
+
       const response = await vscode.window.showInformationMessage(
         msg("modelMissingOnModeSwitch", { model: localModel }),
         msg("downloadNow"),
         msg("stayInApiMode")
       );
-      
+
       if (response === msg("downloadNow")) {
         // モデルをダウンロード
         await downloadSingleModel(localModel, msg);
@@ -824,23 +835,23 @@ async function handleLocalModelChange(context) {
   const config = vscode.workspace.getConfiguration("voiceToText");
   const newModel = config.get("localModel");
   const currentMode = config.get("mode");
-  
+
   systemLog(`Local model changed to: ${newModel}`, "INFO");
-  
+
   // ローカルモードの場合のみチェック
   if (currentMode === "local") {
     const modelDir = getModelDir();
     const modelPath = path.join(modelDir, `ggml-${newModel}.bin`);
-    
+
     if (!fs.existsSync(modelPath)) {
       systemLog(`Model ${newModel} not found, prompting for download`, "INFO");
-      
+
       const response = await vscode.window.showInformationMessage(
         msg("modelNotFoundPrompt", { model: newModel }),
         msg("downloadNow"),
         msg("revertSelection")
       );
-      
+
       if (response === msg("downloadNow")) {
         // モデルをダウンロード
         try {
@@ -870,10 +881,14 @@ async function handleLocalModelChange(context) {
 async function revertModelSelection(context) {
   const previousModel = context.globalState.get("previousLocalModel", "small");
   const config = vscode.workspace.getConfiguration("voiceToText");
-  
+
   systemLog(`Reverting model selection to: ${previousModel}`, "INFO");
-  await config.update("localModel", previousModel, vscode.ConfigurationTarget.Global);
-  
+  await config.update(
+    "localModel",
+    previousModel,
+    vscode.ConfigurationTarget.Global
+  );
+
   vscode.window.showInformationMessage(
     msg("modelSelectionReverted", { model: previousModel })
   );
@@ -898,7 +913,7 @@ async function downloadSingleModel(modelName, msg) {
               message: `${percent}% (${downloadedMB}MB / ${totalMB}MB)`,
             });
           };
-          
+
           await downloadModel(modelName, msg, onProgress);
           systemLog(`Model ${modelName} downloaded successfully`, "INFO");
           resolve();
@@ -1270,8 +1285,11 @@ async function activate(context) {
     // --- 設定変更イベントリスナー ---
     // 現在の設定値を保存（変更前の値として使用）
     const initialConfig = vscode.workspace.getConfiguration("voiceToText");
-    await context.globalState.update("previousLocalModel", initialConfig.get("localModel", "small"));
-    
+    await context.globalState.update(
+      "previousLocalModel",
+      initialConfig.get("localModel", "small")
+    );
+
     context.subscriptions.push(
       vscode.workspace.onDidChangeConfiguration(async (e) => {
         if (e.affectsConfiguration("voiceToText.mode")) {
@@ -1281,8 +1299,12 @@ async function activate(context) {
         } else if (e.affectsConfiguration("voiceToText.localModel")) {
           systemLog("Local model configuration changed", "INFO");
           // 変更前の値を保存してからハンドル
-          const currentConfig = vscode.workspace.getConfiguration("voiceToText");
-          const previousModel = context.globalState.get("previousLocalModel", "small");
+          const currentConfig =
+            vscode.workspace.getConfiguration("voiceToText");
+          const previousModel = context.globalState.get(
+            "previousLocalModel",
+            "small"
+          );
           await handleLocalModelChange(context);
           // 新しい値を保存（成功した場合のみ）
           const newModel = currentConfig.get("localModel");
@@ -1336,7 +1358,7 @@ async function stopRecordingAndProcessVoice(context) {
     // 📍 録音状態をリセット
     isRecording = false;
     stopRecordingTimer(); // タイマー停止
-    
+
     isProcessing = true;
     updateStatusBar("processing");
     systemLog(msg("sendingToWhisper"), "INFO");
@@ -1367,7 +1389,7 @@ async function stopRecordingAndProcessVoice(context) {
     const mode = currentConfig.get("mode") || "api";
     systemLog(`Current mode: ${mode}`, "INFO");
     let text;
-    
+
     if (mode === "local") {
       const localModel = currentConfig.get("localModel") || "small";
       systemLog(`Using local whisper.cpp (model: ${localModel})`, "INFO");
@@ -1432,8 +1454,6 @@ async function stopRecordingAndProcessVoice(context) {
   }
 }
 
-
-
 /**
  * トグル処理（録音開始/停止と結果貼り付け）
  * 以前のインライン実装を関数化
@@ -1463,7 +1483,7 @@ async function handleToggleCommand(context) {
         context,
         maxSec,
         msg,
-        stopRecordingAndProcessVoice,  // 関数を直接渡す
+        stopRecordingAndProcessVoice, // 関数を直接渡す
         mode
       );
     } catch (error) {
@@ -1512,13 +1532,66 @@ function registerCommands(context) {
   );
 
   disposables.push(
+    vscode.commands.registerCommand(
+      "voiceToText.confirmCancelProcessing",
+      async () => {
+        // 処理中のステータスバーをクリックした時の確認ダイアログ
+        if (isProcessing) {
+          const choice = await vscode.window.showWarningMessage(
+            msg("confirmCancelProcessing") || "処理を中止しますか？",
+            { modal: true },
+            msg("yes") || "はい",
+            msg("no") || "いいえ"
+          );
+
+          if (choice === (msg("yes") || "はい")) {
+            systemLog("🔴 処理をキャンセルしました（ユーザーが確認）", "INFO");
+            vscode.window.showInformationMessage("🔴 処理をキャンセルしました");
+
+            // 状態をリセット
+            isProcessing = false;
+            isRecording = false;
+
+            // 録音タイマーを停止
+            stopRecordingTimer();
+
+            // whisper.jsの録音プロセスをクリーンアップ
+            if (isCurrentlyRecording()) {
+              try {
+                await stopRecording();
+              } catch (e) {
+                console.error("⚠️ Error during cleanup:", e);
+              }
+            }
+
+            // 一時ファイルを削除
+            const voiceFile = path.join(__dirname, "voice.wav");
+            if (fs.existsSync(voiceFile)) {
+              try {
+                fs.unlinkSync(voiceFile);
+                console.log("🗑️ Deleted temporary voice file");
+              } catch (e) {
+                console.error("⚠️ Failed to delete temporary file:", e);
+              }
+            }
+
+            updateStatusBar("idle");
+          }
+        }
+      }
+    )
+  );
+
+  disposables.push(
     vscode.commands.registerCommand("voiceToText.cancelRecording", () => {
       // 録音・処理をキャンセル
       if (isRecording || isProcessing) {
         const action = isRecording ? "録音" : "処理";
         systemLog(`🔴 ${action}をキャンセルしました`, "INFO");
-        vscode.window.showInformationMessage(`🔴 ${action}をキャンセルしました`);
-        
+        vscode.window.showInformationMessage(
+          `🔴 ${action}をキャンセルしました`
+        );
+
         if (isRecording) {
           // 録音中の場合は停止処理を実行（ただし音声処理はスキップ）
           handleToggleCommand(context);
@@ -1528,7 +1601,9 @@ function registerCommands(context) {
           updateStatusBar("idle");
         }
       } else {
-        vscode.window.showInformationMessage("現在、録音または処理は実行されていません");
+        vscode.window.showInformationMessage(
+          "現在、録音または処理は実行されていません"
+        );
       }
     })
   );
@@ -1548,60 +1623,54 @@ function registerCommands(context) {
   );
 
   disposables.push(
-    vscode.commands.registerCommand(
-      "voiceToText.setupWizard",
-      async () => {
-        systemLog("Running setup wizard manually", "INFO");
-        const config = vscode.workspace.getConfiguration("voiceToText");
-        await runInitialSetup(context, config, msg);
-      }
-    )
+    vscode.commands.registerCommand("voiceToText.setupWizard", async () => {
+      systemLog("Running setup wizard manually", "INFO");
+      const config = vscode.workspace.getConfiguration("voiceToText");
+      await runInitialSetup(context, config, msg);
+    })
   );
 
   disposables.push(
-    vscode.commands.registerCommand(
-      "voiceToText.showHistory",
-      async () => {
-        const history = getHistory(context);
-        if (history.length === 0) {
-          vscode.window.showInformationMessage(
-            msg("historyEmpty") || "履歴がありません"
-          );
-          return;
-        }
-        const items = history.map((entry, index) => {
-          const preview =
-            entry.text.length > 60
-              ? entry.text.substring(0, 60) + "..."
-              : entry.text;
-          const date = new Date(entry.timestamp);
-          const timeStr = date.toLocaleString();
-          return {
-            label: `$(history) ${index + 1}. ${preview}`,
-            description: `${entry.mode.toUpperCase()} - ${timeStr}`,
-            detail: entry.text,
-            entry: entry,
-          };
-        });
-        const selected = await vscode.window.showQuickPick(items, {
-          placeHolder:
-            msg("historySelectPlaceholder") ||
-            "Whisper履歴から選択してクリップボードにコピー",
-          matchOnDescription: true,
-          matchOnDetail: true,
-        });
-        if (selected) {
-          await vscode.env.clipboard.writeText(selected.entry.text);
-          vscode.window.showInformationMessage(
-            msg("copiedToClipboard") || "クリップボードにコピーしました"
-          );
-          systemLog(
-            `Copied from history: "${selected.entry.text.substring(0, 50)}..."`,
-            "INFO"
-          );
-        }
+    vscode.commands.registerCommand("voiceToText.showHistory", async () => {
+      const history = getHistory(context);
+      if (history.length === 0) {
+        vscode.window.showInformationMessage(
+          msg("historyEmpty") || "履歴がありません"
+        );
+        return;
       }
-    )
+      const items = history.map((entry, index) => {
+        const preview =
+          entry.text.length > 60
+            ? entry.text.substring(0, 60) + "..."
+            : entry.text;
+        const date = new Date(entry.timestamp);
+        const timeStr = date.toLocaleString();
+        return {
+          label: `$(history) ${index + 1}. ${preview}`,
+          description: `${entry.mode.toUpperCase()} - ${timeStr}`,
+          detail: entry.text,
+          entry: entry,
+        };
+      });
+      const selected = await vscode.window.showQuickPick(items, {
+        placeHolder:
+          msg("historySelectPlaceholder") ||
+          "Whisper履歴から選択してクリップボードにコピー",
+        matchOnDescription: true,
+        matchOnDetail: true,
+      });
+      if (selected) {
+        await vscode.env.clipboard.writeText(selected.entry.text);
+        vscode.window.showInformationMessage(
+          msg("copiedToClipboard") || "クリップボードにコピーしました"
+        );
+        systemLog(
+          `Copied from history: "${selected.entry.text.substring(0, 50)}..."`,
+          "INFO"
+        );
+      }
+    })
   );
 
   // カスタムビルドフォルダーを開くコマンド
@@ -1630,7 +1699,10 @@ function registerCommands(context) {
           await vscode.commands.executeCommand("revealFileInOS", uri);
 
           // 情報メッセージ
-          const message = msg("customBuildFolderMessage", { platform: platformName, folder: customDir });
+          const message = msg("customBuildFolderMessage", {
+            platform: platformName,
+            folder: customDir,
+          });
 
           vscode.window.showInformationMessage(message);
           systemLog(`Opened custom build folder: ${customDir}`, "INFO");

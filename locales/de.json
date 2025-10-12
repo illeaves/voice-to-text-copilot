@@ -96,5 +96,9 @@
   "modelNotFoundPrompt": "Ausgewähltes Modell '{{model}}' ist nicht heruntergeladen.",
   "revertSelection": "Auswahl rückgängig machen",
   "modelDownloadComplete": "Modell '{{model}}' Download abgeschlossen!",
-  "modelSelectionReverted": "Modellauswahl auf '{{model}}' zurückgesetzt."
+  "modelSelectionReverted": "Modellauswahl auf '{{model}}' zurückgesetzt.",
+  "confirmCancelProcessing": "Verarbeitung abbrechen?",
+  "yes": "Ja",
+  "no": "Nein",
+  "clickToCancelProcessing": "Klicken Sie hier, um die Verarbeitung abzubrechen"
 }

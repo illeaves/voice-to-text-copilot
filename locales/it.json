@@ -81,7 +81,7 @@
   "dataDeleted": "Dati eliminati ({{size}} MB liberati)",
   "deleteFailed": "Eliminazione dati fallita: {{error}}",
   "customBuildFolderMessage": "Inserisci i build GPU {{platform}} in questa cartella:\n{{folder}}",
-    "folderOpenFailed": "Impossibile aprire la cartella: {{folder}}",
+  "folderOpenFailed": "Impossibile aprire la cartella: {{folder}}",
   "statusWaiting": "🎤 In attesa",
   "statusRecordingTime": "🔴 Registrazione",
   "soxRecordingError": "Errore di registrazione SOX: {{error}}",
@@ -96,5 +96,9 @@
   "modelNotFoundPrompt": "Il modello selezionato '{{model}}' non è scaricato.",
   "revertSelection": "Annulla selezione",
   "modelDownloadComplete": "Download del modello '{{model}}' completato!",
-  "modelSelectionReverted": "Selezione del modello ripristinata a '{{model}}'."
+  "modelSelectionReverted": "Selezione del modello ripristinata a '{{model}}'.",
+  "confirmCancelProcessing": "Annullare l'elaborazione?",
+  "yes": "Sì",
+  "no": "No",
+  "clickToCancelProcessing": "Fai clic per annullare l'elaborazione"
 }

@@ -87,7 +87,7 @@
   "soxRecordingError": "Erreur d'enregistrement SOX: {{error}}",
   "modelAlreadyExists": "Le modèle '{{model}}' est déjà téléchargé.",
   "modelExistsOverwrite": "Le modèle '{{model}}' existe déjà. Voulez-vous l'écraser?",
-    "overwriteModel": "Remplacer",
+  "overwriteModel": "Remplacer",
   "useExistingModel": "Utiliser le modèle existant",
   "modelMissingOnModeSwitch": "Basculé en mode local, mais le modèle '{{model}}' n'est pas téléchargé.",
   "downloadNow": "Télécharger maintenant",
@@ -96,5 +96,9 @@
   "modelNotFoundPrompt": "Le modèle sélectionné '{{model}}' n'est pas téléchargé.",
   "revertSelection": "Annuler la sélection",
   "modelDownloadComplete": "Téléchargement du modèle '{{model}}' terminé!",
-  "modelSelectionReverted": "Sélection du modèle annulée vers '{{model}}'."
+  "modelSelectionReverted": "Sélection du modèle annulée vers '{{model}}'.",
+  "confirmCancelProcessing": "Annuler le traitement?",
+  "yes": "Oui",
+  "no": "Non",
+  "clickToCancelProcessing": "Cliquez pour annuler le traitement"
 }

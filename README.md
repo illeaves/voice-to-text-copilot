@@ -2,14 +2,14 @@
 
 _(日本語 / English)_
 
-![Version](https://img.shields.io/badge/version-1.6.3-blue.svg)\
+![Version](https://img.shields.io/badge/version-1.6.4-blue.svg)\
 ![VSCode](https://img.shields.io/badge/VS_Code-Extension-007ACC.svg)\
 ![License](https://img.shields.io/badge/license-MIT-green.svg)\
 ![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Mac%20%7C%20Linux-lightgrey.svg)
 
 ![Demo - Copilot Chat Mode](docs/images/mov_chat.gif)
 
-> 🎤 **音声でCopilot Chatに質問 & コード編集** - 100以上の言語に対応した音声入力でVS Codeの生産性を向上
+> 🎤 **音声で Copilot Chat に質問 & コード編集** - 100 以上の言語に対応した音声入力で VS Code の生産性を向上
 
 ---
 
@@ -54,7 +54,7 @@ UI の言語は**9 言語対応**（日本語、英語、フランス語、ス�
 
 - 🎤 マイクから音声を録音し、自動でテキスト化（多言語自動判別）
 - 🧠 Whisper API を使用（日本語・英語・中国語など 100 言語対応）
-- 📋 生成されたテキストを「フォーカス位置」「Copilot Chat欄」のどちらかを選んでペースト（それぞれに対応したボタンがステータスバーにも表示される）
+- 📋 生成されたテキストを「フォーカス位置」「Copilot Chat 欄」のどちらかを選んでペースト（それぞれに対応したボタンがステータスバーにも表示される）
 - 🔒 **クリップボード保護機能** - 貼り付け後、元のクリップボード内容を自動復元
 - 📚 **履歴機能** - 過去 10 件のテキスト化結果を保存・再利用可能
 - ⏱️ **録音時間表示** - 録音中の経過時間と残り時間をリアルタイム表示
@@ -105,14 +105,16 @@ Whisper は**100 以上の言語**を自動認識できます。
 ### 🎬 デモ動画
 
 #### 📍 Focus モード - エディタに直接貼り付け
+
 ![Demo - Focus Mode](docs/images/mov_focus.gif)
 
-*エディタの元の位置に音声入力結果を貼り付けるデモ*
+_エディタの元の位置に音声入力結果を貼り付けるデモ_
 
 #### 💬 Chat モード - Copilot チャットに貼り付け
+
 ![Demo - Chat Mode](docs/images/mov_chat.gif)
 
-*Copilot Chatに直接音声入力するデモ*
+_Copilot Chat に直接音声入力するデモ_
 
 ---
 
@@ -128,31 +130,33 @@ Whisper は**100 以上の言語**を自動認識できます。
 
 #### 🎙️ 音声入力の使い方
 
-##### 📍 2つの貼り付けモード
+##### 📍 2 つの貼り付けモード
 
-この拡張機能では、音声入力結果を**2つの場所**に貼り付けることができます：
+この拡張機能では、音声入力結果を**2 つの場所**に貼り付けることができます：
 
 **1. 📍 Focus モード** - エディタの元の位置に貼り付け
+
 - 録音停止直前にカーソルがあった場所に貼り付け
 - コードやドキュメントの編集中に便利
 
-**2. 💬 Chat モード** - Copilot Chatに貼り付け  
-- Copilot Chatの入力欄に直接貼り付け
-- AIに質問や指示をする際に便利
+**2. 💬 Chat モード** - Copilot Chat に貼り付け
+
+- Copilot Chat の入力欄に直接貼り付け
+- AI に質問や指示をする際に便利
 
 ##### 🖱️ ステータスバーボタンの使い方
 
-**ステータスバー（右下）**に3つのボタンが表示されます：
+**ステータスバー（右下）**に 3 つのボタンが表示されます：
 
-- **🎤待機中** - 現在の状態表示
+- **🎤 待機中** - 現在の状態表示
 - **📍 Focus** - Focus モードで録音開始（エディタに貼り付け）
-- **💬 Chat** - Chat モードで録音開始（Copilot Chatに貼り付け）
+- **💬 Chat** - Chat モードで録音開始（Copilot Chat に貼り付け）
 
 ##### 🎯 基本的な使い方
 
 1.  **ステータスバー**で貼り付け先を選択：
     - **📍 Focus** をクリック → エディタの元の位置に貼り付け
-    - **💬 Chat** をクリック → Copilot Chatに貼り付け
+    - **💬 Chat** をクリック → Copilot Chat に貼り付け
 2.  **録音状態をリアルタイム確認**：
     - 🔴 **0:45 / 3:00** - 録音中（経過時間 / 残り時間）
     - ⏳ **処理中...** `[API]` または `[Local:Small]` - 文字起こし中
@@ -165,6 +169,7 @@ Whisper は**100 以上の言語**を自動認識できます。
 - **💬 Chat モード**: Copilot に質問、コード説明の依頼、リファクタリングの相談など
 
 **従来の方法**も引き続き利用可能：
+
 - コマンドパレット（`Ctrl + Shift + P`）で **「Voice to Text: Start / Stop Recording」** を選択
 
 #### ⚙️ モード切り替え
@@ -531,10 +536,12 @@ Now you can start/stop recording with just your assigned key combination!
 This extension offers **two paste destinations** for your voice input results:
 
 **1. 📍 Focus Mode** - Paste to original editor position
+
 - Pastes text where your cursor was just before stopping recording
 - Perfect for coding and document editing
 
 **2. 💬 Chat Mode** - Paste to Copilot Chat
+
 - Pastes directly into Copilot Chat input field
 - Ideal for asking questions or giving AI instructions
 
@@ -563,6 +570,7 @@ This extension offers **two paste destinations** for your voice input results:
 - **💬 Chat Mode**: Ask Copilot questions, request code explanations, refactoring consultations, etc.
 
 **Traditional method** still available:
+
 - Open Command Palette (`Ctrl + Shift + P`) → **"Voice to Text: Start / Stop Recording"**
 
 #### ⚙️ Switching Modes

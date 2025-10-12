@@ -2,16 +2,44 @@
 
 All notable changes to the "Voice to Text (also for Copilot Chat)" extension will be documented in this file.
 
+## [1.6.4] - 2025-10-12
+
+### ✨ UI/UX Improvements
+
+- **処理中断の改善** / **Processing Cancellation Enhancement**
+  - 処理中のステータスバーをクリック可能に
+  - Made processing status bar clickable
+  - クリックでキャンセル確認ダイアログを表示（はい/いいえ）
+  - Shows cancel confirmation dialog (Yes/No) when clicked
+  - 誤操作防止のための安全な中断機能
+  - Safe cancellation with accidental operation prevention
+
+### 🔧 Bug Fixes
+
+- **キャンセル時のリソース管理改善** / **Resource Management on Cancel**
+  - キャンセル時の完全なクリーンアップ処理を追加
+  - Added complete cleanup process on cancellation
+  - 録音プロセス、タイマー、一時ファイルの適切な解放
+  - Proper release of recording process, timers, and temporary files
+  - メモリリークの防止
+  - Prevents memory leaks
+
+### 🌍 Localization
+
+- **多言語対応強化** / **Enhanced Multilingual Support**
+  - 確認ダイアログの 9 言語対応完了（日本語、英語、フランス語、スペイン語、中国語、韓国語、ドイツ語、イタリア語、ロシア語）
+  - Completed 9-language support for confirmation dialogs (Japanese, English, French, Spanish, Chinese, Korean, German, Italian, Russian)
+
 ## [1.6.3] - 2025-10-12
 
 ### 🔧 Bug Fixes
 
 - **Windows ローカルモード修正** / **Windows Local Mode Fix**
-  - Windows環境でのWAVファイルヘッダー問題を解決
+  - Windows 環境での WAV ファイルヘッダー問題を解決
   - Fixed WAV file header issues in Windows environment
-  - whisper.cpp互換性のためのPCMエンコーディング修正
+  - whisper.cpp 互換性のための PCM エンコーディング修正
   - Fixed PCM encoding for whisper.cpp compatibility
-  - SOXによる録音後ヘッダー自動修正処理を追加
+  - SOX による録音後ヘッダー自動修正処理を追加
   - Added automatic header correction after SOX recording
 
 ### ✨ UI/UX Improvements
@@ -19,9 +47,9 @@ All notable changes to the "Voice to Text (also for Copilot Chat)" extension wil
 - **ステータスバー表示改善** / **Status Bar Display Enhancement**
   - ステータスバーのチカチカ現象を修正
   - Fixed status bar flickering issue
-  - 録音中ボタンの視認性向上（🟦アイコン使用）
+  - 録音中ボタンの視認性向上（🟦 アイコン使用）
   - Improved recording button visibility with blue square icons
-  - 強制的なhide/show処理を削除してスムーズな表示を実現
+  - 強制的な hide/show 処理を削除してスムーズな表示を実現
   - Eliminated forced hide/show cycles for smoother display
 
 ### 🎯 New Features
@@ -29,17 +57,24 @@ All notable changes to the "Voice to Text (also for Copilot Chat)" extension wil
 - **キャンセル機能強化** / **Enhanced Cancel Functionality**
   - 録音・処理中のキャンセルコマンドを追加
   - Added cancel command for recording/processing
-  - Escapeキーによるクイックキャンセル機能
+  - Escape キーによるクイックキャンセル機能
   - Quick cancel with Escape key shortcut
   - コマンドパレットからのキャンセル操作対応
   - Cancel operation support from command palette
+  - **処理中ステータスバークリック対応** / **Processing Status Bar Click Support**
+    - 処理中のステータスバーをクリックでキャンセル確認ダイアログを表示
+    - Click processing status bar to show cancel confirmation dialog
+    - 誤操作防止のための確認プロンプト（はい/いいえ）
+    - Confirmation prompt (Yes/No) to prevent accidental cancellation
+    - 完全なリソースクリーンアップ（録音プロセス、タイマー、一時ファイル）
+    - Complete resource cleanup (recording process, timers, temporary files)
 
 ### 🛠 Technical Improvements
 
-- **Windows固有の問題解決** / **Windows-Specific Issue Resolution**
+- **Windows 固有の問題解決** / **Windows-Specific Issue Resolution**
   - signed-integer エンコーディングの明示的指定
   - Explicit signed-integer encoding specification
-  - WAVヘッダー21億バイト問題の解決
+  - WAV ヘッダー 21 億バイト問題の解決
   - Resolved 2.1GB WAV header issue
   - クロスプラットフォーム安定性の向上
   - Improved cross-platform stability
@@ -49,7 +84,7 @@ All notable changes to the "Voice to Text (also for Copilot Chat)" extension wil
 ### 🚀 New Features
 
 - **スマートなモデル管理** / **Smart Model Management**
-  - APIモード→ローカルモード切り替え時の自動モデルダウンロード提案
+  - API モード → ローカルモード切り替え時の自動モデルダウンロード提案
   - Auto-suggest model download when switching from API mode to Local mode
   - ローカルモデル変更時の存在確認とダウンロード提案
   - Verify model existence and suggest download when changing local models
@@ -58,7 +93,7 @@ All notable changes to the "Voice to Text (also for Copilot Chat)" extension wil
 
 ### 🌍 Internationalization
 
-- **全9言語対応** / **Full 9-Language Support**
+- **全 9 言語対応** / **Full 9-Language Support**
   - 新機能のメッセージを全言語に追加
   - Added new feature messages to all supported languages
   - 日本語、英語、フランス語、ドイツ語、スペイン語、イタリア語、韓国語、ロシア語、中国語
@@ -66,8 +101,8 @@ All notable changes to the "Voice to Text (also for Copilot Chat)" extension wil
 
 ### 📹 Documentation & Media
 
-- **GIF形式デモ** / **GIF Format Demos**
-  - MP4動画をGIFに変換してVS Code Marketplace対応
+- **GIF 形式デモ** / **GIF Format Demos**
+  - MP4 動画を GIF に変換して VS Code Marketplace 対応
   - Converted MP4 videos to GIF format for VS Code Marketplace compatibility
   - `docs/images/` フォルダに整理
   - Organized media files in `docs/images/` folder
@@ -89,11 +124,11 @@ All notable changes to the "Voice to Text (also for Copilot Chat)" extension wil
 ### 📹 Media Enhancements
 
 - **デモ動画追加** / **Added Demo Videos**
-  - READMEにFocus/Chatモードのデモ動画を追加
+  - README に Focus/Chat モードのデモ動画を追加
   - Added demo videos for Focus/Chat modes in README
-  - ヒーロー動画でCopilot Chat連携をアピール
+  - ヒーロー動画で Copilot Chat 連携をアピール
   - Hero video showcasing Copilot Chat integration
-  - 超軽量化（458KB + 549KB）でfast loading
+  - 超軽量化（458KB + 549KB）で fast loading
   - Ultra-optimized file sizes (458KB + 549KB) for fast loading
 
 ### 🎨 Documentation Improvements
@@ -101,17 +136,17 @@ All notable changes to the "Voice to Text (also for Copilot Chat)" extension wil
 - **視覚的説明の強化** / **Enhanced Visual Documentation**
   - 一目で機能が分かるヒーロー動画配置
   - Hero video placement for instant feature understanding
-  - Focus/Chatモードの違いを動画で明確化
+  - Focus/Chat モードの違いを動画で明確化
   - Clear demonstration of Focus/Chat mode differences
 
 ## [1.5.1] - 2025-10-12
 
 ### 🚀 New Features
 
-- **2つの貼り付けボタン** / **Dual Paste Buttons**
+- **2 つの貼り付けボタン** / **Dual Paste Buttons**
   - `📍Focus` ボタン: 録音停止時のエディタ位置に貼り付け
   - `📍Focus` button: Paste at editor position when recording stops
-  - `💬Chat` ボタン: Copilot Chatに直接貼り付け
+  - `💬Chat` ボタン: Copilot Chat に直接貼り付け
   - `💬Chat` button: Paste directly to Copilot Chat
 
 ### 🐛 Bug Fixes
@@ -119,7 +154,7 @@ All notable changes to the "Voice to Text (also for Copilot Chat)" extension wil
 - **タイムアウト処理の修正** / **Fixed Timeout Handling**
   - タイムアウトで録音終了した際に音声が処理されない問題を修正
   - Fixed issue where audio wasn't processed when recording ended by timeout
-  
+
 ### 🔧 Improvements
 
 - **コード構造の簡素化** / **Code Structure Simplification**
@@ -147,7 +182,7 @@ All notable changes to the "Voice to Text (also for Copilot Chat)" extension wil
 - **実行権限の修正** / **Fixed Executable Permissions** ⚠️ **CRITICAL**
   - Windows/Linux/macOS の実行ファイルに実行権限を追加
   - Added execute permissions to Windows/Linux/macOS binaries
-  - `.gitattributes` を追加してVSIXパッケージ内でも権限を保持
+  - `.gitattributes` を追加して VSIX パッケージ内でも権限を保持
   - Added `.gitattributes` to preserve permissions in VSIX packages
   - **この修正により、ローカルモード(whisper.cpp)が正常に動作するようになります**
   - **This fix ensures Local mode (whisper.cpp) works correctly**
@@ -158,16 +193,17 @@ All notable changes to the "Voice to Text (also for Copilot Chat)" extension wil
 
 ### ✨ New Features
 
-- **2つの貼り付けモード** / **Dual Paste Mode**
+- **2 つの貼り付けモード** / **Dual Paste Mode**
+
   - 📍 **Focus Mode**: エディタのカーソル位置に直接貼り付け
   - 📍 **Focus Mode**: Paste directly to editor cursor position
-  - 💬 **Chat Mode**: Copilot Chatの入力欄に貼り付け
+  - 💬 **Chat Mode**: Copilot Chat の入力欄に貼り付け
   - 💬 **Chat Mode**: Paste to Copilot Chat input field
 
 - **ステータスバーボタン追加** / **Status Bar Buttons Added**
   - 📍 **Focus Button**: エディタに貼り付け用の録音ボタン
   - 📍 **Focus Button**: Record and paste to editor
-  - 💬 **Chat Button**: Copilot Chatに貼り付け用の録音ボタン
+  - 💬 **Chat Button**: Copilot Chat に貼り付け用の録音ボタン
   - 💬 **Chat Button**: Record and paste to Copilot Chat
   - 録音中は選択したボタンのみ有効（切り替え不可）
   - Only selected button is active during recording (no switching allowed)
@@ -177,7 +213,7 @@ All notable changes to the "Voice to Text (also for Copilot Chat)" extension wil
 - **実行権限の修正** / **Fixed Executable Permissions**
   - Windows/Linux/macOS の実行ファイルに実行権限を追加
   - Added execute permissions to Windows/Linux/macOS binaries
-  - `.gitattributes` を追加してVSIXパッケージ内でも権限を保持
+  - `.gitattributes` を追加して VSIX パッケージ内でも権限を保持
   - Added `.gitattributes` to preserve permissions in VSIX packages
 
 ---

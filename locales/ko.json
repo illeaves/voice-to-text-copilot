@@ -81,7 +81,7 @@
   "dataDeleted": "데이터 삭제됨 ({{size}} MB 해제됨)",
   "deleteFailed": "데이터 삭제 실패: {{error}}",
   "customBuildFolderMessage": "이 폴더에 {{platform}} GPU 빌드를 배치하세요:\n{{folder}}",
-    "folderOpenFailed": "폴더를 열 수 없습니다: {{folder}}",
+  "folderOpenFailed": "폴더를 열 수 없습니다: {{folder}}",
   "statusWaiting": "🎤 대기 중",
   "statusRecordingTime": "🔴 녹음 중",
   "soxRecordingError": "SOX 녹음 오류: {{error}}",
@@ -96,5 +96,9 @@
   "modelNotFoundPrompt": "선택된 모델 '{{model}}'이 다운로드되지 않았습니다.",
   "revertSelection": "선택 취소",
   "modelDownloadComplete": "모델 '{{model}}' 다운로드가 완료되었습니다!",
-  "modelSelectionReverted": "모델 선택이 '{{model}}'로 되돌려졌습니다."
+  "modelSelectionReverted": "모델 선택이 '{{model}}'로 되돌려졌습니다.",
+  "confirmCancelProcessing": "처리를 취소하시겠습니까?",
+  "yes": "예",
+  "no": "아니요",
+  "clickToCancelProcessing": "클릭하여 처리 취소"
 }

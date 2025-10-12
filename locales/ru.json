@@ -96,5 +96,9 @@
   "modelNotFoundPrompt": "Выбранная модель '{{model}}' не загружена.",
   "revertSelection": "Отменить выбор",
   "modelDownloadComplete": "Загрузка модели '{{model}}' завершена!",
-  "modelSelectionReverted": "Выбор модели возвращен к '{{model}}'."
+  "modelSelectionReverted": "Выбор модели возвращен к '{{model}}'.",
+  "confirmCancelProcessing": "Отменить обработку?",
+  "yes": "Да",
+  "no": "Нет",
+  "clickToCancelProcessing": "Нажмите, чтобы отменить обработку"
 }

@@ -96,6 +96,9 @@
   "modelNotFoundPrompt": "選択されたモデル '{{model}}' がダウンロードされていません。",
   "revertSelection": "選択を取り消す",
   "modelDownloadComplete": "モデル '{{model}}' のダウンロードが完了しました！",
-  "modelSelectionReverted": "モデル選択を '{{model}}' に戻しました。"
+  "modelSelectionReverted": "モデル選択を '{{model}}' に戻しました。",
+  "confirmCancelProcessing": "処理を中止しますか？",
+  "yes": "はい",
+  "no": "いいえ",
+  "clickToCancelProcessing": "クリックして処理を中止"
 }
-

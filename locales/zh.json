@@ -81,7 +81,7 @@
   "dataDeleted": "数据已删除（释放{{size}} MB）",
   "deleteFailed": "删除数据失败：{{error}}",
   "customBuildFolderMessage": "请将{{platform}} GPU构建版本放在此文件夹中：\n{{folder}}",
-    "folderOpenFailed": "无法打开文件夹: {{folder}}",
+  "folderOpenFailed": "无法打开文件夹: {{folder}}",
   "statusWaiting": "🎤 等待中",
   "statusRecordingTime": "🔴 录音中",
   "soxRecordingError": "SOX录音错误: {{error}}",
@@ -96,5 +96,9 @@
   "modelNotFoundPrompt": "所选模型'{{model}}'未下载。",
   "revertSelection": "撤销选择",
   "modelDownloadComplete": "模型'{{model}}'下载完成！",
-  "modelSelectionReverted": "模型选择已恢复为'{{model}}'。"
+  "modelSelectionReverted": "模型选择已恢复为'{{model}}'。",
+  "confirmCancelProcessing": "取消处理？",
+  "yes": "是",
+  "no": "否",
+  "clickToCancelProcessing": "点击取消处理"
 }

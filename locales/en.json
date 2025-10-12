@@ -96,5 +96,9 @@
   "modelNotFoundPrompt": "Selected model '{{model}}' is not downloaded.",
   "revertSelection": "Revert selection",
   "modelDownloadComplete": "Model '{{model}}' download completed!",
-  "modelSelectionReverted": "Model selection reverted to '{{model}}'."
+  "modelSelectionReverted": "Model selection reverted to '{{model}}'.",
+  "confirmCancelProcessing": "Cancel processing?",
+  "yes": "Yes",
+  "no": "No",
+  "clickToCancelProcessing": "Click to cancel processing"
 }
