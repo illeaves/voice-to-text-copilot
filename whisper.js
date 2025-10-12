@@ -7,10 +7,14 @@ let soxProcess, recordingTimeout;
 let currentRecordingFile; // 現在録音中のファイルパス
 const outputFile = path.join(__dirname, "voice.wav");
 
-
-
 // 🎙 録音開始
-function startRecording(context, maxRecordSec, msg, stopRecordingAndProcessVoice, mode = "api") {
+function startRecording(
+  context,
+  maxRecordSec,
+  msg,
+  stopRecordingAndProcessVoice,
+  mode = "api"
+) {
   try {
     const MAX_RECORD_TIME = maxRecordSec * 1000;
 
@@ -67,6 +71,8 @@ function startRecording(context, maxRecordSec, msg, stopRecordingAndProcessVoice
         "1", // チャンネル: mono
         "-b",
         "16", // ビット深度: 16-bit
+        "-e",
+        "signed-integer", // エンコーディング: 符号付き整数
         recordingFile, // 出力ファイル
       ];
     } else {
@@ -127,11 +133,13 @@ function startRecording(context, maxRecordSec, msg, stopRecordingAndProcessVoice
     // ⏱ 上限時間を超えたら自動停止
     recordingTimeout = setTimeout(() => {
       if (soxProcess) {
-        console.log("⏰ Recording timeout reached, executing timeout callback...");
+        console.log(
+          "⏰ Recording timeout reached, executing timeout callback..."
+        );
         vscode.window.showWarningMessage(
           msg("recordingStopAuto", { seconds: maxRecordSec })
         );
-        
+
         // 手動停止時と全く同じ関数を直接呼び出し
         if (stopRecordingAndProcessVoice) {
           console.log("⏰ Executing timeout processing - same as manual stop");
@@ -157,7 +165,7 @@ async function stopRecording(mode = "api", apiKey = null, msg = null) {
 
   try {
     console.log(`🛑 Stopping recording (mode: ${mode})`);
-    
+
     // 共通処理：録音を停止
     if (recordingTimeout) {
       clearTimeout(recordingTimeout);
@@ -216,15 +224,14 @@ async function stopRecording(mode = "api", apiKey = null, msg = null) {
     } else {
       return await handleLocalMode(fileStats);
     }
-
   } catch (e) {
     console.error("❌ Error in stopRecording:", e);
-    
+
     // エラー時もクリーンアップ
     if (fs.existsSync(outputFile)) {
       fs.unlinkSync(outputFile);
     }
-    
+
     return null;
   }
 }
@@ -281,8 +288,53 @@ async function handleApiMode(apiKey, msg, fileStats) {
 
 // ローカルモード専用処理
 async function handleLocalMode(fileStats) {
-  console.log(`✅ Using original recording file directly: ${outputFile}`);
-  return outputFile; // ファイルパスを返す
+  console.log(`🔧 Fixing WAV header for whisper.cpp compatibility...`);
+
+  const { spawn } = require("child_process");
+  const platform = process.platform;
+
+  // 一時ファイル名
+  const tempOutputFile = outputFile.replace(".wav", "_fixed.wav");
+
+  try {
+    // SOXでWAVファイルを読み込んで正しいヘッダーで書き直す
+    const soxPath = platform === "darwin" ? "/opt/homebrew/bin/sox" : "sox";
+    const fixArgs = [outputFile, tempOutputFile];
+
+    console.log(`🔧 Executing: ${soxPath} ${fixArgs.join(" ")}`);
+
+    await new Promise((resolve, reject) => {
+      const fixProcess = spawn(soxPath, fixArgs);
+
+      fixProcess.on("close", (code) => {
+        if (code === 0) {
+          console.log("✅ WAV header fixed successfully");
+          // 元のファイルを削除して、修正版をリネーム
+          fs.unlinkSync(outputFile);
+          fs.renameSync(tempOutputFile, outputFile);
+          resolve();
+        } else {
+          console.error(`⚠️ SOX fix failed with code ${code}`);
+          reject(new Error(`SOX fix failed with code ${code}`));
+        }
+      });
+
+      fixProcess.on("error", (err) => {
+        console.error("⚠️ SOX fix error:", err);
+        reject(err);
+      });
+    });
+
+    console.log(`✅ Using fixed WAV file: ${outputFile}`);
+    return outputFile; // ファイルパスを返す
+  } catch (error) {
+    console.error("⚠️ WAV header fix failed, using original file:", error);
+    // エラー時は元のファイルをそのまま使う
+    if (fs.existsSync(tempOutputFile)) {
+      fs.unlinkSync(tempOutputFile);
+    }
+    return outputFile;
+  }
 }
 
 // 🧹 録音状態をチェックする関数
