@@ -2,6 +2,48 @@
 
 All notable changes to the "Voice to Text (also for Copilot Chat)" extension will be documented in this file.
 
+## [1.6.3] - 2025-10-12
+
+### 🔧 Bug Fixes
+
+- **Windows ローカルモード修正** / **Windows Local Mode Fix**
+  - Windows環境でのWAVファイルヘッダー問題を解決
+  - Fixed WAV file header issues in Windows environment
+  - whisper.cpp互換性のためのPCMエンコーディング修正
+  - Fixed PCM encoding for whisper.cpp compatibility
+  - SOXによる録音後ヘッダー自動修正処理を追加
+  - Added automatic header correction after SOX recording
+
+### ✨ UI/UX Improvements
+
+- **ステータスバー表示改善** / **Status Bar Display Enhancement**
+  - ステータスバーのチカチカ現象を修正
+  - Fixed status bar flickering issue
+  - 録音中ボタンの視認性向上（🟦アイコン使用）
+  - Improved recording button visibility with blue square icons
+  - 強制的なhide/show処理を削除してスムーズな表示を実現
+  - Eliminated forced hide/show cycles for smoother display
+
+### 🎯 New Features
+
+- **キャンセル機能強化** / **Enhanced Cancel Functionality**
+  - 録音・処理中のキャンセルコマンドを追加
+  - Added cancel command for recording/processing
+  - Escapeキーによるクイックキャンセル機能
+  - Quick cancel with Escape key shortcut
+  - コマンドパレットからのキャンセル操作対応
+  - Cancel operation support from command palette
+
+### 🛠 Technical Improvements
+
+- **Windows固有の問題解決** / **Windows-Specific Issue Resolution**
+  - signed-integer エンコーディングの明示的指定
+  - Explicit signed-integer encoding specification
+  - WAVヘッダー21億バイト問題の解決
+  - Resolved 2.1GB WAV header issue
+  - クロスプラットフォーム安定性の向上
+  - Improved cross-platform stability
+
 ## [1.6.0] - 2025-10-12
 
 ### 🚀 New Features
