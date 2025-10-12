@@ -53,8 +53,10 @@ async function ensureBinaryPermissions(context) {
     binaryPath = path.join(context.extensionPath, "bin", "macos", "whisper-cli");
   } else if (platform === "linux") {
     binaryPath = path.join(context.extensionPath, "bin", "linux", "whisper-cli");
+  } else if (platform === "win32") {
+    binaryPath = path.join(context.extensionPath, "bin", "windows", "whisper-cli.exe");
   } else {
-    // Windows は権限設定不要
+    console.log(`⚠️ Unsupported platform: ${platform}`);
     return;
   }
 
@@ -65,17 +67,55 @@ async function ensureBinaryPermissions(context) {
       return;
     }
 
-    // 実行権限をチェック
+    // プラットフォーム別の権限チェック・設定
     const stats = fs.statSync(binaryPath);
-    const hasExecutePermission = (stats.mode & parseInt('111', 8)) !== 0;
-
-    if (!hasExecutePermission) {
-      console.log(`🔧 Adding execute permission to: ${binaryPath}`);
-      fs.chmodSync(binaryPath, stats.mode | parseInt('755', 8));
-      console.log(`✅ Execute permission added successfully`);
+    
+    if (platform === "win32") {
+      // Windows: ファイル属性をチェック（読み取り専用でないことを確認）
+      try {
+        const isReadOnly = (stats.mode & parseInt('200', 8)) === 0;
+        if (isReadOnly) {
+          console.log(`🔧 Removing read-only attribute from: ${binaryPath}`);
+          fs.chmodSync(binaryPath, stats.mode | parseInt('666', 8));
+          console.log(`✅ Read-only attribute removed successfully`);
+        } else {
+          console.log(`✅ Windows binary has proper attributes: ${binaryPath}`);
+        }
+      } catch (winError) {
+        console.error(`⚠️ Failed to modify Windows file attributes: ${winError.message}`);
+      }
     } else {
-      console.log(`✅ Binary already has execute permission: ${binaryPath}`);
+      // Unix系 (macOS/Linux): 実行権限をチェック
+      const hasExecutePermission = (stats.mode & parseInt('111', 8)) !== 0;
+      
+      if (!hasExecutePermission) {
+        console.log(`🔧 Adding execute permission to: ${binaryPath}`);
+        fs.chmodSync(binaryPath, stats.mode | parseInt('755', 8));
+        console.log(`✅ Execute permission added successfully`);
+      } else {
+        console.log(`✅ Unix binary already has execute permission: ${binaryPath}`);
+      }
     }
+    // 実行可能性テスト（簡易チェック）
+    try {
+      const { execFile } = require("child_process");
+      const testExecution = new Promise((resolve) => {
+        execFile(binaryPath, ["--help"], { timeout: 3000 }, (error) => {
+          if (error && error.code === "EACCES") {
+            console.error(`❌ Binary still not executable after permission fix: ${binaryPath}`);
+            resolve(false);
+          } else {
+            console.log(`✅ Binary execution test passed: ${binaryPath}`);
+            resolve(true);
+          }
+        });
+      });
+      
+      await testExecution;
+    } catch (testError) {
+      console.warn(`⚠️ Binary execution test failed (non-critical): ${testError.message}`);
+    }
+
   } catch (error) {
     console.error(`⚠️ Failed to set binary permissions: ${error.message}`);
     // 権限エラーは致命的ではないので続行

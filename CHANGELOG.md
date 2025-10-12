@@ -2,7 +2,35 @@
 
 All notable changes to the "Voice to Text (also for Copilot Chat)" extension will be documented in this file.
 
-## [1.6.4] - 2025-10-12
+## [1.6.5] - 2025-10-13
+
+### 🔧 Critical Bug Fixes
+
+- **バイナリ実行権限問題の修正** / **Binary Execute Permission Fix**
+  - macOS/Linux環境でwhisper-cliの実行権限エラー(EACCES)を修正
+  - Fixed whisper-cli execute permission error (EACCES) on macOS/Linux
+  - 拡張機能アクティベーション時に自動で実行権限を付与
+  - Auto-grant execute permissions during extension activation
+  - Windows環境でのファイル属性問題にも対応
+  - Added support for Windows file attribute issues
+
+### ✨ Improvements
+
+- **クロスプラットフォーム対応強化** / **Enhanced Cross-Platform Support**
+  - すべてのプラットフォームで権限チェック・修正機能を実装
+  - Implemented permission check and fix for all platforms
+  - バイナリ実行可能性の事前テスト機能を追加
+  - Added binary executability pre-test functionality
+  - より詳細なデバッグログ出力
+  - Enhanced debug logging for troubleshooting
+
+## [1.6.4] - 2025-10-13
+
+### 🔧 Bug Fixes
+
+- **Minor stability improvements** / **軽微な安定性向上**
+
+## [1.6.3] - 2025-10-12
 
 ### ✨ UI/UX Improvements
 
