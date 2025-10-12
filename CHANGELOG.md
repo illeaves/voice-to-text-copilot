@@ -2,6 +2,53 @@
 
 All notable changes to the "Voice to Text (also for Copilot Chat)" extension will be documented in this file.
 
+## [1.6.7] - 2025-10-13
+
+### ✨ Major Performance Features
+
+- **🎤 フィラー除去機能 (Non-Speech Token Suppression)** ⭐ **目玉機能**
+
+  - 「あー」「えー」「um」「uh」などのフィラーを自動除去
+  - Automatically removes fillers like "um", "uh", "er", etc.
+  - 音声認識結果がよりクリーンで読みやすく
+  - Cleaner and more readable transcription results
+  - デフォルト: 有効 (設定で無効化可能)
+  - Default: Enabled (can be disabled in settings)
+
+- **🚀 VAD (Voice Activity Detection) - 無音検出機能** ⭐ **目玉機能**
+
+  - Silero-VAD v5.1.2 で無音部分を自動検出・スキップ
+  - Automatically detects and skips silent parts using Silero-VAD v5.1.2
+  - 処理速度が最大 50% 向上 (無音部分をスキップ)
+  - Up to 50% faster processing (skips silent segments)
+  - 例: 63.7 秒の録音 → 31.2 秒の発話のみ処理 (48.2%削減)
+  - Example: 63.7s recording → 31.2s speech only (48.2% reduction)
+  - デフォルト: 有効 (設定で無効化可能)
+  - Default: Enabled (can be disabled in settings)
+
+- **⚡ CPU スレッド数最適化 (Thread Optimization)** ⭐ **目玉機能**
+
+  - CPU コア数を自動検出し、最適なスレッド数で処理
+  - Auto-detects CPU cores for optimal thread count
+  - マルチコア CPU で処理速度が大幅向上
+  - Significantly faster on multi-core CPUs
+  - デフォルト: 自動検出 (手動設定も可能)
+  - Default: Auto-detect (manual override available)
+
+### 🌍 Multilingual Support
+
+- 新機能の設定項目を 9 言語で対応
+- New feature settings available in 9 languages
+- 対応言語: 日本語、英語、中国語、韓国語、フランス語、スペイン語、ドイツ語、イタリア語、ロシア語
+- Languages: Japanese, English, Chinese, Korean, French, Spanish, German, Italian, Russian
+
+### 🔧 Technical Improvements
+
+- VAD モデルを一元管理 (`models/` ディレクトリ)
+- Centralized VAD model management in `models/` directory
+- プラットフォーム間でモデルファイルを共有し、ディスク容量を削減
+- Shared model files across platforms to reduce disk usage
+
 ## [1.6.6] - 2025-10-13
 
 ### ✨ Major Features

@@ -3,7 +3,7 @@
   "displayName": "Voice to Text (also for Copilot Chat)",
   "description": "Whisperを利用した音声入力拡張。APIモード(クラウド・高精度)とローカルモード(オフライン・無料)から選択可能。(Voice input extension with API mode [cloud, accurate] or Local mode [offline, free] using Whisper.)",
   "publisher": "aleaf",
-  "version": "1.6.6",
+  "version": "1.6.7",
   "engines": {
     "vscode": "^1.80.0"
   },
@@ -154,6 +154,24 @@
           "default": "",
           "description": "%config.language%",
           "order": 7
+        },
+        "voiceToText.suppressNonSpeech": {
+          "type": "boolean",
+          "default": true,
+          "description": "%config.suppressNonSpeech.description%",
+          "order": 8
+        },
+        "voiceToText.threads": {
+          "type": "number",
+          "default": 0,
+          "description": "%config.threads.description%",
+          "order": 9
+        },
+        "voiceToText.enableVAD": {
+          "type": "boolean",
+          "default": true,
+          "description": "%config.enableVAD.description%",
+          "order": 10
         }
       }
     },

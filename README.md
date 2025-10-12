@@ -2,7 +2,7 @@
 
 _(日本語 / English)_
 
-![Version](https://img.shields.io/badge/version-1.6.5-blue.svg)\
+![Version](https://img.shields.io/badge/version-1.6.7-blue.svg)\
 ![VSCode](https://img.shields.io/badge/VS_Code-Extension-007ACC.svg)\
 ![License](https://img.shields.io/badge/license-MIT-green.svg)\
 ![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Mac%20%7C%20Linux-lightgrey.svg)
@@ -15,7 +15,7 @@ _(日本語 / English)_
 
 ## 🌟 VS Code Speech にはない独自機能
 
-### 🎯 **プロンプトプリセット機能** ✨NEW
+### 🎯 **プロンプトプリセット機能** ✨
 
 技術用語の認識精度を大幅向上！12 種類のプリセット + カスタムプロンプト対応
 
@@ -43,6 +43,42 @@ _(日本語 / English)_
 - プリセット単体使用: 「Web プリセット」のみ
 - カスタム単体使用: 「MyApp, CustomAPI」のみ
 - **併用で最大効果**: 「Web プリセット + MyApp, CustomAPI」
+
+### 🎤 **フィラー除去機能** ✨NEW
+
+「あー」「えー」「um」「uh」などのフィラーを自動除去！
+
+```diff
+❌ フィラー除去なし: "あー、この関数は、えーっと、ユーザー情報を取得します"
+✅ フィラー除去あり: "この関数はユーザー情報を取得します"
+```
+
+- 音声認識結果がクリーンで読みやすい
+- デフォルトで有効（設定で無効化可能）
+- 議事録作成やドキュメント作成に最適
+
+### 🚀 **VAD (無音検出) 機能** ✨NEW
+
+Silero-VAD で無音部分を自動スキップ、処理速度が最大 50% 向上！
+
+```
+📊 処理速度の実例:
+  録音時間: 63.7秒
+  → 実際の発話: 31.2秒のみ処理 (48.2%削減)
+  → 処理時間: わずか3秒で完了！
+```
+
+- 長い録音でも高速処理
+- デフォルトで有効（設定で無効化可能）
+- バッテリー節約にも貢献
+
+### ⚡ **CPU スレッド最適化** ✨NEW
+
+CPU コア数を自動検出し、最適なスレッド数で処理
+
+- マルチコア CPU で処理速度が大幅向上
+- 自動検出（手動設定も可能）
+- 例: 16 コア CPU なら 16 スレッドで並列処理
 
 ### 🌍 **翻訳機能**
 

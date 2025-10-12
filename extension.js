@@ -1720,6 +1720,44 @@ async function executeWhisper(outputFile) {
         args.push("--prompt", prompt);
       }
 
+      // 🚫 フィラー除去機能
+      const suppressNonSpeech = config.get("suppressNonSpeech", true);
+      if (suppressNonSpeech) {
+        args.push("-sns");
+        systemLog(
+          "Non-speech token suppression enabled (fillers removed)",
+          "INFO"
+        );
+      }
+
+      // ⚡ スレッド数最適化
+      const threads = config.get("threads", 0);
+      const actualThreads = threads > 0 ? threads : os.cpus().length;
+      args.push("-t", actualThreads.toString());
+      systemLog(`Using ${actualThreads} CPU threads`, "INFO");
+
+      // 🔇 VAD (Voice Activity Detection)
+      const enableVAD = config.get("enableVAD", true);
+      if (enableVAD) {
+        // VADモデルのパスを構築（全プラットフォーム共通）
+        const vadModelPath = path.join(
+          extensionContext.extensionPath,
+          "models",
+          "ggml-silero-v5.1.2.bin"
+        );
+
+        // VADモデルが存在する場合のみ有効化
+        if (fs.existsSync(vadModelPath)) {
+          args.push("--vad", "-vm", vadModelPath);
+          systemLog(`VAD enabled with model: ${vadModelPath}`, "INFO");
+        } else {
+          systemLog(
+            `VAD model not found: ${vadModelPath}, skipping VAD`,
+            "WARNING"
+          );
+        }
+      }
+
       systemLog(`Executing: ${whisperPath} ${args.join(" ")}`, "INFO");
       const { stdout, stderr } = await execFilePromise(whisperPath, args);
 
