@@ -2,15 +2,12 @@
 
 _(日本語 / English)_
 
-![Version](https://img.shields.io/badge/version-1.5.2-blue.svg)\
+![Version](https://img.shields.io/badge/version-1.6.0-blue.svg)\
 ![VSCode](https://img.shields.io/badge/VS_Code-Extension-007ACC.svg)\
 ![License](https://img.shields.io/badge/license-MIT-green.svg)\
 ![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Mac%20%7C%20Linux-lightgrey.svg)
 
-<video width="800" autoplay muted loop>
-  <source src="mov_chat.mp4" type="video/mp4">
-  Your browser does not support the video tag.
-</video>
+![Demo - Copilot Chat Mode](docs/images/mov_chat.gif)
 
 > 🎤 **音声でCopilot Chatに質問 & コード編集** - 100以上の言語に対応した音声入力でVS Codeの生産性を向上
 
@@ -57,7 +54,7 @@ UI の言語は**9 言語対応**（日本語、英語、フランス語、ス�
 
 - 🎤 マイクから音声を録音し、自動でテキスト化（多言語自動判別）
 - 🧠 Whisper API を使用（日本語・英語・中国語など 100 言語対応）
-- 📋 結果を現在フォーカス位置にペースト（エディタ、Copilot チャット、ターミナルなど）
+- 📋 生成されたテキストを「フォーカス位置」「Copilot Chat欄」のどちらかを選んでペースト（それぞれに対応したボタンがステータスバーにも表示される）
 - 🔒 **クリップボード保護機能** - 貼り付け後、元のクリップボード内容を自動復元
 - 📚 **履歴機能** - 過去 10 件のテキスト化結果を保存・再利用可能
 - ⏱️ **録音時間表示** - 録音中の経過時間と残り時間をリアルタイム表示
@@ -108,16 +105,14 @@ Whisper は**100 以上の言語**を自動認識できます。
 ### 🎬 デモ動画
 
 #### 📍 Focus モード - エディタに直接貼り付け
-<video width="800" autoplay muted loop>
-  <source src="mov_focus.mp4" type="video/mp4">
-  Your browser does not support the video tag.
-</video>
+![Demo - Focus Mode](docs/images/mov_focus.gif)
+
+*エディタの元の位置に音声入力結果を貼り付けるデモ*
 
 #### 💬 Chat モード - Copilot チャットに貼り付け
-<video width="800" autoplay muted loop>
-  <source src="mov_chat.mp4" type="video/mp4">
-  Your browser does not support the video tag.
-</video>
+![Demo - Chat Mode](docs/images/mov_chat.gif)
+
+*Copilot Chatに直接音声入力するデモ*
 
 ---
 
@@ -160,7 +155,7 @@ Whisper は**100 以上の言語**を自動認識できます。
     - **💬 Chat** をクリック → Copilot Chatに貼り付け
 2.  **録音状態をリアルタイム確認**：
     - 🔴 **0:45 / 3:00** - 録音中（経過時間 / 残り時間）
-    - $(sync~spin) ⏳ **処理中...** `[API]` または `[Local:Small]` - 文字起こし中
+    - ⏳ **処理中...** `[API]` または `[Local:Small]` - 文字起こし中
     - ✅ **貼り付け完了** - 処理完了
 3.  **録音停止**：同じボタンをもう一度クリック → 自動的にテキスト化&貼り付け
 
@@ -461,7 +456,7 @@ The extension UI supports **9 languages** (Japanese, English, French, Spanish, C
 - 🎤 Two operation modes: **API (cloud)** or **Local (offline)**
 - 🎙️ Record and transcribe your voice (auto language detection)
 - 🧠 Supports 100+ languages via Whisper
-- 📋 Automatically pastes transcribed text to current focus (editor, Copilot chat, terminal, etc.)
+- 📋 Paste generated text to either "Focus position" or "Copilot Chat field" with dedicated buttons displayed in the status bar
 - 🔒 **Clipboard protection** - Automatically restores original clipboard content after pasting
 - 📚 **History feature** - Saves last 10 transcription results for reuse
 - ⏱️ **Recording timer** - Real-time display of elapsed time and remaining time during recording
@@ -558,7 +553,7 @@ This extension offers **two paste destinations** for your voice input results:
     - Click **💬 Chat** → Paste to Copilot Chat
 2.  **Monitor recording status** in real-time:
     - 🔴 **0:45 / 3:00** - Recording (elapsed time / remaining time)
-    - $(sync~spin) ⏳ **Processing...** `[API]` or `[Local:Small]` - Transcribing
+    - ⏳ **Processing...** `[API]` or `[Local:Small]` - Transcribing
     - ✅ **Paste Complete** - Processing finished
 3.  **Stop recording**: Click the same button again → automatic transcription & paste
 

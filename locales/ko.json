@@ -88,5 +88,13 @@
   "modelAlreadyExists": "모델 '{{model}}'이 이미 다운로드되어 있습니다.",
   "modelExistsOverwrite": "모델 '{{model}}'이 이미 존재합니다. 덮어쓰시겠습니까?",
   "overwriteModel": "덮어쓰기",
-  "useExistingModel": "기존 모델 사용"
+  "useExistingModel": "기존 모델 사용",
+  "modelMissingOnModeSwitch": "로컬 모드로 전환했지만 모델 '{{model}}'이 다운로드되지 않았습니다.",
+  "downloadNow": "지금 다운로드",
+  "stayInApiMode": "API 모드 유지",
+  "stayedInApiMode": "API 모드를 유지합니다.",
+  "modelNotFoundPrompt": "선택된 모델 '{{model}}'이 다운로드되지 않았습니다.",
+  "revertSelection": "선택 취소",
+  "modelDownloadComplete": "모델 '{{model}}' 다운로드가 완료되었습니다!",
+  "modelSelectionReverted": "모델 선택이 '{{model}}'로 되돌려졌습니다."
 }

@@ -88,6 +88,14 @@
   "modelAlreadyExists": "モデル '{{model}}' は既にダウンロード済みです。",
   "modelExistsOverwrite": "モデル '{{model}}' は既に存在します。上書きしますか？",
   "overwriteModel": "上書きする",
-  "useExistingModel": "既存のモデルを使用"
+  "useExistingModel": "既存のモデルを使用",
+  "modelMissingOnModeSwitch": "ローカルモードに切り替えましたが、モデル '{{model}}' がダウンロードされていません。",
+  "downloadNow": "今すぐダウンロード",
+  "stayInApiMode": "APIモードを継続",
+  "stayedInApiMode": "APIモードを継続します。",
+  "modelNotFoundPrompt": "選択されたモデル '{{model}}' がダウンロードされていません。",
+  "revertSelection": "選択を取り消す",
+  "modelDownloadComplete": "モデル '{{model}}' のダウンロードが完了しました！",
+  "modelSelectionReverted": "モデル選択を '{{model}}' に戻しました。"
 }
 

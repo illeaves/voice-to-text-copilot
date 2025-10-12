@@ -88,5 +88,13 @@
   "modelAlreadyExists": "模型 '{{model}}' 已经下载。",
   "modelExistsOverwrite": "模型 '{{model}}' 已存在。要覆盖它吗？",
   "overwriteModel": "覆盖",
-  "useExistingModel": "使用现有模型"
+  "useExistingModel": "使用现有模型",
+  "modelMissingOnModeSwitch": "已切换到本地模式，但模型'{{model}}'未下载。",
+  "downloadNow": "立即下载",
+  "stayInApiMode": "保持API模式",
+  "stayedInApiMode": "保持API模式。",
+  "modelNotFoundPrompt": "所选模型'{{model}}'未下载。",
+  "revertSelection": "撤销选择",
+  "modelDownloadComplete": "模型'{{model}}'下载完成！",
+  "modelSelectionReverted": "模型选择已恢复为'{{model}}'。"
 }

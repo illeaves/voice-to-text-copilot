@@ -1,7 +1,6 @@
 /**
  * Voice to Text (also for Copilot Chat) Extension for VS Code
  * Author: aleaf
- * Version: 1.5.1
  */
 "use strict";
 
@@ -291,7 +290,7 @@ function updateStatusBar(state = "idle", elapsed = 0, max = 0) {
       break;
     }
     case "processing": {
-      const processingText = `$(sync~spin) ${msg("statusProcessing")}`;
+      const processingText = `$(sync~spin) ${msg("statusProcessing")} [${modeLabel}]`;
       statusBarItemStatus.text = `${processingText}`;
       statusBarItemStatus.tooltip = msg("statusProcessing") + ` [${modeLabel}]`;
       statusBarItemStatus.backgroundColor = new vscode.ThemeColor(
@@ -773,6 +772,137 @@ async function runInitialSetup(context, config, msg) {
 }
 
 /**
+ * 🔄 モード変更時の処理
+ */
+async function handleModeChange(context) {
+  const config = vscode.workspace.getConfiguration("voiceToText");
+  const newMode = config.get("mode");
+  
+  systemLog(`Mode changed to: ${newMode}`, "INFO");
+  
+  // ローカルモードに変更された場合、モデルの存在確認
+  if (newMode === "local") {
+    const localModel = config.get("localModel", "small");
+    const modelDir = getModelDir();
+    const modelPath = path.join(modelDir, `ggml-${localModel}.bin`);
+    
+    if (!fs.existsSync(modelPath)) {
+      systemLog(`Model ${localModel} not found, prompting for download`, "INFO");
+      
+      const response = await vscode.window.showInformationMessage(
+        msg("modelMissingOnModeSwitch", { model: localModel }),
+        msg("downloadNow"),
+        msg("stayInApiMode")
+      );
+      
+      if (response === msg("downloadNow")) {
+        // モデルをダウンロード
+        await downloadSingleModel(localModel, msg);
+      } else {
+        // APIモードに戻す
+        systemLog("User chose to stay in API mode", "INFO");
+        await config.update("mode", "api", vscode.ConfigurationTarget.Global);
+        vscode.window.showInformationMessage(msg("stayedInApiMode"));
+      }
+    }
+  }
+}
+
+/**
+ * 🔄 ローカルモデル変更時の処理
+ */
+async function handleLocalModelChange(context) {
+  const config = vscode.workspace.getConfiguration("voiceToText");
+  const newModel = config.get("localModel");
+  const currentMode = config.get("mode");
+  
+  systemLog(`Local model changed to: ${newModel}`, "INFO");
+  
+  // ローカルモードの場合のみチェック
+  if (currentMode === "local") {
+    const modelDir = getModelDir();
+    const modelPath = path.join(modelDir, `ggml-${newModel}.bin`);
+    
+    if (!fs.existsSync(modelPath)) {
+      systemLog(`Model ${newModel} not found, prompting for download`, "INFO");
+      
+      const response = await vscode.window.showInformationMessage(
+        msg("modelNotFoundPrompt", { model: newModel }),
+        msg("downloadNow"),
+        msg("revertSelection")
+      );
+      
+      if (response === msg("downloadNow")) {
+        // モデルをダウンロード
+        try {
+          await downloadSingleModel(newModel, msg);
+          vscode.window.showInformationMessage(
+            msg("modelDownloadComplete", { model: newModel })
+          );
+        } catch (error) {
+          systemLog(`Model download failed: ${error.message}`, "ERROR");
+          vscode.window.showErrorMessage(
+            msg("downloadFailed", { error: error.message })
+          );
+          // ダウンロード失敗時も設定を戻す
+          await revertModelSelection(context);
+        }
+      } else {
+        // 設定を元に戻す
+        await revertModelSelection(context);
+      }
+    }
+  }
+}
+
+/**
+ * 🔙 モデル選択を元に戻す
+ */
+async function revertModelSelection(context) {
+  const previousModel = context.globalState.get("previousLocalModel", "small");
+  const config = vscode.workspace.getConfiguration("voiceToText");
+  
+  systemLog(`Reverting model selection to: ${previousModel}`, "INFO");
+  await config.update("localModel", previousModel, vscode.ConfigurationTarget.Global);
+  
+  vscode.window.showInformationMessage(
+    msg("modelSelectionReverted", { model: previousModel })
+  );
+}
+
+/**
+ * 📥 単一モデルのダウンロード
+ */
+async function downloadSingleModel(modelName, msg) {
+  return new Promise((resolve, reject) => {
+    vscode.window.withProgress(
+      {
+        location: vscode.ProgressLocation.Notification,
+        title: msg("downloadingModel", { model: modelName }),
+        cancellable: false,
+      },
+      async (progress) => {
+        try {
+          const onProgress = (percent, downloadedMB, totalMB) => {
+            progress.report({
+              increment: 0, // 累積ではなく、現在の進捗を表示
+              message: `${percent}% (${downloadedMB}MB / ${totalMB}MB)`,
+            });
+          };
+          
+          await downloadModel(modelName, msg, onProgress);
+          systemLog(`Model ${modelName} downloaded successfully`, "INFO");
+          resolve();
+        } catch (error) {
+          systemLog(`Model download failed: ${error.message}`, "ERROR");
+          reject(error);
+        }
+      }
+    );
+  });
+}
+
+/**
  * 🤖 ローカルWhisper実行（whisper.cpp）
  */
 async function executeLocalWhisper(outputFile, msg) {
@@ -1129,13 +1259,27 @@ async function activate(context) {
     updateStatusBar("idle");
 
     // --- 設定変更イベントリスナー ---
+    // 現在の設定値を保存（変更前の値として使用）
+    const initialConfig = vscode.workspace.getConfiguration("voiceToText");
+    await context.globalState.update("previousLocalModel", initialConfig.get("localModel", "small"));
+    
     context.subscriptions.push(
-      vscode.workspace.onDidChangeConfiguration((e) => {
-        if (
-          e.affectsConfiguration("voiceToText.mode") ||
-          e.affectsConfiguration("voiceToText.localModel")
-        ) {
-          systemLog("Configuration changed, updating status bar", "INFO");
+      vscode.workspace.onDidChangeConfiguration(async (e) => {
+        if (e.affectsConfiguration("voiceToText.mode")) {
+          systemLog("Mode configuration changed", "INFO");
+          await handleModeChange(context);
+          updateStatusBar("idle");
+        } else if (e.affectsConfiguration("voiceToText.localModel")) {
+          systemLog("Local model configuration changed", "INFO");
+          // 変更前の値を保存してからハンドル
+          const currentConfig = vscode.workspace.getConfiguration("voiceToText");
+          const previousModel = context.globalState.get("previousLocalModel", "small");
+          await handleLocalModelChange(context);
+          // 新しい値を保存（成功した場合のみ）
+          const newModel = currentConfig.get("localModel");
+          if (newModel !== previousModel) {
+            await context.globalState.update("previousLocalModel", newModel);
+          }
           updateStatusBar("idle");
         }
       })

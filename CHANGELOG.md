@@ -2,6 +2,46 @@
 
 All notable changes to the "Voice to Text (also for Copilot Chat)" extension will be documented in this file.
 
+## [1.6.0] - 2025-10-12
+
+### 🚀 New Features
+
+- **スマートなモデル管理** / **Smart Model Management**
+  - APIモード→ローカルモード切り替え時の自動モデルダウンロード提案
+  - Auto-suggest model download when switching from API mode to Local mode
+  - ローカルモデル変更時の存在確認とダウンロード提案
+  - Verify model existence and suggest download when changing local models
+  - 失敗時の設定自動復元機能
+  - Automatic setting restoration on failure
+
+### 🌍 Internationalization
+
+- **全9言語対応** / **Full 9-Language Support**
+  - 新機能のメッセージを全言語に追加
+  - Added new feature messages to all supported languages
+  - 日本語、英語、フランス語、ドイツ語、スペイン語、イタリア語、韓国語、ロシア語、中国語
+  - Japanese, English, French, German, Spanish, Italian, Korean, Russian, Chinese
+
+### 📹 Documentation & Media
+
+- **GIF形式デモ** / **GIF Format Demos**
+  - MP4動画をGIFに変換してVS Code Marketplace対応
+  - Converted MP4 videos to GIF format for VS Code Marketplace compatibility
+  - `docs/images/` フォルダに整理
+  - Organized media files in `docs/images/` folder
+  - 全プラットフォームで表示可能
+  - Compatible display across all platforms
+
+### 🔧 Technical Improvements
+
+- **設定変更イベント強化** / **Enhanced Configuration Change Events**
+  - リアルタイムモデル存在確認
+  - Real-time model existence verification
+  - ユーザーフレンドリーなエラーハンドリング
+  - User-friendly error handling
+  - 設定値の自動バックアップ・復元
+  - Automatic configuration backup and restoration
+
 ## [1.5.2] - 2025-10-12
 
 ### 📹 Media Enhancements

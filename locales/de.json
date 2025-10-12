@@ -88,5 +88,13 @@
   "modelAlreadyExists": "Modell '{{model}}' ist bereits heruntergeladen.",
   "modelExistsOverwrite": "Modell '{{model}}' existiert bereits. Möchten Sie es überschreiben?",
   "overwriteModel": "Überschreiben",
-  "useExistingModel": "Vorhandenes Modell verwenden"
+  "useExistingModel": "Vorhandenes Modell verwenden",
+  "modelMissingOnModeSwitch": "Zum lokalen Modus gewechselt, aber Modell '{{model}}' ist nicht heruntergeladen.",
+  "downloadNow": "Jetzt herunterladen",
+  "stayInApiMode": "Im API-Modus bleiben",
+  "stayedInApiMode": "Im API-Modus geblieben.",
+  "modelNotFoundPrompt": "Ausgewähltes Modell '{{model}}' ist nicht heruntergeladen.",
+  "revertSelection": "Auswahl rückgängig machen",
+  "modelDownloadComplete": "Modell '{{model}}' Download abgeschlossen!",
+  "modelSelectionReverted": "Modellauswahl auf '{{model}}' zurückgesetzt."
 }

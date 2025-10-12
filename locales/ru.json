@@ -88,5 +88,13 @@
   "modelAlreadyExists": "Модель '{{model}}' уже загружена.",
   "modelExistsOverwrite": "Модель '{{model}}' уже существует. Хотите перезаписать её?",
   "overwriteModel": "Перезаписать",
-  "useExistingModel": "Использовать существующую модель"
+  "useExistingModel": "Использовать существующую модель",
+  "modelMissingOnModeSwitch": "Переключено в локальный режим, но модель '{{model}}' не загружена.",
+  "downloadNow": "Загрузить сейчас",
+  "stayInApiMode": "Остаться в режиме API",
+  "stayedInApiMode": "Остаюсь в режиме API.",
+  "modelNotFoundPrompt": "Выбранная модель '{{model}}' не загружена.",
+  "revertSelection": "Отменить выбор",
+  "modelDownloadComplete": "Загрузка модели '{{model}}' завершена!",
+  "modelSelectionReverted": "Выбор модели возвращен к '{{model}}'."
 }
