@@ -253,7 +253,7 @@ function updateStatusBar(state = "idle", elapsed = 0, max = 0) {
       // ボタンは両方表示、録音開始した方のみenabled（停止可能）、もう一方はdisabled
       if (activeRecordingButton === "focus") {
         // アクティブなボタン（録音中・停止可能）
-        statusBarItemFocus.text = "�Focus";
+        statusBarItemFocus.text = "🟦Focus";
         statusBarItemFocus.tooltip = `${msg("statusRecording")} - クリックで停止 [${modeLabel}]`;
         statusBarItemFocus.backgroundColor = new vscode.ThemeColor(
           "statusBarItem.warningBackground"
@@ -271,7 +271,7 @@ function updateStatusBar(state = "idle", elapsed = 0, max = 0) {
         );
       } else if (activeRecordingButton === "chat") {
         // アクティブなボタン（録音中・停止可能）
-        statusBarItemChat.text = "�Chat";
+        statusBarItemChat.text = "🟦Chat";
         statusBarItemChat.tooltip = `${msg("statusRecording")} - クリックで停止 [${modeLabel}]`;
         statusBarItemChat.backgroundColor = new vscode.ThemeColor(
           "statusBarItem.warningBackground"
