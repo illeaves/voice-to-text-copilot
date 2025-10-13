@@ -2,7 +2,7 @@
 
 _(日本語 / English)_
 
-![Version](https://img.shields.io/badge/version-1.6.8-blue.svg)\
+![Version](https://img.shields.io/badge/version-1.6.9-blue.svg)\
 ![VSCode](https://img.shields.io/badge/VS_Code-Extension-007ACC.svg)\
 ![License](https://img.shields.io/badge/license-MIT-green.svg)\
 ![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Mac%20%7C%20Linux-lightgrey.svg)
@@ -175,7 +175,7 @@ UI の言語は**9 言語対応**（日本語、英語、フランス語、ス�
 - 🔒 **クリップボード保護機能** - 貼り付け後、元のクリップボード内容を自動復元
 - 📚 **履歴機能** - 過去 10 件のテキスト化結果を保存・再利用可能
 - ⏱️ **録音時間表示** - 録音中の経過時間と残り時間をリアルタイム表示
-- � ステータスバーで録音状態をリアルタイム表示
+- 🎙 ステータスバーで録音状態をリアルタイム表示
 - 📝 アウトプットパネルでシステムログを確認可能
 - ⏱ 録音時間の上限をユーザー設定で変更可能（デフォルト 3 分）
 - 🔒 API キーは SecretStorage に暗号化保存
@@ -516,15 +516,6 @@ whisper_backend_init_gpu: found 1 CUDA devices  ← GPU検出成功!
 
 ---
 
-音声入力を実行すると、ログに以下のように表示されます:
-
-```
-Found whisper executable: <パス>
-whisper_backend_init_gpu: found 1 CUDA devices  ← GPU検出成功!
-```
-
----
-
 ### ライセンス
 
 MIT License
@@ -576,6 +567,69 @@ Dramatically improve technical term recognition accuracy! 12 preset types + cust
 - Preset only: "Web preset" alone
 - Custom only: "MyApp, CustomAPI" alone
 - **Best results**: "Web preset + MyApp, CustomAPI"
+
+### 📖 **Custom Dictionary Feature** ✨NEW
+
+Auto-replace recognized text! Support for project-specific terminology
+
+```diff
+❌ Without dictionary: "プッシュして、プルリクエストを作成..."
+✅ With dictionary:    "pushして、pull requestを作成..."
+```
+
+**Configuration Example:**
+
+```json
+{
+  "voiceToText.customDictionary": {
+    "プッシュ": "push",
+    "プル": "pull",
+    "マイアプリ": "MyApp",
+    "ユーザーサービス": "UserService"
+  }
+}
+```
+
+- Useful for katakana → English conversion
+- Centrally manage project-specific terms
+- Automatically applied after recognition (~0.01ms)
+
+### 🎤 **Filler Removal Feature** ✨
+
+Automatically remove fillers like "um", "uh", "er", etc.!
+
+```diff
+❌ Without removal: "um, this function, uh, gets user information"
+✅ With removal:    "this function gets user information"
+```
+
+- Clean and readable speech recognition results
+- Enabled by default (can be disabled in settings)
+- Perfect for meeting notes and documentation
+
+### 🚀 **VAD (Voice Activity Detection) Feature** ✨
+
+Silero-VAD automatically skips silence, improving processing speed by up to 50%!
+
+```
+📊 Real-world example:
+  Recording time: 63.7 seconds
+  → Actual speech: Only 31.2 seconds processed (48.2% reduction)
+  → Processing time: Completed in just 3 seconds!
+```
+
+- Fast processing even for long recordings
+- Enabled by default (can be disabled in settings)
+- Helps save battery
+- **v1.6.8**: Audio normalization ensures quiet speech is reliably recognized
+
+### ⚡ **CPU Thread Optimization** ✨
+
+Automatically detects CPU core count and processes with optimal thread count
+
+- Significantly improved processing speed on multi-core CPUs
+- Auto-detection (manual configuration also available)
+- Example: 16-core CPU uses 16 threads for parallel processing
 
 ### 🌍 **Translation Feature**
 
@@ -636,7 +690,7 @@ Automatically restore original clipboard content after pasting
 - 🔒 **Clipboard protection** - Automatically restores original clipboard content after pasting
 - 📚 **History feature** - Saves last 10 transcription results for reuse
 - ⏱️ **Recording timer** - Real-time display of elapsed time and remaining time during recording
-- � Real-time recording status display in status bar with mode indicator `[API]` / `[Local:Small]`
+- 🎙 Real-time recording status display in status bar with mode indicator `[API]` / `[Local:Small]`
 - 🎨 Visual feedback: spinning icon during processing, color-coded status
 - 📝 System logs available in Output panel
 - ⏱ Adjustable recording limit (default: 3 minutes, configurable 10-600 sec)

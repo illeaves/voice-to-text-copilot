@@ -1,6 +1,26 @@
-# Change Log
+# Changelog
 
 All notable changes to the "Voice to Text (also for Copilot Chat)" extension will be documented in this file.
+
+## [1.6.9] - 2025-10-14
+
+### 📝 Documentation
+
+- **README.md 英語セクション更新**
+  - カスタム辞書機能の説明を英語セクションに追加
+  - Added Custom Dictionary feature description to English section
+  - フィラー除去、VAD、CPU最適化の説明も追加
+  - Added descriptions for Filler Removal, VAD, and CPU Thread Optimization features
+
+### 🐛 Bug Fixes
+
+- **README.md 重複削除**
+  - GPU確認ログの重複説明を削除
+  - Removed duplicate GPU verification log explanation
+
+- **絵文字修正**
+  - 文字化けした絵文字 `�` を `🎙` に修正
+  - Fixed corrupted emoji characters from `�` to `🎙`
 
 ## [1.6.8] - 2025-10-14
 
