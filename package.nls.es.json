@@ -24,6 +24,7 @@
   "config.suppressNonSpeech.description": "Eliminar automáticamente muletillas (eh, um, etc.) y sonidos no verbales",
   "config.threads.description": "Número de hilos de CPU para procesamiento local (0 = detección automática)",
   "config.enableVAD.description": "Activar detección de actividad de voz para omitir silencios y mejorar velocidad",
+  "config.customDictionary.description": "Diccionario personalizado para reemplazar automáticamente texto reconocido.\n\nEjemplo: `{\"プッシュ\": \"push\", \"プル\": \"pull\", \"MiApp\": \"MiAplicación\"}`\n\n💡 **Consejo:** ¡Útil para convertir katakana a inglés o términos específicos del proyecto!",
   "command.toggle": "Whisper: iniciar / detener entrada de voz",
   "command.setApiKey": "Whisper: establecer clave API",
   "command.setupWizard": "Whisper: Ejecutar asistente de configuración",

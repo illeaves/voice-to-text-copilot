@@ -2,6 +2,47 @@
 
 All notable changes to the "Voice to Text (also for Copilot Chat)" extension will be documented in this file.
 
+## [1.6.8] - 2025-10-14
+
+### ✨ New Features
+
+- **📖 カスタム辞書機能 (Custom Dictionary)** ⭐ **目玉機能**
+  - 認識されたテキストを自動置換するユーザー定義の辞書機能
+  - User-defined dictionary for auto-replacing recognized text
+  - カタカナ → 英語変換やプロジェクト固有の用語に便利
+  - Useful for katakana→English conversion or project-specific terms
+  - 例: `{"プッシュ": "push", "プル": "pull", "マイアプリ": "MyApp"}`
+  - Example: `{"プッシュ": "push", "プル": "pull", "MyApp": "MyApplication"}`
+  - 設定: `voiceToText.customDictionary`
+  - Setting: `voiceToText.customDictionary`
+
+### 🔧 Improvements
+
+- **🔊 音量正規化 (Audio Normalization)**
+
+  - VAD 対策として録音後に自動で音量を正規化
+  - Automatically normalizes audio volume after recording for better VAD performance
+  - 静かな音声でも VAD が誤って削除しないように改善
+  - Prevents VAD from mistakenly removing quiet speech
+  - 処理時間: 約 50ms (ほぼ影響なし)
+  - Processing time: ~50ms (negligible impact)
+
+- **📝 長い音声の認識精度向上 (Better Long-Form Recognition)**
+  - `--no-timestamps`オプションを削除してタイムスタンプモードに変更
+  - Removed `--no-timestamps` option, now using timestamp mode
+  - 50 秒以上の長い音声でも全文を正確に認識
+  - Accurately recognizes full text even for 50+ second recordings
+  - セグメント処理数が 6〜9 倍に増加 (例: 118→739 runs)
+  - Segment processing increased 6-9x (e.g., 118→739 runs)
+
+### 🌍 Localization
+
+- **多言語対応強化 (Enhanced Localization)**
+  - カスタム辞書の説明を全 9 言語に追加
+  - Added custom dictionary descriptions to all 9 languages
+  - 対応言語: 日本語、英語、ドイツ語、スペイン語、フランス語、イタリア語、韓国語、ロシア語、中国語
+  - Supported languages: Japanese, English, German, Spanish, French, Italian, Korean, Russian, Chinese
+
 ## [1.6.7] - 2025-10-13
 
 ### ✨ Major Performance Features

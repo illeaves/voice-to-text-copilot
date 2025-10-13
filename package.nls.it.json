@@ -24,6 +24,7 @@
   "config.suppressNonSpeech.description": "Rimuovi automaticamente parole riempitive (ehm, uh, ecc.) e suoni non verbali",
   "config.threads.description": "Numero di thread CPU per l'elaborazione locale (0 = rilevamento automatico)",
   "config.enableVAD.description": "Attiva rilevamento attività vocale per saltare silenzi e migliorare velocità",
+  "config.customDictionary.description": "Dizionario personalizzato per sostituire automaticamente il testo riconosciuto.\n\nEsempio: `{\"プッシュ\": \"push\", \"プル\": \"pull\", \"MiaApp\": \"MiaApplicazione\"}`\n\n💡 **Suggerimento:** Utile per convertire katakana in inglese o termini specifici del progetto!",
   "command.toggle": "Whisper: avvia / interrompi input vocale",
   "command.setApiKey": "Whisper: imposta chiave API",
   "command.setupWizard": "Whisper: Esegui procedura guidata di configurazione",

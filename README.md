@@ -2,7 +2,7 @@
 
 _(日本語 / English)_
 
-![Version](https://img.shields.io/badge/version-1.6.7-blue.svg)\
+![Version](https://img.shields.io/badge/version-1.6.8-blue.svg)\
 ![VSCode](https://img.shields.io/badge/VS_Code-Extension-007ACC.svg)\
 ![License](https://img.shields.io/badge/license-MIT-green.svg)\
 ![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Mac%20%7C%20Linux-lightgrey.svg)
@@ -44,7 +44,33 @@ _(日本語 / English)_
 - カスタム単体使用: 「MyApp, CustomAPI」のみ
 - **併用で最大効果**: 「Web プリセット + MyApp, CustomAPI」
 
-### 🎤 **フィラー除去機能** ✨NEW
+### 📖 **カスタム辞書機能** ✨NEW
+
+認識されたテキストを自動置換！プロジェクト固有の用語に対応
+
+```diff
+❌ 辞書なし: "プッシュして、プルリクエストを作成..."
+✅ 辞書あり: "pushして、pull requestを作成..."
+```
+
+**設定例:**
+
+```json
+{
+  "voiceToText.customDictionary": {
+    "プッシュ": "push",
+    "プル": "pull",
+    "マイアプリ": "MyApp",
+    "ユーザーサービス": "UserService"
+  }
+}
+```
+
+- カタカナ → 英語変換に便利
+- プロジェクト固有の用語を一括管理
+- 認識後に自動適用（約 0.01ms）
+
+### 🎤 **フィラー除去機能** ✨
 
 「あー」「えー」「um」「uh」などのフィラーを自動除去！
 
@@ -57,7 +83,7 @@ _(日本語 / English)_
 - デフォルトで有効（設定で無効化可能）
 - 議事録作成やドキュメント作成に最適
 
-### 🚀 **VAD (無音検出) 機能** ✨NEW
+### 🚀 **VAD (無音検出) 機能** ✨
 
 Silero-VAD で無音部分を自動スキップ、処理速度が最大 50% 向上！
 
@@ -71,8 +97,9 @@ Silero-VAD で無音部分を自動スキップ、処理速度が最大 50% 向�
 - 長い録音でも高速処理
 - デフォルトで有効（設定で無効化可能）
 - バッテリー節約にも貢献
+- **v1.6.8**: 音量正規化で静かな音声も確実に認識
 
-### ⚡ **CPU スレッド最適化** ✨NEW
+### ⚡ **CPU スレッド最適化** ✨
 
 CPU コア数を自動検出し、最適なスレッド数で処理
 

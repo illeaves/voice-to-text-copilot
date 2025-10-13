@@ -49,4 +49,143 @@ const PROMPT_PRESETS = {
     "VS Code, extension, command palette, settings, workspace, debugger, breakpoint, terminal, IntelliSense, snippet, keybinding, task, launch configuration",
 };
 
-module.exports = { PROMPT_PRESETS };
+// ========================================
+// カタカナ技術用語 → 英語 自動変換辞書
+// ========================================
+
+/**
+ * カタカナで認識された技術用語を英語に自動変換する辞書
+ * 日本語で話しても英語表記で出力したい単語を登録
+ */
+const KATAKANA_TO_ENGLISH = {
+  // Git関連
+  ギット: "Git",
+  コミット: "commit",
+  プッシュ: "push",
+  プル: "pull",
+  ブランチ: "branch",
+  マージ: "merge",
+  リベース: "rebase",
+  チェリーピック: "cherry-pick",
+  スタッシュ: "stash",
+  チェックアウト: "checkout",
+  リセット: "reset",
+  フェッチ: "fetch",
+  クローン: "clone",
+  リモート: "remote",
+  オリジン: "origin",
+  ヘッド: "HEAD",
+  コンフリクト: "conflict",
+  プルリクエスト: "pull request",
+  プルリク: "pull request",
+  ギットハブ: "GitHub",
+  ギットラボ: "GitLab",
+
+  // Web開発
+  リアクト: "React",
+  ビュー: "Vue",
+  アングラー: "Angular",
+  タイプスクリプト: "TypeScript",
+  ジャバスクリプト: "JavaScript",
+  コンポーネント: "component",
+  プロップス: "props",
+  ステート: "state",
+  フック: "hook",
+  ユーズステート: "useState",
+  ユーズエフェクト: "useEffect",
+  フロントエンド: "frontend",
+  バックエンド: "backend",
+  エーピーアイ: "API",
+  フェッチ: "fetch",
+  アシンク: "async",
+  アウェイト: "await",
+
+  // Backend/Database
+  データベース: "database",
+  エスキューエル: "SQL",
+  モンゴディービー: "MongoDB",
+  ポストグレス: "PostgreSQL",
+  レディス: "Redis",
+  エンドポイント: "endpoint",
+  リクエスト: "request",
+  レスポンス: "response",
+  ミドルウェア: "middleware",
+  サーバー: "server",
+  オーセンティケーション: "authentication",
+  認証: "authentication",
+  オーソライゼーション: "authorization",
+  トークン: "token",
+
+  // Cloud/DevOps
+  ドッカー: "Docker",
+  クーバネティス: "Kubernetes",
+  コンテナ: "container",
+  イメージ: "image",
+  デプロイ: "deploy",
+  デプロイメント: "deployment",
+  パイプライン: "pipeline",
+  シーアイシーディー: "CI/CD",
+  アマゾンウェブサービス: "AWS",
+  アジュール: "Azure",
+  ラムダ: "Lambda",
+
+  // プログラミング一般
+  ファンクション: "function",
+  関数: "function",
+  メソッド: "method",
+  クラス: "class",
+  インターフェース: "interface",
+  インスタンス: "instance",
+  オブジェクト: "object",
+  配列: "array",
+  アレイ: "array",
+  ストリング: "string",
+  文字列: "string",
+  ナンバー: "number",
+  数値: "number",
+  ブーリアン: "boolean",
+  真偽値: "boolean",
+  ヌル: "null",
+  アンディファインド: "undefined",
+  コンスト: "const",
+  レット: "let",
+  バー: "var",
+  インポート: "import",
+  エクスポート: "export",
+  リターン: "return",
+  イフ: "if",
+  エルス: "else",
+  フォー: "for",
+  ホワイル: "while",
+  スイッチ: "switch",
+  ケース: "case",
+  ブレイク: "break",
+  トライ: "try",
+  キャッチ: "catch",
+  ファイナリー: "finally",
+  スロー: "throw",
+
+  // VS Code
+  ブイエスコード: "VS Code",
+  エクステンション: "extension",
+  拡張機能: "extension",
+  デバッガー: "debugger",
+  ブレークポイント: "breakpoint",
+  ターミナル: "terminal",
+  スニペット: "snippet",
+  ワークスペース: "workspace",
+
+  // その他
+  バージョン: "version",
+  リリース: "release",
+  バグ: "bug",
+  フィーチャー: "feature",
+  機能: "feature",
+  テスト: "test",
+  ビルド: "build",
+  ランタイム: "runtime",
+  コンパイル: "compile",
+  トランスパイル: "transpile",
+};
+
+module.exports = { PROMPT_PRESETS, KATAKANA_TO_ENGLISH };

@@ -266,6 +266,40 @@ function systemLog(message, level = "INFO") {
   if (outputChannel) outputChannel.appendLine(logMessage);
 }
 
+// ------ カスタム辞書による自動置換 ------
+
+/**
+ * カスタム辞書を使ってテキストを自動置換
+ * @param {string} text - 置換前のテキスト
+ * @returns {string} 置換後のテキスト
+ */
+function applyCustomDictionary(text) {
+  const config = vscode.workspace.getConfiguration("voiceToText");
+  const customDictionary = config.get("customDictionary", {});
+
+  if (!customDictionary || Object.keys(customDictionary).length === 0) {
+    return text;
+  }
+
+  let result = text;
+
+  // 辞書の各エントリに対して置換処理
+  for (const [search, replace] of Object.entries(customDictionary)) {
+    // 正規表現の特殊文字をエスケープ
+    const regex = new RegExp(
+      search.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"),
+      "g"
+    );
+    result = result.replace(regex, replace);
+  }
+
+  if (text !== result) {
+    systemLog(`Applied custom dictionary: "${result}"`, "INFO");
+  }
+
+  return result;
+}
+
 // ------ SOXインストールチェック ------
 
 /**
@@ -1188,7 +1222,7 @@ function startRecording(maxRecordSec) {
       soxPath = "sox"; // Windows/Linux (PATH内)
     }
 
-    // SOXで直接16kHz WAVを録音
+    // SOXで直接16kHz WAVを録音（正規化は録音後に実行）
     let soxArgs;
     if (platform === "win32") {
       soxArgs = [
@@ -1275,6 +1309,93 @@ function startRecording(maxRecordSec) {
       msg("recordingError", { error: error.message })
     );
     throw error;
+  }
+}
+
+/**
+ * 音声ファイルの音量を正規化（VAD対策）
+ * @returns {Promise<void>}
+ */
+async function normalizeAudio() {
+  console.log("🔊 Normalizing audio volume...");
+  systemLog("音量を正規化中（VAD対策）...", "INFO");
+
+  const platform = process.platform;
+  const tempOutputFile = outputFile.replace(".wav", "_norm.wav");
+
+  // 処理時間の測定開始
+  const startTime = Date.now();
+  console.time("⏱️ Audio normalization time");
+
+  try {
+    const soxPath = platform === "darwin" ? "/opt/homebrew/bin/sox" : "sox";
+    const normArgs = [outputFile, tempOutputFile, "gain", "-n"];
+
+    console.log(`🔊 Executing: ${soxPath} ${normArgs.join(" ")}`);
+    systemLog(`SOX実行: ${soxPath} ${normArgs.join(" ")}`, "INFO");
+
+    await new Promise((resolve, reject) => {
+      const normProcess = spawn(soxPath, normArgs);
+
+      normProcess.on("close", (code) => {
+        if (code === 0) {
+          const elapsedTime = Date.now() - startTime;
+          console.log(`✅ Audio normalized successfully in ${elapsedTime}ms`);
+          systemLog(`音量正規化成功 (${elapsedTime}ms)`, "INFO");
+          console.timeEnd("⏱️ Audio normalization time");
+          // 元のファイルを削除して、正規化版をリネーム
+          fs.unlinkSync(outputFile);
+          fs.renameSync(tempOutputFile, outputFile);
+          resolve();
+        } else {
+          const elapsedTime = Date.now() - startTime;
+          console.error(
+            `⚠️ SOX normalization failed with code ${code} (${elapsedTime}ms)`
+          );
+          systemLog(
+            `音量正規化失敗: コード ${code} (${elapsedTime}ms)`,
+            "WARNING"
+          );
+          console.timeEnd("⏱️ Audio normalization time");
+          // 失敗しても元のファイルは残す
+          if (fs.existsSync(tempOutputFile)) {
+            fs.unlinkSync(tempOutputFile);
+          }
+          resolve(); // エラーでも続行
+        }
+      });
+
+      normProcess.on("error", (err) => {
+        const elapsedTime = Date.now() - startTime;
+        console.error(`⚠️ SOX normalization error: ${err} (${elapsedTime}ms)`);
+        systemLog(
+          `音量正規化エラー: ${err.message} (${elapsedTime}ms)`,
+          "WARNING"
+        );
+        console.timeEnd("⏱️ Audio normalization time");
+        if (fs.existsSync(tempOutputFile)) {
+          fs.unlinkSync(tempOutputFile);
+        }
+        resolve(); // エラーでも続行
+      });
+    });
+
+    console.log(`✅ Using normalized audio file: ${outputFile}`);
+    systemLog("正規化済み音声ファイルを使用", "INFO");
+  } catch (error) {
+    const elapsedTime = Date.now() - startTime;
+    console.error(
+      `⚠️ Audio normalization failed, using original file: ${error} (${elapsedTime}ms)`
+    );
+    systemLog(
+      `音量正規化失敗、元のファイルを使用 (${elapsedTime}ms)`,
+      "WARNING"
+    );
+    console.timeEnd("⏱️ Audio normalization time");
+    // エラー時は元のファイルをそのまま使う
+    if (fs.existsSync(tempOutputFile)) {
+      fs.unlinkSync(tempOutputFile);
+    }
   }
 }
 
@@ -1396,6 +1517,9 @@ async function stopRecording() {
       fs.unlinkSync(outputFile);
       return null;
     }
+
+    // 録音後に音量を正規化（VAD対策）
+    await normalizeAudio();
 
     // ローカルモード用: WAVヘッダーを修正（whisper.cpp互換性のため）
     await fixWavHeader();
@@ -1522,7 +1646,13 @@ async function executeWhisper(outputFile) {
         res = await openai.audio.transcriptions.create(options);
       }
 
-      return res.text;
+      let result = res.text;
+      systemLog(`API response text: "${result}"`, "INFO");
+
+      // カスタム辞書による自動置換
+      result = applyCustomDictionary(result);
+
+      return result;
     } catch (e) {
       console.error("❌ Whisper API error:", e);
 
@@ -1699,7 +1829,7 @@ async function executeWhisper(outputFile) {
         finalModelPath,
         "-f",
         outputFile,
-        "--no-timestamps", // タイムスタンプなしで純粋なテキストを出力
+        // --no-timestampsを削除（長い音声の認識不良の原因）
         "--language",
         "auto",
       ];
@@ -1768,7 +1898,7 @@ async function executeWhisper(outputFile) {
 
       systemLog(`Whisper stdout length: ${stdout.length}`, "INFO");
 
-      // stdoutから純粋なテキストを抽出（ログ行を除外）
+      // stdoutから純粋なテキストを抽出（ログ行とタイムスタンプを除外）
       const lines = stdout.split("\n");
       const textLines = lines.filter((line) => {
         const trimmed = line.trim();
@@ -1785,8 +1915,23 @@ async function executeWhisper(outputFile) {
           !line.includes("samples,")
         );
       });
-      const result = textLines.join(" ").trim();
+
+      // タイムスタンプを除去（例: [00:00:00.000 --> 00:00:05.000] text）
+      let result = textLines
+        .map((line) => {
+          // タイムスタンプパターンを除去: [00:00:00.000 --> 00:00:05.000]
+          return line.replace(
+            /\[\d{2}:\d{2}:\d{2}\.\d{3}\s*-->\s*\d{2}:\d{2}:\d{2}\.\d{3}\]\s*/g,
+            ""
+          );
+        })
+        .join(" ")
+        .trim();
+
       systemLog(`Extracted text: "${result}"`, "INFO");
+
+      // カスタム辞書による自動置換
+      result = applyCustomDictionary(result);
 
       return result;
     } catch (error) {

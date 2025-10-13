@@ -24,6 +24,7 @@
   "config.suppressNonSpeech.description": "自动删除填充词（嗯、呃等）和非语音声音",
   "config.threads.description": "本地处理使用的CPU线程数（0 = 自动检测）",
   "config.enableVAD.description": "启用语音活动检测以跳过静音并提高速度",
+  "config.customDictionary.description": "用于自动替换识别文本的自定义词典。\n\n示例：`{\"プッシュ\": \"push\", \"プル\": \"pull\", \"我的应用\": \"MyApp\"}`\n\n💡 **提示：**对于将片假名转换为英语或项目特定术语很有用！",
   "command.toggle": "Whisper：开始 / 停止语音输入",
   "command.setApiKey": "Whisper：设置API密钥",
   "command.setupWizard": "Whisper：运行设置向导",

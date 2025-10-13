@@ -24,6 +24,7 @@
   "config.suppressNonSpeech.description": "Füllwörter (äh, ähm usw.) und nicht-sprachliche Geräusche automatisch entfernen",
   "config.threads.description": "Anzahl der CPU-Threads für lokale Verarbeitung (0 = automatisch erkennen)",
   "config.enableVAD.description": "Sprachaktivitätserkennung aktivieren, um Stille zu überspringen und Geschwindigkeit zu verbessern",
+  "config.customDictionary.description": "Benutzerdefiniertes Wörterbuch zum automatischen Ersetzen von erkanntem Text.\n\nBeispiel: `{\"プッシュ\": \"push\", \"プル\": \"pull\", \"MeineApp\": \"MeineAnwendung\"}`\n\n💡 **Tipp:** Nützlich für die Konvertierung von Katakana ins Englische oder projektspezifische Begriffe!",
   "command.toggle": "Whisper: Spracheingabe starten / stoppen",
   "command.setApiKey": "Whisper: API-Schlüssel festlegen",
   "command.setupWizard": "Whisper: Setup-Assistent ausführen",

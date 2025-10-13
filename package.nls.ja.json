@@ -24,6 +24,7 @@
   "config.suppressNonSpeech.description": "フィラー(「あー」「えー」など)や非言語音を自動除去",
   "config.threads.description": "ローカル処理で使用するCPUスレッド数 (0 = 自動検出)",
   "config.enableVAD.description": "無音検出を有効化して処理速度を向上",
+  "config.customDictionary.description": "認識されたテキストを自動置換するカスタム辞書。\n\n例: `{\"プッシュ\": \"push\", \"プル\": \"pull\", \"マイアプリ\": \"MyApp\"}`\n\n💡 **ヒント:** カタカナ→英語変換やプロジェクト固有の用語に便利！",
   "command.toggle": "Whisper: 音声入力の開始 / 停止",
   "command.setApiKey": "Whisper: APIキーを登録",
   "command.setupWizard": "Whisper: セットアップウィザードを実行",

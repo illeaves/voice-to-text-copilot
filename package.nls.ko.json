@@ -24,6 +24,7 @@
   "config.suppressNonSpeech.description": "자동으로 추임새(음, 어, 등)와 비언어 소리 제거",
   "config.threads.description": "로컬 처리에 사용할 CPU 스레드 수 (0 = 자동 감지)",
   "config.enableVAD.description": "음성 활동 감지를 활성화하여 무음을 건너뛰고 속도 향상",
+  "config.customDictionary.description": "인식된 텍스트를 자동으로 대체하는 사용자 지정 사전.\n\n예시: `{\"プッシュ\": \"push\", \"プル\": \"pull\", \"내앱\": \"MyApp\"}`\n\n💡 **팁:** 가타카나를 영어로 변환하거나 프로젝트 관련 용어에 유용합니다!",
   "command.toggle": "Whisper: 음성 입력 시작 / 중지",
   "command.setApiKey": "Whisper: API 키 설정",
   "command.setupWizard": "Whisper: 설정 마법사 실행",
