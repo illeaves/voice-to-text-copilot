@@ -2,6 +2,30 @@
 
 All notable changes to the "Voice to Text (also for Copilot Chat)" extension will be documented in this file.
 
+## [1.6.10] - 2025-10-22
+
+### 🐛 Bug Fixes
+
+- **Escキーバインドの競合を修正**
+  - IntelliSenseやサジェスト表示中にEscキーが拡張機能に奪われる問題を修正
+  - Fixed Esc key conflict with IntelliSense and suggestion widgets
+  - 条件を厳格化: 録音中かつサジェスト非表示時のみEscキーが有効
+  - Added conditions: `voiceToText.isRecording`, `!suggestWidgetVisible`, `!parameterHintsVisible`
+
+- **録音キャンセル時の動作を改善**
+  - Escキーで録音をキャンセルした際、音声処理がスキップされるように修正
+  - Fixed: Recording cancellation now properly skips voice processing
+  - 録音ファイルを完全に削除し、状態を完全にリセット
+  - Recording file is now deleted and all states are properly reset on cancellation
+
+### 🔧 Improvements
+
+- **コンテキストキーの実装**
+  - `voiceToText.isRecording`コンテキストキーを追加
+  - Added `voiceToText.isRecording` context key for better key binding control
+  - 録音状態をVS Codeのコンテキストシステムに統合
+  - Integrated recording state with VS Code's context system
+
 ## [1.6.9] - 2025-10-14
 
 ### 📝 Documentation

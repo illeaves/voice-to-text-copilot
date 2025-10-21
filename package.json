@@ -3,7 +3,7 @@
   "displayName": "Voice to Text (also for Copilot Chat)",
   "description": "Whisperを利用した音声入力拡張。APIモード(クラウド・高精度)とローカルモード(オフライン・無料)から選択可能。(Voice input extension with API mode [cloud, accurate] or Local mode [offline, free] using Whisper.)",
   "publisher": "aleaf",
-  "version": "1.6.9",
+  "version": "1.6.10",
   "engines": {
     "vscode": "^1.80.0"
   },
@@ -222,7 +222,7 @@
       {
         "command": "voiceToText.cancelRecording",
         "key": "escape",
-        "when": "!terminalFocus && !findInputFocussed && !renameInputVisible"
+        "when": "voiceToText.isRecording && !terminalFocus && !findInputFocussed && !renameInputVisible && !suggestWidgetVisible && !parameterHintsVisible"
       }
     ]
   },

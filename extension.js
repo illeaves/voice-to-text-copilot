@@ -31,6 +31,19 @@ let statusBarItemChat; // ステータスバー項目 (Chat)
 let statusBarItemTranslate; // ステータスバー項目 (Translation toggle)
 let outputChannel; // アウトプットチャンネル
 
+/**
+ * 録音状態をコンテキストキーに設定
+ * @param {boolean} recording - 録音中かどうか
+ */
+function setRecordingContext(recording) {
+  isRecording = recording;
+  vscode.commands.executeCommand(
+    "setContext",
+    "voiceToText.isRecording",
+    recording
+  );
+}
+
 // 録音タイマー管理
 let recordingTimer = null; // 録音時間表示用タイマー
 let recordingStartTime = null; // 録音開始時刻
@@ -1456,6 +1469,65 @@ async function fixWavHeader() {
 }
 
 /**
+ * 録音を完全にキャンセル（音声処理をスキップ）
+ * @returns {Promise<void>}
+ */
+async function cancelRecordingCompletely() {
+  console.log("🔴 Cancelling recording completely...");
+  systemLog("録音を完全にキャンセル中...", "INFO");
+
+  // 録音タイマーを停止
+  stopRecordingTimer();
+
+  // 録音タイムアウトをクリア
+  if (recordingTimeout) {
+    clearTimeout(recordingTimeout);
+    recordingTimeout = null;
+  }
+
+  // SOXプロセスを強制終了
+  if (soxProcess) {
+    try {
+      soxProcess.kill("SIGINT");
+      await new Promise((resolve) => {
+        soxProcess.on("exit", () => {
+          console.log("✅ SOX process terminated (cancelled)");
+          resolve();
+        });
+        setTimeout(resolve, 1000); // 1秒でタイムアウト
+      });
+    } catch (error) {
+      console.error("⚠️ Error stopping SOX process:", error);
+    }
+    soxProcess = null;
+  }
+
+  // 録音ファイルを削除
+  if (fs.existsSync(outputFile)) {
+    try {
+      fs.unlinkSync(outputFile);
+      console.log("🗑️ Recording file deleted");
+    } catch (error) {
+      console.error("⚠️ Error deleting recording file:", error);
+    }
+  }
+
+  // 状態をリセット
+  setRecordingContext(false);
+  isProcessing = false;
+  pasteTarget = null;
+  savedEditor = null;
+  savedPosition = null;
+  activeRecordingButton = null;
+
+  // ステータスバーを更新
+  updateStatusBar("idle");
+
+  console.log("✅ Recording cancelled completely");
+  systemLog("録音を完全にキャンセルしました", "INFO");
+}
+
+/**
  * 録音を停止してWAVファイルのパスを返す
  * @returns {Promise<string|null>} 録音されたWAVファイルのパス、またはnull
  */
@@ -1983,6 +2055,13 @@ async function activate(context) {
   // グローバル変数に保存
   extensionContext = context;
 
+  // 初期状態のコンテキストキーを設定
+  vscode.commands.executeCommand(
+    "setContext",
+    "voiceToText.isRecording",
+    false
+  );
+
   try {
     // --- アウトプットチャンネル作成 ---
     outputChannel = vscode.window.createOutputChannel(
@@ -2177,7 +2256,7 @@ function deactivate() {
 async function stopRecordingAndProcessVoice() {
   try {
     // 📍 録音状態をリセット
-    isRecording = false;
+    setRecordingContext(false);
     stopRecordingTimer(); // タイマー停止
 
     isProcessing = true;
@@ -2278,13 +2357,13 @@ async function handleToggleCommand() {
   if (!isRecording || !isCurrentlyRecording()) {
     // 録音開始
     try {
-      isRecording = true;
+      setRecordingContext(true);
       startRecordingTimer(maxSec); // タイマー開始
       updateStatusBar("recording", 0, maxSec);
       systemLog(msg("recordingStart", { seconds: maxSec }), "INFO");
       startRecording(maxSec);
     } catch (error) {
-      isRecording = false;
+      setRecordingContext(false);
       stopRecordingTimer(); // タイマー停止
       updateStatusBar("idle");
       systemLog(`Failed to start recording: ${error.message}`, "ERROR");
@@ -2347,7 +2426,7 @@ function registerCommands() {
 
             // 状態をリセット
             isProcessing = false;
-            isRecording = false;
+            setRecordingContext(false);
 
             // 録音タイマーを停止
             stopRecordingTimer();
@@ -2380,7 +2459,7 @@ function registerCommands() {
   );
 
   disposables.push(
-    vscode.commands.registerCommand("voiceToText.cancelRecording", () => {
+    vscode.commands.registerCommand("voiceToText.cancelRecording", async () => {
       // 録音・処理をキャンセル
       if (isRecording || isProcessing) {
         const action = isRecording ? "録音" : "処理";
@@ -2390,8 +2469,8 @@ function registerCommands() {
         );
 
         if (isRecording) {
-          // 録音中の場合は停止処理を実行（ただし音声処理はスキップ）
-          handleToggleCommand();
+          // 録音中の場合は完全にキャンセル（音声処理をスキップ）
+          await cancelRecordingCompletely();
         } else if (isProcessing) {
           // 処理中の場合は強制的に状態をリセット
           isProcessing = false;
